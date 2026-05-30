@@ -2,7 +2,7 @@
 
 **Defense-in-depth contra malware de supply-chain e abuso de agentes LLM em ambientes de desenvolvimento.**
 
-Versão: `2.0` · Workspace: `8.2.0` · Plataforma principal: Linux (eBPF) com fallback cross-platform · Licença: Apache 2.0
+Versão: `2.0` · Workspace: `8.2.0` · Plataforma principal: Linux (eBPF) com fallback cross-platform · Licença: AGPL-3.0 (licenciamento dual disponível)
 
 ---
 
@@ -380,7 +380,11 @@ Para contribuir com código, veja o [`CONTRIBUTING.md`](CONTRIBUTING.md). O proj
 
 ## Licença
 
-Distribuído sob a **Apache License 2.0** (veja [`LICENSE`](LICENSE)). Você pode usar, modificar e distribuir o Nemesis, inclusive comercialmente, desde que preserve os avisos de copyright e a licença. O copyright do código original permanece com o autor.
+Distribuído sob a **GNU Affero General Public License v3.0 (AGPL-3.0)** (veja [`LICENSE`](LICENSE)). Você pode usar, estudar, modificar e redistribuir o Nemesis Defender livremente — mas, sob a AGPL, **qualquer trabalho derivado ou serviço oferecido a partir dele deve ter seu código-fonte aberto sob a mesma licença**, inclusive quando o software é oferecido pela rede (como SaaS). Isso impede que terceiros peguem o código, fechem e o explorem comercialmente sem devolver as modificações à comunidade.
+
+O copyright integral do código original permanece com o autor.
+
+**Licenciamento dual / comercial.** Como autor e único detentor do copyright, ofereço **licenças comerciais separadas** para quem deseje usar o Nemesis Defender sem cumprir as obrigações da AGPL-3.0 (por exemplo, integrar em um produto proprietário fechado). Para licenciamento comercial, contate **feryamaha@hotmail.com**.
 
 ---
 

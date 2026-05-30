@@ -22,4 +22,4 @@ Esta mudança afeta a postura de segurança ou o desempenho do framework? Expliq
 - [ ] Meus commits estão assinados com DCO (`git commit -s`)
 
 ## DCO
-Ao abrir este PR, confirmo que minha contribuição será licenciada sob a **Apache License 2.0** e certifico a origem do código conforme o **Developer Certificate of Origin**.
+Ao abrir este PR, confirmo que minha contribuição será licenciada sob a **GNU AGPL v3.0** (e concedo ao mantenedor o direito de licenciamento dual, conforme o CONTRIBUTING.md) e certifico a origem do código conforme o **Developer Certificate of Origin**.

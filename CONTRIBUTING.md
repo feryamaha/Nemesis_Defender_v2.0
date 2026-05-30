@@ -1,6 +1,6 @@
-# Contribuindo para o Nemesis Framework
+# Contribuindo para o Nemesis Defender
 
-Obrigado por se interessar em contribuir com o Nemesis! Este é um projeto focado em segurança e governança determinística para desenvolvimento com IA. Para manter a robustez do software, seguimos diretrizes estritas de desenvolvimento.
+Obrigado por se interessar em contribuir com o Nemesis Defender! Este é um projeto focado em segurança e governança determinística para desenvolvimento com IA. Para manter a robustez do software, seguimos diretrizes estritas de desenvolvimento.
 
 ## Configuração do Ambiente de Desenvolvimento
 
@@ -49,8 +49,9 @@ cargo clippy --workspace -- -D warnings
 
 Ao enviar uma contribuição para este projeto, você concorda que:
 
-1. Sua contribuição será licenciada sob a mesma licença do projeto (**Apache License 2.0**).
+1. Sua contribuição será licenciada sob a mesma licença do projeto (**GNU AGPL v3.0**).
 2. Você certifica a origem do código que está enviando, conforme o **Developer Certificate of Origin (DCO)** — ou seja, declara ter o direito de submeter esse código sob a licença do projeto.
+3. Você concede ao autor/mantenedor o direito de também licenciar sua contribuição sob **licença comercial separada** (licenciamento dual). Isso é necessário porque o projeto mantém a opção de licenciamento comercial, e contribuições sob AGPL pura impediriam o mantenedor de relicenciar. Ao contribuir, você concorda com essa concessão.
 
 Para certificar, adicione a linha `Signed-off-by: Seu Nome <seu@email.com>` ao final de cada commit (use `git commit -s` para fazer isso automaticamente).
 
