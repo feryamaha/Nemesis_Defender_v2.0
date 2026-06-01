@@ -64,11 +64,18 @@ pub fn scan_bidi(content: &[u8]) -> Vec<DefenderViolation> {
                      Compiler executes hidden logic invisible on screen.",
                     cp, name
                 ),
-                suggestion: Some("Remove the BiDi character. Use only ASCII in source code files.".to_string()),
+                suggestion: Some(
+                    "Remove the BiDi character. Use only ASCII in source code files.".to_string(),
+                ),
             });
         }
 
-        if ch == '\n' { line += 1; col = 1; } else { col += 1; }
+        if ch == '\n' {
+            line += 1;
+            col = 1;
+        } else {
+            col += 1;
+        }
     }
 
     violations
@@ -110,7 +117,12 @@ pub fn scan_pua(content: &[u8]) -> Vec<DefenderViolation> {
             });
         }
 
-        if ch == '\n' { line += 1; col = 1; } else { col += 1; }
+        if ch == '\n' {
+            line += 1;
+            col = 1;
+        } else {
+            col += 1;
+        }
     }
 
     violations
@@ -194,7 +206,12 @@ pub fn scan_homoglyphs(content: &[u8]) -> Vec<DefenderViolation> {
             });
         }
 
-        if ch == '\n' { line += 1; col = 1; } else { col += 1; }
+        if ch == '\n' {
+            line += 1;
+            col = 1;
+        } else {
+            col += 1;
+        }
     }
 
     violations
@@ -222,52 +239,68 @@ pub fn scan_zero_width(content: &[u8]) -> Vec<DefenderViolation> {
             // Zero-width space
             0x200B => violations.push(DefenderViolation {
                 visitor: "unicode_zero_width".to_string(),
-                line, col,
+                line,
+                col,
                 evidence: "U+200B (Zero Width Space)".to_string(),
                 decoded: None,
-                message:
-                    "Zero-width space U+200B detected. Used in prompt injection to hide \
+                message: "Zero-width space U+200B detected. Used in prompt injection to hide \
                      instructions in plain text by making them invisible to human reviewers."
                     .to_string(),
-                suggestion: Some("Remove the zero-width character. Use only ASCII in source code files.".to_string()),
+                suggestion: Some(
+                    "Remove the zero-width character. Use only ASCII in source code files."
+                        .to_string(),
+                ),
             }),
             0x200C => violations.push(DefenderViolation {
                 visitor: "unicode_zero_width".to_string(),
-                line, col,
+                line,
+                col,
                 evidence: "U+200C (Zero Width Non-Joiner)".to_string(),
                 decoded: None,
-                message:
-                    "Zero-width non-joiner U+200C detected. Can be used to bypass \
+                message: "Zero-width non-joiner U+200C detected. Can be used to bypass \
                      text-based filters in prompt injection attacks."
                     .to_string(),
-                suggestion: Some("Remove the zero-width character. Use only ASCII in source code files.".to_string()),
+                suggestion: Some(
+                    "Remove the zero-width character. Use only ASCII in source code files."
+                        .to_string(),
+                ),
             }),
             0x200D => violations.push(DefenderViolation {
                 visitor: "unicode_zero_width".to_string(),
-                line, col,
+                line,
+                col,
                 evidence: "U+200D (Zero Width Joiner)".to_string(),
                 decoded: None,
-                message:
-                    "Zero-width joiner U+200D detected. Used in steganography to embed \
+                message: "Zero-width joiner U+200D detected. Used in steganography to embed \
                      hidden instructions within visible text."
                     .to_string(),
-                suggestion: Some("Remove the zero-width character. Use only ASCII in source code files.".to_string()),
+                suggestion: Some(
+                    "Remove the zero-width character. Use only ASCII in source code files."
+                        .to_string(),
+                ),
             }),
             0xFEFF => violations.push(DefenderViolation {
                 visitor: "unicode_zero_width".to_string(),
-                line, col,
+                line,
+                col,
                 evidence: "U+FEFF (Zero Width No-Break Space / BOM)".to_string(),
                 decoded: None,
-                message:
-                    "Zero-width no-break space U+FEFF detected. Can be used for BOM-based \
+                message: "Zero-width no-break space U+FEFF detected. Can be used for BOM-based \
                      steganography to hide prompt injection payloads."
                     .to_string(),
-                suggestion: Some("Remove the BOM/ZWBS. Use UTF-8 without BOM in source code files.".to_string()),
+                suggestion: Some(
+                    "Remove the BOM/ZWBS. Use UTF-8 without BOM in source code files.".to_string(),
+                ),
             }),
             _ => {}
         }
 
-        if ch == '\n' { line += 1; col = 1; } else { col += 1; }
+        if ch == '\n' {
+            line += 1;
+            col = 1;
+        } else {
+            col += 1;
+        }
     }
 
     violations

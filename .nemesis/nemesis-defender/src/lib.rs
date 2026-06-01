@@ -11,13 +11,13 @@
 //! - Vetor 8: self-cleaning malware
 
 pub mod language;
+pub mod reporter;
 pub mod scanner;
 pub mod visitors;
 pub mod watcher;
-pub mod reporter;
 
-use std::path::{Path, PathBuf};
 use language::detect_language;
+use std::path::{Path, PathBuf};
 
 // ─────────────────────────────────────────────
 // PUBLIC TYPES
@@ -44,29 +44,29 @@ pub enum Language {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct DefenderViolation {
     /// Identifier of the visitor that raised this violation
-    pub visitor:   String,
+    pub visitor: String,
     /// Line number (1-indexed)
-    pub line:      u32,
+    pub line: u32,
     /// Column number (1-indexed)
-    pub col:       u32,
+    pub col: u32,
     /// Raw evidence snippet from source
-    pub evidence:  String,
+    pub evidence: String,
     /// Decoded payload if this violation involved decode-then-exec
-    pub decoded:   Option<String>,
+    pub decoded: Option<String>,
     /// Human-readable explanation
-    pub message:    String,
+    pub message: String,
     /// Actionable fix suggestion shown to the developer
     pub suggestion: Option<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct DefenderResult {
-    pub severity:     Severity,
-    pub violations:   Vec<DefenderViolation>,
+    pub severity: Severity,
+    pub violations: Vec<DefenderViolation>,
     /// How many recursive decode layers were traversed (max 3)
-    pub scan_depth:   u8,
-    pub path:         PathBuf,
-    pub language:     Language,
+    pub scan_depth: u8,
+    pub path: PathBuf,
+    pub language: Language,
 }
 
 impl DefenderResult {
@@ -160,13 +160,18 @@ pub fn scan_content(path: &Path, content: &[u8]) -> DefenderResult {
     let manifest_violations = scanner::manifest_scanner::scan(path, content);
     all_violations.extend(manifest_violations);
 
+    // ── Layer 4.5: IDE config poisoning (all file types — markdown/config inspection) ──
+    let ide_violations = visitors::ide_config_poisoning::scan_ide_config(path, content);
+    all_violations.extend(ide_violations);
+
+    // ── Layer 4.6: Exfil chain (source + sink coexistence → MALICIOUS) ──
+    let exfil_chain_violations = visitors::exfil_chain::scan_content(path, content);
+    all_violations.extend(exfil_chain_violations);
+
     // ── Layer 5: AST scan (tree-sitter — semantic analysis per language) ──
     // Only for supported languages; Unknown files get bytes+regex only
     match language {
-        Language::JavaScript
-        | Language::TypeScript
-        | Language::Bash
-        | Language::Python => {
+        Language::JavaScript | Language::TypeScript | Language::Bash | Language::Python => {
             let ast_violations = scanner::ast_scanner::scan(path, content, &language);
             all_violations.extend(ast_violations);
         }
@@ -252,6 +257,10 @@ fn compute_severity(violations: &[DefenderViolation]) -> Severity {
         "denylist_malicious",
         "persistence_patterns",
         "python_import_injection",
+        "ide_config_poisoning",
+        "taint_tracker",
+        "exfil_chain",
+        "manifest_registry_redirect",
     ];
 
     let suspicious_visitors = &[

@@ -17,7 +17,7 @@
 //!   → rescan finds: url_in_exec violation
 
 use crate::{DefenderViolation, Language};
-use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
 
 const MAX_DECODE_DEPTH: u8 = 3;
 
@@ -51,25 +51,22 @@ pub fn scan_recursive(content: &[u8], depth: u8) -> (Vec<DefenderViolation>, u8)
     for (line, col, raw_string) in candidates {
         // Try each decoder in order: base64 → hex → charcode
         if let Some(decoded) = try_decode_base64(&raw_string) {
-            let (child_violations, child_depth) = rescan_decoded(
-                &decoded, &raw_string, line, col, depth + 1
-            );
+            let (child_violations, child_depth) =
+                rescan_decoded(&decoded, &raw_string, line, col, depth + 1);
             if child_depth > max_depth_reached {
                 max_depth_reached = child_depth;
             }
             violations.extend(child_violations);
         } else if let Some(decoded) = try_decode_hex(&raw_string) {
-            let (child_violations, child_depth) = rescan_decoded(
-                &decoded, &raw_string, line, col, depth + 1
-            );
+            let (child_violations, child_depth) =
+                rescan_decoded(&decoded, &raw_string, line, col, depth + 1);
             if child_depth > max_depth_reached {
                 max_depth_reached = child_depth;
             }
             violations.extend(child_violations);
         } else if let Some(decoded) = try_decode_charcode(&raw_string) {
-            let (child_violations, child_depth) = rescan_decoded(
-                &decoded, &raw_string, line, col, depth + 1
-            );
+            let (child_violations, child_depth) =
+                rescan_decoded(&decoded, &raw_string, line, col, depth + 1);
             if child_depth > max_depth_reached {
                 max_depth_reached = child_depth;
             }
@@ -110,7 +107,11 @@ fn rescan_decoded(
         hit.decoded = Some(format!("[depth {}] {}", depth, decoded));
         hit.message = format!(
             "[DECODED PAYLOAD — depth {}] {}\nOriginal encoded at line {}:{}: {}",
-            depth, hit.message, parent_line, parent_col, &original_evidence[..original_evidence.len().min(80)]
+            depth,
+            hit.message,
+            parent_line,
+            parent_col,
+            &original_evidence[..original_evidence.len().min(80)]
         );
         violations.push(hit);
     }
@@ -137,26 +138,54 @@ fn rescan_decoded(
 
 /// Commands from the deny-list that, if found in decoded payload, are MALICIOUS
 const DECODED_DENY_COMMANDS: &[&str] = &[
-    "curl ", "wget ", "nc ", "netcat ", "socat ",
-    "bash -c", "sh -c", "zsh -c",
-    "rm -rf", "rm -f",
-    "chmod ", "chown ",
-    "ssh ", "scp ", "rsync ",
-    "/etc/passwd", "/etc/shadow", "~/.ssh/",
-    "python -c", "python3 -c",
-    "eval(", "exec(", "execSync(",
-    "require('child_process')", "require(\"child_process\")",
-    "os.system(", "subprocess.run(",
-    "| bash", "| sh", "| python",
+    "curl ",
+    "wget ",
+    "nc ",
+    "netcat ",
+    "socat ",
+    "bash -c",
+    "sh -c",
+    "zsh -c",
+    "rm -rf",
+    "rm -f",
+    "chmod ",
+    "chown ",
+    "ssh ",
+    "scp ",
+    "rsync ",
+    "/etc/passwd",
+    "/etc/shadow",
+    "~/.ssh/",
+    "python -c",
+    "python3 -c",
+    "eval(",
+    "exec(",
+    "execSync(",
+    "require('child_process')",
+    "require(\"child_process\")",
+    "os.system(",
+    "subprocess.run(",
+    "| bash",
+    "| sh",
+    "| python",
     // NOVOS — pentest tools
-    "nmap ", "nikto ", "sqlmap ", "msfvenom ", "hydra ",
-    "john ", "hashcat ",
+    "nmap ",
+    "nikto ",
+    "sqlmap ",
+    "msfvenom ",
+    "hydra ",
+    "john ",
+    "hashcat ",
     // NOVOS — reverse shells
-    "nc -e ", "socat exec:", "/dev/tcp/",
+    "nc -e ",
+    "socat exec:",
+    "/dev/tcp/",
     // NOVOS — persistence
-    "crontab ", "authorized_keys",
+    "crontab ",
+    "authorized_keys",
     // NOVOS — privilege escalation
-    "linpeas", "linenum",
+    "linpeas",
+    "linenum",
 ];
 
 fn scan_decoded_for_commands(
@@ -209,13 +238,17 @@ fn extract_string_literals(text: &str) -> Vec<(u32, u32, String)> {
     while i < chars.len() {
         let ch = chars[i];
 
-        // Skip line comments // and # 
+        // Skip line comments // and #
         if ch == '/' && i + 1 < chars.len() && chars[i + 1] == '/' {
-            while i < chars.len() && chars[i] != '\n' { i += 1; }
+            while i < chars.len() && chars[i] != '\n' {
+                i += 1;
+            }
             continue;
         }
         if ch == '#' {
-            while i < chars.len() && chars[i] != '\n' { i += 1; }
+            while i < chars.len() && chars[i] != '\n' {
+                i += 1;
+            }
             continue;
         }
 
@@ -229,14 +262,21 @@ fn extract_string_literals(text: &str) -> Vec<(u32, u32, String)> {
 
             while i < chars.len() {
                 let c = chars[i];
-                if c == quote { break; }
+                if c == quote {
+                    break;
+                }
                 if c == '\\' && i + 1 < chars.len() {
                     // Skip escape sequence
-                    i += 2; col += 2;
+                    i += 2;
+                    col += 2;
                     continue;
                 }
-                if c == '\n' { line += 1; col = 1; }
-                else { col += 1; }
+                if c == '\n' {
+                    line += 1;
+                    col = 1;
+                } else {
+                    col += 1;
+                }
                 content.push(c);
                 i += 1;
             }
@@ -244,7 +284,8 @@ fn extract_string_literals(text: &str) -> Vec<(u32, u32, String)> {
             if content.len() >= 8 && content.len() <= MAX_CANDIDATE_LEN {
                 // Only add if it looks like it could be encoded (alphanum-heavy, no spaces)
                 let is_candidate = {
-                    let alphanums = content.chars()
+                    let alphanums = content
+                        .chars()
                         .filter(|c| c.is_alphanumeric() || *c == '+' || *c == '/' || *c == '=')
                         .count();
                     alphanums > content.len() * 7 / 10 // >70% alphanumeric
@@ -255,7 +296,12 @@ fn extract_string_literals(text: &str) -> Vec<(u32, u32, String)> {
             }
         }
 
-        if ch == '\n' { line += 1; col = 1; } else { col += 1; }
+        if ch == '\n' {
+            line += 1;
+            col = 1;
+        } else {
+            col += 1;
+        }
         i += 1;
     }
 
@@ -271,21 +317,23 @@ fn try_decode_base64(s: &str) -> Option<String> {
     let cleaned: String = s.chars().filter(|c| !c.is_whitespace()).collect();
 
     // Must be plausible base64: length multiple of 4 or with padding
-    if cleaned.len() < 8 { return None; }
+    if cleaned.len() < 8 {
+        return None;
+    }
 
     // Check charset: only base64 chars
-    let valid = cleaned.chars().all(|c| {
-        c.is_ascii_alphanumeric() || c == '+' || c == '/' || c == '='
-    });
-    if !valid { return None; }
+    let valid = cleaned
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '/' || c == '=');
+    if !valid {
+        return None;
+    }
 
     match BASE64.decode(&cleaned) {
-        Ok(bytes) => {
-            match String::from_utf8(bytes) {
-                Ok(s) if !s.trim().is_empty() => Some(s),
-                _ => None,
-            }
-        }
+        Ok(bytes) => match String::from_utf8(bytes) {
+            Ok(s) if !s.trim().is_empty() => Some(s),
+            _ => None,
+        },
         Err(_) => None,
     }
 }
@@ -298,10 +346,14 @@ fn try_decode_hex(s: &str) -> Option<String> {
         .replace(" ", "")
         .replace(",", "");
 
-    if cleaned.len() < 8 || cleaned.len() % 2 != 0 { return None; }
+    if cleaned.len() < 8 || cleaned.len() % 2 != 0 {
+        return None;
+    }
 
     // Must be all hex chars
-    if !cleaned.chars().all(|c| c.is_ascii_hexdigit()) { return None; }
+    if !cleaned.chars().all(|c| c.is_ascii_hexdigit()) {
+        return None;
+    }
 
     let bytes: Option<Vec<u8>> = (0..cleaned.len())
         .step_by(2)
@@ -318,7 +370,9 @@ fn try_decode_charcode(s: &str) -> Option<String> {
     // Pattern: comma-separated integers that look like ASCII char codes
     // e.g. "99,117,114,108,32,104,116,116,112" → "curl http"
     let parts: Vec<&str> = s.split(',').collect();
-    if parts.len() < 4 { return None; }
+    if parts.len() < 4 {
+        return None;
+    }
 
     let codes: Option<Vec<u8>> = parts
         .iter()
@@ -332,7 +386,9 @@ fn try_decode_charcode(s: &str) -> Option<String> {
         Some(bytes) => {
             // Must be printable ASCII range to be a command
             let all_printable = bytes.iter().all(|&b| b >= 32 && b < 127);
-            if !all_printable { return None; }
+            if !all_printable {
+                return None;
+            }
             String::from_utf8(bytes).ok()
         }
         None => None,

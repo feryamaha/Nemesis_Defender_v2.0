@@ -8,10 +8,10 @@
 //! 5. ast_scanner    — tree-sitter semantic analysis
 //! 6. decoder        — recursive payload decode + rescan (max 3 levels)
 
-pub mod byte_scanner;
-pub mod entropy;
-pub mod regex_layer;
-pub mod manifest_scanner;
 pub mod ast_scanner;
+pub mod byte_scanner;
 pub mod decoder;
 pub mod denylist_loader;
+pub mod entropy;
+pub mod manifest_scanner;
+pub mod regex_layer;

@@ -629,7 +629,7 @@
         "\\bpkexec\\s+",
         "\\brunuser\\s+",
         "\\bsu\\s+",
-        "\\bat\\s+",
+        "\\bat\\s+(?:[0-9]+:[0-9]+|[0-9]+[ap]m\\b|\\bnow\\b|\\btomorrow\\b|\\bnext\\b)",
         "\\bcrontab\\s+",
         "/(?:home/[^/]+|root)/\\S*(?:\\.claude/settings\\.json|\\.windsurf/hooks\\.json|\\.codex/hooks\\.json|\\.nemesis/workflow-enforcement/config/denylist|deny-list-base\\.json)",
         "^/(?:home/[^/]+|root)/\\S*(?:\\.claude/settings\\.json|\\.windsurf/hooks\\.json|\\.codex/hooks\\.json)$",

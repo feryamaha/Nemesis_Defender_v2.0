@@ -1,5 +1,5 @@
-use std::path::Path;
 use crate::Language;
+use std::path::Path;
 
 pub fn detect_language(path: &Path) -> Language {
     // First: extension-based detection

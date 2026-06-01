@@ -18,7 +18,10 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 
     if node.kind() == "call_expression" {
         if node_text.contains("setTimeout") || node_text.contains("setInterval") {
-            if node_text.contains("eval") || node_text.contains("exec") || node_text.contains("fetch") {
+            if node_text.contains("eval")
+                || node_text.contains("exec")
+                || node_text.contains("fetch")
+            {
                 violations.push(DefenderViolation {
                     visitor: "time_gated".to_string(),
                     line: (node.start_position().row + 1) as u32,
@@ -40,7 +43,9 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
                 col: (node.start_position().column + 1) as u32,
                 evidence: node_text.to_string(),
                 decoded: None,
-                message: "Date-gated execution with exec/eval. Payload activates after specific date.".to_string(),
+                message:
+                    "Date-gated execution with exec/eval. Payload activates after specific date."
+                        .to_string(),
                 suggestion: Some(SUGGESTION_TIME_GATED.to_string()),
             });
         }
@@ -74,7 +79,9 @@ pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 
     let node_text = node.utf8_text(source.as_bytes()).unwrap_or("");
 
-    if node_text.contains("time.sleep") && (node_text.contains("exec") || node_text.contains("eval")) {
+    if node_text.contains("time.sleep")
+        && (node_text.contains("exec") || node_text.contains("eval"))
+    {
         violations.push(DefenderViolation {
             visitor: "time_gated".to_string(),
             line: (node.start_position().row + 1) as u32,

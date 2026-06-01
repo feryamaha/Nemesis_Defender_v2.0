@@ -17,7 +17,9 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     let node_text = node.utf8_text(source.as_bytes()).unwrap_or("");
 
     if node.kind() == "call_expression" {
-        if (node_text.contains("unlink") || node_text.contains("unlinkSync")) && node_text.contains("__filename") {
+        if (node_text.contains("unlink") || node_text.contains("unlinkSync"))
+            && node_text.contains("__filename")
+        {
             violations.push(DefenderViolation {
                 visitor: "self_clean".to_string(),
                 line: (node.start_position().row + 1) as u32,
@@ -54,7 +56,9 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
         });
     }
 
-    if node_text.contains("rm -rf") && (node_text.contains(".bashrc") || node_text.contains(".zshrc")) {
+    if node_text.contains("rm -rf")
+        && (node_text.contains(".bashrc") || node_text.contains(".zshrc"))
+    {
         violations.push(DefenderViolation {
             visitor: "self_clean".to_string(),
             line: (node.start_position().row + 1) as u32,
@@ -66,7 +70,11 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
         });
     }
 
-    if node_text.contains("rm -rf") && (node_text.contains("Date") || node_text.contains("token") || node_text.contains("expir")) {
+    if node_text.contains("rm -rf")
+        && (node_text.contains("Date")
+            || node_text.contains("token")
+            || node_text.contains("expir"))
+    {
         violations.push(DefenderViolation {
             visitor: "self_clean".to_string(),
             line: (node.start_position().row + 1) as u32,
@@ -93,7 +101,8 @@ pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
             col: (node.start_position().column + 1) as u32,
             evidence: node_text.to_string(),
             decoded: None,
-            message: "Shell self-deletion: rm with $0. Script deletes itself after execution.".to_string(),
+            message: "Shell self-deletion: rm with $0. Script deletes itself after execution."
+                .to_string(),
             suggestion: Some(SUGGESTION_SELF_CLEAN.to_string()),
         });
     }
@@ -105,12 +114,16 @@ pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
             col: (node.start_position().column + 1) as u32,
             evidence: node_text.to_string(),
             decoded: None,
-            message: "Home directory destruction: rm -rf ~ in shell script. Dead man's switch pattern.".to_string(),
+            message:
+                "Home directory destruction: rm -rf ~ in shell script. Dead man's switch pattern."
+                    .to_string(),
             suggestion: Some(SUGGESTION_SELF_CLEAN.to_string()),
         });
     }
 
-    if node_text.contains("rm -rf") && (node_text.contains(".bashrc") || node_text.contains(".zshrc")) {
+    if node_text.contains("rm -rf")
+        && (node_text.contains(".bashrc") || node_text.contains(".zshrc"))
+    {
         violations.push(DefenderViolation {
             visitor: "self_clean".to_string(),
             line: (node.start_position().row + 1) as u32,
@@ -131,14 +144,17 @@ pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     let node_text = node.utf8_text(source.as_bytes()).unwrap_or("");
 
     if node.kind() == "call_expression" {
-        if (node_text.contains("remove") || node_text.contains("unlink")) && node_text.contains("__file__") {
+        if (node_text.contains("remove") || node_text.contains("unlink"))
+            && node_text.contains("__file__")
+        {
             violations.push(DefenderViolation {
                 visitor: "self_clean".to_string(),
                 line: (node.start_position().row + 1) as u32,
                 col: (node.start_position().column + 1) as u32,
                 evidence: node_text.to_string(),
                 decoded: None,
-                message: "Python self-deletion: os.remove(__file__). Malware deletes itself.".to_string(),
+                message: "Python self-deletion: os.remove(__file__). Malware deletes itself."
+                    .to_string(),
                 suggestion: Some(SUGGESTION_SELF_CLEAN.to_string()),
             });
         }

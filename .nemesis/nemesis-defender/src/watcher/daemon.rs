@@ -16,14 +16,20 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::time::SystemTime;
 
-use crate::{DefenderResult, DefenderViolation, Language, reporter, scan_content, Severity};
-use crate::watcher::{WATCH_PATHS, SYSTEM_WATCH_PATHS, SUSPICIOUS_FILE_NAMES, SUSPICIOUS_EXTENSIONS};
+use crate::watcher::{
+    SUSPICIOUS_EXTENSIONS, SUSPICIOUS_FILE_NAMES, SYSTEM_WATCH_PATHS, WATCH_PATHS,
+};
+use crate::{reporter, scan_content, DefenderResult, DefenderViolation, Language, Severity};
 
 // Session awareness for multi-turn attack detection
 static mut SESSION_BUFFER: Option<SessionBuffer> = None;
 
 fn get_session_buffer_mut() -> &'static mut SessionBuffer {
-    unsafe { SESSION_BUFFER.as_mut().expect("Session buffer not initialized") }
+    unsafe {
+        SESSION_BUFFER
+            .as_mut()
+            .expect("Session buffer not initialized")
+    }
 }
 
 fn get_home() -> Option<PathBuf> {
@@ -33,8 +39,8 @@ fn get_home() -> Option<PathBuf> {
 // Session awareness for multi-turn attack detection
 const MAX_SESSION_EVENTS: usize = 50;
 const ESCALATION_WINDOW_SECS: u64 = 300; // 5 minutes
-const ALERT_COOLDOWN_SECS:    u64 = 60;  // mesmo tipo nao re-dispara por 60s
-const BRUTE_FORCE_THRESHOLD:  usize = 5; // apenas risk_level==2 conta
+const ALERT_COOLDOWN_SECS: u64 = 60; // mesmo tipo nao re-dispara por 60s
+const BRUTE_FORCE_THRESHOLD: usize = 5; // apenas risk_level==2 conta
 
 #[derive(Clone, Debug)]
 struct SessionEvent {
@@ -67,7 +73,9 @@ impl SessionBuffer {
 
     fn detect_escalation(&mut self) -> Option<String> {
         let now = SystemTime::now();
-        let window: Vec<&SessionEvent> = self.events.iter()
+        let window: Vec<&SessionEvent> = self
+            .events
+            .iter()
             .filter(|e| {
                 now.duration_since(e.timestamp)
                     .map(|d| d.as_secs() < ESCALATION_WINDOW_SECS)
@@ -76,36 +84,47 @@ impl SessionBuffer {
             .collect();
 
         // Pattern 1: Read sensivel → Bash com rede
-        let read_sensitive = window.iter()
+        let read_sensitive = window
+            .iter()
             .any(|e| e.tool_type == "Read" && is_sensitive_target(&e.target));
-        let network_after = window.iter()
+        let network_after = window
+            .iter()
             .any(|e| e.tool_type == "Bash" && has_network_command(&e.target));
 
         if read_sensitive && network_after && self.can_alert("ESCALATION", &now) {
             self.last_alert.insert("ESCALATION".into(), now);
-            return Some("ESCALATION: leitura de arquivo sensivel seguida de comando de rede".into());
+            return Some(
+                "ESCALATION: leitura de arquivo sensivel seguida de comando de rede".into(),
+            );
         }
 
         // Pattern 2: Brute force — apenas risk_level==2 (malicious) conta
-        let blocked_count = window.iter()
+        let blocked_count = window
+            .iter()
             .filter(|e| e.blocked && e.risk_level == 2)
             .count();
         if blocked_count >= BRUTE_FORCE_THRESHOLD && self.can_alert("BRUTE_FORCE", &now) {
             self.last_alert.insert("BRUTE_FORCE".into(), now);
-            return Some(format!("BRUTE FORCE: {} tentativas maliciosas bloqueadas em {} segundos",
-                blocked_count, ESCALATION_WINDOW_SECS));
+            return Some(format!(
+                "BRUTE FORCE: {} tentativas maliciosas bloqueadas em {} segundos",
+                blocked_count, ESCALATION_WINDOW_SECS
+            ));
         }
 
         // Pattern 3: Recon — acesso progressivo a diretorios
-        let unique_dirs: std::collections::HashSet<String> = window.iter()
+        let unique_dirs: std::collections::HashSet<String> = window
+            .iter()
             .filter(|e| e.tool_type == "Read" || e.tool_type == "ListDir")
             .map(|e| extract_parent_dir(&e.target))
             .filter(|d| !d.is_empty())
             .collect();
         if unique_dirs.len() >= 8 && self.can_alert("RECON", &now) {
             self.last_alert.insert("RECON".into(), now);
-            return Some(format!("RECON: acesso a {} diretorios distintos em {} segundos",
-                unique_dirs.len(), ESCALATION_WINDOW_SECS));
+            return Some(format!(
+                "RECON: acesso a {} diretorios distintos em {} segundos",
+                unique_dirs.len(),
+                ESCALATION_WINDOW_SECS
+            ));
         }
 
         None
@@ -114,7 +133,8 @@ impl SessionBuffer {
     fn can_alert(&self, kind: &str, now: &SystemTime) -> bool {
         match self.last_alert.get(kind) {
             None => true,
-            Some(last) => now.duration_since(*last)
+            Some(last) => now
+                .duration_since(*last)
                 .map(|d| d.as_secs() >= ALERT_COOLDOWN_SECS)
                 .unwrap_or(true),
         }
@@ -124,20 +144,40 @@ impl SessionBuffer {
 // Helper functions for session analysis
 fn is_sensitive_target(target: &str) -> bool {
     let sensitive_patterns = [
-        ".env", ".env.", "id_rsa", "id_dsa", "id_ecdsa", "id_ed25519",
-        ".aws/", ".azure/", ".gcp/", "service-account", "secrets",
-        "credentials", "passwd", "shadow", ".npmrc", ".yarnrc",
-        ".pypirc", ".cargo/", ".netrc", ".pgpass"
+        ".env",
+        ".env.",
+        "id_rsa",
+        "id_dsa",
+        "id_ecdsa",
+        "id_ed25519",
+        ".aws/",
+        ".azure/",
+        ".gcp/",
+        "service-account",
+        "secrets",
+        "credentials",
+        "passwd",
+        "shadow",
+        ".npmrc",
+        ".yarnrc",
+        ".pypirc",
+        ".cargo/",
+        ".netrc",
+        ".pgpass",
     ];
-    sensitive_patterns.iter().any(|&pattern| target.contains(pattern))
+    sensitive_patterns
+        .iter()
+        .any(|&pattern| target.contains(pattern))
 }
 
 fn has_network_command(target: &str) -> bool {
     let network_patterns = [
-        "curl", "wget", "http", "ftp", "ssh", "scp", "rsync",
-        "nc ", "netcat", "telnet", "ftp ", "tftp"
+        "curl", "wget", "http", "ftp", "ssh", "scp", "rsync", "nc ", "netcat", "telnet", "ftp ",
+        "tftp",
     ];
-    network_patterns.iter().any(|&pattern| target.contains(pattern))
+    network_patterns
+        .iter()
+        .any(|&pattern| target.contains(pattern))
 }
 
 fn extract_parent_dir(path: &str) -> String {
@@ -145,7 +185,8 @@ fn extract_parent_dir(path: &str) -> String {
     Path::new(path)
         .parent()
         .and_then(|p| p.to_str())
-        .unwrap_or("").to_string()
+        .unwrap_or("")
+        .to_string()
 }
 
 fn maybe_rotate_session_log(path: &Path) {
@@ -185,9 +226,9 @@ fn poll_session_events(session_path: &Path, last_pos: &mut u64) -> Vec<SessionEv
                 events.push(SessionEvent {
                     timestamp: ts,
                     tool_type: parsed["tool"].as_str().unwrap_or("Unknown").to_string(),
-                    target:    parsed["target"].as_str().unwrap_or("").to_string(),
+                    target: parsed["target"].as_str().unwrap_or("").to_string(),
                     risk_level: parsed["risk"].as_u64().unwrap_or(0) as u8,
-                    blocked:   parsed["blocked"].as_bool().unwrap_or(false),
+                    blocked: parsed["blocked"].as_bool().unwrap_or(false),
                 });
             }
         }
@@ -203,9 +244,7 @@ fn is_project_path(path: &Path, cwd: &Path) -> bool {
 }
 
 fn should_scan_tmp_file(path: &Path) -> bool {
-    let name = path.file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("");
+    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
 
     // Extensoes suspeitas
     if SUSPICIOUS_EXTENSIONS.iter().any(|ext| name.ends_with(ext)) {
@@ -232,7 +271,10 @@ pub fn run() {
         SESSION_BUFFER = Some(SessionBuffer::new());
     }
 
-    eprintln!("[nemesis-defender] Daemon starting — watching {} path groups", WATCH_PATHS.len());
+    eprintln!(
+        "[nemesis-defender] Daemon starting — watching {} path groups",
+        WATCH_PATHS.len()
+    );
 
     let (tx, rx) = mpsc::channel::<notify::Result<Event>>();
 
@@ -259,7 +301,11 @@ pub fn run() {
                     watched_count += 1;
                 }
                 Err(e) => {
-                    eprintln!("[nemesis-defender] Warning: cannot watch {}: {}", full_path.display(), e);
+                    eprintln!(
+                        "[nemesis-defender] Warning: cannot watch {}: {}",
+                        full_path.display(),
+                        e
+                    );
                 }
             }
         }
@@ -272,11 +318,18 @@ pub fn run() {
             if full_path.exists() {
                 match watcher.watch(&full_path, RecursiveMode::Recursive) {
                     Ok(_) => {
-                        eprintln!("[nemesis-defender] Watching (system): {}", full_path.display());
+                        eprintln!(
+                            "[nemesis-defender] Watching (system): {}",
+                            full_path.display()
+                        );
                         watched_count += 1;
                     }
                     Err(e) => {
-                        eprintln!("[nemesis-defender] Warning: cannot watch {}: {}", full_path.display(), e);
+                        eprintln!(
+                            "[nemesis-defender] Warning: cannot watch {}: {}",
+                            full_path.display(),
+                            e
+                        );
                     }
                 }
             }
@@ -289,7 +342,10 @@ pub fn run() {
             if full_path.exists() {
                 match watcher.watch(&full_path, RecursiveMode::NonRecursive) {
                     Ok(_) => {
-                        eprintln!("[nemesis-defender] Watching (shell config): {}", full_path.display());
+                        eprintln!(
+                            "[nemesis-defender] Watching (shell config): {}",
+                            full_path.display()
+                        );
                         watched_count += 1;
                     }
                     Err(_) => {} // arquivo unico pode falhar — ignorar
@@ -318,7 +374,10 @@ pub fn run() {
         eprintln!("[nemesis-defender] To restore filesystem monitoring: sudo sysctl -w fs.inotify.max_user_watches=524288");
     }
 
-    eprintln!("[nemesis-defender] Iron Dome active — watching {} inotify paths", watched_count);
+    eprintln!(
+        "[nemesis-defender] Iron Dome active — watching {} inotify paths",
+        watched_count
+    );
 
     let session_events_path = cwd.join(".nemesis/logs/session-events.jsonl");
     let mut session_file_pos: u64 = 0;
@@ -328,8 +387,8 @@ pub fn run() {
     loop {
         match rx.recv_timeout(poll_interval) {
             Ok(Ok(event)) => handle_event(event, &cwd),
-            Ok(Err(e))    => eprintln!("[nemesis-defender] Watch error: {}", e),
-            Err(_)        => {} // timeout — fall through to session poll
+            Ok(Err(e)) => eprintln!("[nemesis-defender] Watch error: {}", e),
+            Err(_) => {} // timeout — fall through to session poll
         }
 
         maybe_rotate_session_log(&session_events_path);
@@ -337,8 +396,12 @@ pub fn run() {
         for ev in pretool_events {
             let buffer = get_session_buffer_mut();
             buffer.push(ev);
-            if let Some(msg) = buffer.detect_escalation() { // &mut self — inclui cooldown
-                eprintln!("[nemesis-defender] 🚨 MULTI-TURN ESCALATION DETECTED: {}", msg);
+            if let Some(msg) = buffer.detect_escalation() {
+                // &mut self — inclui cooldown
+                eprintln!(
+                    "[nemesis-defender] 🚨 MULTI-TURN ESCALATION DETECTED: {}",
+                    msg
+                );
                 let _ = reporter::log_escalation(&msg);
             }
         }
@@ -358,7 +421,9 @@ fn handle_event(event: Event, cwd: &Path) {
 
     for path in event.paths {
         // Skip directories
-        if path.is_dir() { continue; }
+        if path.is_dir() {
+            continue;
+        }
 
         // Skip .nemesis/logs/ (our own log files — avoid feedback loop)
         if path.components().any(|c| c.as_os_str() == ".nemesis")
@@ -368,10 +433,14 @@ fn handle_event(event: Event, cwd: &Path) {
         }
 
         // Skip binary files by extension
-        if should_skip_extension(&path) { continue; }
+        if should_skip_extension(&path) {
+            continue;
+        }
 
         // Skip paths isentos (pentests, documentação de teste)
-        if crate::is_path_excluded(&path) { continue; }
+        if crate::is_path_excluded(&path) {
+            continue;
+        }
 
         // /tmp/ filter: only scan suspicious files
         if path.starts_with("/tmp") && !should_scan_tmp_file(&path) {
@@ -393,10 +462,10 @@ fn handle_event(event: Event, cwd: &Path) {
         };
 
         // Check if this would be blocked (for tracking blocked attempts)
-        let blocked = matches!(result.severity, Severity::Malicious) &&
-                     is_project_path(&path, cwd) &&
-                     !path.to_string_lossy().contains("/.nemesis/") &&
-                     !path.to_string_lossy().ends_with("/.nemesis");
+        let blocked = matches!(result.severity, Severity::Malicious)
+            && is_project_path(&path, cwd)
+            && !path.to_string_lossy().contains("/.nemesis/")
+            && !path.to_string_lossy().ends_with("/.nemesis");
 
         // Add event to session buffer
         let event = SessionEvent {
@@ -472,13 +541,15 @@ fn scan_file_return_result(path: &Path, cwd: &Path) -> DefenderResult {
 
     let content = match std::fs::read(path) {
         Ok(c) => c,
-        Err(_) => return DefenderResult {
-            violations: Vec::new(),
-            severity: Severity::Clean,
-            scan_depth: 0,
-            path: path.to_path_buf(),
-            language: Language::Unknown,
-        }, // File may have been deleted already — ignore
+        Err(_) => {
+            return DefenderResult {
+                violations: Vec::new(),
+                severity: Severity::Clean,
+                scan_depth: 0,
+                path: path.to_path_buf(),
+                language: Language::Unknown,
+            }
+        } // File may have been deleted already — ignore
     };
 
     // Skip large files (> 1MB) — not typical for source/skill files
@@ -529,8 +600,9 @@ fn scan_file(path: &Path, cwd: &Path) {
 
             if is_project_path(path, cwd) {
                 // PROTECAO: NAO deletar nenhum arquivo dentro de .nemesis/
-                if path.to_string_lossy().contains("/.nemesis/") ||
-                   path.to_string_lossy().ends_with("/.nemesis") {
+                if path.to_string_lossy().contains("/.nemesis/")
+                    || path.to_string_lossy().ends_with("/.nemesis")
+                {
                     let prefix = if dry_run { "[DRY-RUN] " } else { "" };
                     eprintln!(
                         "[nemesis-defender] {}██ BLOCKED (Nemesis infrastructure protected): {} — {} violation(s)",
@@ -555,7 +627,11 @@ fn scan_file(path: &Path, cwd: &Path) {
                         let removed = std::fs::remove_file(path).is_ok();
                         eprintln!(
                             "[nemesis-defender] ██ BLOCKED{}: {} — {} violation(s)",
-                            if removed { " + REMOVED" } else { " (removal failed — manual action required)" },
+                            if removed {
+                                " + REMOVED"
+                            } else {
+                                " (removal failed — manual action required)"
+                            },
                             path.display(),
                             result.violations.len()
                         );
@@ -574,11 +650,12 @@ fn scan_file(path: &Path, cwd: &Path) {
                 eprintln!("  ⚠️  Path de sistema — remova manualmente se necessario.");
             }
 
-            eprintln!(
-                "[nemesis-defender] Full report: .nemesis/logs/defender.log"
-            );
+            eprintln!("[nemesis-defender] Full report: .nemesis/logs/defender.log");
             for v in &result.violations {
-                eprintln!("  ├─ [{}] Line {}:{} — {}", v.visitor, v.line, v.col, v.message);
+                eprintln!(
+                    "  ├─ [{}] Line {}:{} — {}",
+                    v.visitor, v.line, v.col, v.message
+                );
                 if let Some(decoded) = &v.decoded {
                     let preview = &decoded[..decoded.len().min(100)];
                     eprintln!("  │   Decoded: {}...", preview);
@@ -590,10 +667,8 @@ fn scan_file(path: &Path, cwd: &Path) {
 
 fn should_skip_extension(path: &Path) -> bool {
     let skip_exts = &[
-        "png", "jpg", "jpeg", "gif", "webp", "ico", "svg",
-        "woff", "woff2", "ttf", "eot",
-        "zip", "tar", "gz", "br",
-        "lock", // bun.lockb, package-lock.json
+        "png", "jpg", "jpeg", "gif", "webp", "ico", "svg", "woff", "woff2", "ttf", "eot", "zip",
+        "tar", "gz", "br", "lock", // bun.lockb, package-lock.json
         "map",  // source maps
     ];
 

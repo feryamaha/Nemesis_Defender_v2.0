@@ -28,7 +28,9 @@ static DENYLIST_CACHE: OnceLock<Option<DenyListConfig>> = OnceLock::new();
 /// Resolve the path to denylist-defender.json
 /// Tries multiple paths to handle different execution contexts.
 fn resolve_config_path() -> Option<PathBuf> {
-    let config_rel = ["config", "denylist-defender.json"].iter().collect::<PathBuf>();
+    let config_rel = ["config", "denylist-defender.json"]
+        .iter()
+        .collect::<PathBuf>();
 
     // Try 1: relative to the binary location (works regardless of CWD)
     // Binary at: .nemesis/target/release/nemesis-pretool-check-unix
@@ -73,7 +75,6 @@ fn resolve_config_path() -> Option<PathBuf> {
     if from_project.exists() {
         return Some(from_project);
     }
-
 
     None
 }

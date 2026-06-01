@@ -66,7 +66,8 @@ fn extract_string_candidates(content: &[u8]) -> Vec<(u32, u32, Vec<u8>)> {
                 if chars[i] == '\n' {
                     // Multi-line string (template literal) — still collect
                     content_bytes.push(b'\n');
-                    line += 1; col = 1;
+                    line += 1;
+                    col = 1;
                 } else {
                     let mut buf = [0u8; 4];
                     let s = chars[i].encode_utf8(&mut buf);
@@ -82,7 +83,12 @@ fn extract_string_candidates(content: &[u8]) -> Vec<(u32, u32, Vec<u8>)> {
             }
         }
 
-        if ch == '\n' { line += 1; col = 1; } else { col += 1; }
+        if ch == '\n' {
+            line += 1;
+            col = 1;
+        } else {
+            col += 1;
+        }
         i += 1;
     }
 
@@ -99,7 +105,13 @@ pub fn scan_high_entropy(content: &[u8]) -> Vec<DefenderViolation> {
             let preview: String = candidate
                 .iter()
                 .take(60)
-                .map(|&b| if b.is_ascii_graphic() || b == b' ' { b as char } else { '.' })
+                .map(|&b| {
+                    if b.is_ascii_graphic() || b == b' ' {
+                        b as char
+                    } else {
+                        '.'
+                    }
+                })
                 .collect();
 
             violations.push(DefenderViolation {

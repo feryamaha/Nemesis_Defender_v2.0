@@ -26,12 +26,16 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
                 evidence: node_text.to_string(),
                 decoded: None,
                 message: "Base64 decode (atob) passed directly to eval. \
-                         Classic obfuscation: hidden command decoded at runtime.".to_string(),
+                         Classic obfuscation: hidden command decoded at runtime."
+                    .to_string(),
                 suggestion: Some(SUGGESTION_DECODE_EXEC.to_string()),
             });
         }
 
-        if node_text.contains("eval") && node_text.contains("Buffer.from") && node_text.contains("base64") {
+        if node_text.contains("eval")
+            && node_text.contains("Buffer.from")
+            && node_text.contains("base64")
+        {
             violations.push(DefenderViolation {
                 visitor: "decode_exec".to_string(),
                 line: (node.start_position().row + 1) as u32,
@@ -39,13 +43,18 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
                 evidence: node_text.to_string(),
                 decoded: None,
                 message: "Buffer.from with base64 encoding passed to eval. \
-                         Node.js obfuscation pattern for hiding commands.".to_string(),
+                         Node.js obfuscation pattern for hiding commands."
+                    .to_string(),
                 suggestion: Some(SUGGESTION_DECODE_EXEC.to_string()),
             });
         }
 
-        if (node_text.contains("exec") || node_text.contains("execSync") || node_text.contains("spawnSync"))
-            && node_text.contains("Buffer.from") && node_text.contains("base64") {
+        if (node_text.contains("exec")
+            || node_text.contains("execSync")
+            || node_text.contains("spawnSync"))
+            && node_text.contains("Buffer.from")
+            && node_text.contains("base64")
+        {
             violations.push(DefenderViolation {
                 visitor: "decode_exec".to_string(),
                 line: (node.start_position().row + 1) as u32,
@@ -53,7 +62,8 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
                 evidence: node_text.to_string(),
                 decoded: None,
                 message: "Base64-decoded buffer passed to exec/spawn. \
-                         Shell command hidden in Base64 payload.".to_string(),
+                         Shell command hidden in Base64 payload."
+                    .to_string(),
                 suggestion: Some(SUGGESTION_DECODE_EXEC.to_string()),
             });
         }
@@ -88,7 +98,8 @@ pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
             evidence: node_text.to_string(),
             decoded: None,
             message: "Base64 decode piped to shell execution. \
-                     Classic one-liner malware: base64 payload decoded and executed.".to_string(),
+                     Classic one-liner malware: base64 payload decoded and executed."
+                .to_string(),
             suggestion: Some(SUGGESTION_DECODE_EXEC.to_string()),
         });
     }
@@ -109,7 +120,8 @@ pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
             evidence: node_text.to_string(),
             decoded: None,
             message: "Base64 decode passed to exec/eval. \
-                     Python obfuscation pattern for hiding malicious code.".to_string(),
+                     Python obfuscation pattern for hiding malicious code."
+                .to_string(),
             suggestion: Some(SUGGESTION_DECODE_EXEC.to_string()),
         });
     }

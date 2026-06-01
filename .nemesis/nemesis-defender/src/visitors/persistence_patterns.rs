@@ -19,8 +19,10 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 
     if node.kind() == "call_expression" {
         if node_text.contains("appendFile") || node_text.contains("writeFile") {
-            if node_text.contains(".bashrc") || node_text.contains(".zshrc")
-                || node_text.contains(".profile") || node_text.contains("authorized_keys")
+            if node_text.contains(".bashrc")
+                || node_text.contains(".zshrc")
+                || node_text.contains(".profile")
+                || node_text.contains("authorized_keys")
             {
                 violations.push(DefenderViolation {
                     visitor: "persistence_patterns".to_string(),
@@ -36,8 +38,10 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     }
 
     if node.kind() == "call_expression" {
-        if (node_text.contains("exec") || node_text.contains("execSync")
-            || node_text.contains("spawn") || node_text.contains("execFile"))
+        if (node_text.contains("exec")
+            || node_text.contains("execSync")
+            || node_text.contains("spawn")
+            || node_text.contains("execFile"))
             && (node_text.contains("crontab") || node_text.contains("@reboot"))
         {
             violations.push(DefenderViolation {
@@ -60,20 +64,27 @@ pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 
     let node_text = node.utf8_text(source.as_bytes()).unwrap_or("");
 
-    if node_text.contains("crontab") && (node_text.contains("-e") || node_text.contains("-l") || node_text.contains("-r")) {
+    if node_text.contains("crontab")
+        && (node_text.contains("-e") || node_text.contains("-l") || node_text.contains("-r"))
+    {
         violations.push(DefenderViolation {
             visitor: "persistence_patterns".to_string(),
             line: (node.start_position().row + 1) as u32,
             col: (node.start_position().column + 1) as u32,
             evidence: node_text.to_string(),
             decoded: None,
-            message: "Persistence mechanism: crontab command used to schedule malicious task execution.".to_string(),
+            message:
+                "Persistence mechanism: crontab command used to schedule malicious task execution."
+                    .to_string(),
             suggestion: Some(SUGGESTION_PERSIST.to_string()),
         });
     }
 
-    if (node_text.contains(">>") || node_text.contains(">")) && !node_text.contains("stdout")
-        && (node_text.contains(".bashrc") || node_text.contains(".zshrc") || node_text.contains(".profile"))
+    if (node_text.contains(">>") || node_text.contains(">"))
+        && !node_text.contains("stdout")
+        && (node_text.contains(".bashrc")
+            || node_text.contains(".zshrc")
+            || node_text.contains(".profile"))
     {
         violations.push(DefenderViolation {
             visitor: "persistence_patterns".to_string(),
@@ -86,7 +97,9 @@ pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
         });
     }
 
-    if node_text.contains("authorized_keys") && (node_text.contains("echo") || node_text.contains("cat") || node_text.contains(">>")) {
+    if node_text.contains("authorized_keys")
+        && (node_text.contains("echo") || node_text.contains("cat") || node_text.contains(">>"))
+    {
         violations.push(DefenderViolation {
             visitor: "persistence_patterns".to_string(),
             line: (node.start_position().row + 1) as u32,
@@ -134,8 +147,10 @@ pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 
     if node.kind() == "call_expression" {
         if node_text.contains("open(") || node_text.contains("open (") {
-            if node_text.contains(".bashrc") || node_text.contains(".zshrc")
-                || node_text.contains(".profile") || node_text.contains("authorized_keys")
+            if node_text.contains(".bashrc")
+                || node_text.contains(".zshrc")
+                || node_text.contains(".profile")
+                || node_text.contains("authorized_keys")
             {
                 violations.push(DefenderViolation {
                     visitor: "persistence_patterns".to_string(),
@@ -151,8 +166,10 @@ pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     }
 
     if node.kind() == "call_expression" {
-        if (node_text.contains("os.system") || node_text.contains("subprocess.run")
-            || node_text.contains("subprocess.Popen") || node_text.contains("os.popen"))
+        if (node_text.contains("os.system")
+            || node_text.contains("subprocess.run")
+            || node_text.contains("subprocess.Popen")
+            || node_text.contains("os.popen"))
             && (node_text.contains("crontab") || node_text.contains("@reboot"))
         {
             violations.push(DefenderViolation {
@@ -169,7 +186,10 @@ pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 
     if node.kind() == "call_expression" {
         if node_text.contains("shutil.copy") || node_text.contains("shutil.copy2") {
-            if node_text.contains(".bashrc") || node_text.contains(".zshrc") || node_text.contains(".profile") {
+            if node_text.contains(".bashrc")
+                || node_text.contains(".zshrc")
+                || node_text.contains(".profile")
+            {
                 violations.push(DefenderViolation {
                     visitor: "persistence_patterns".to_string(),
                     line: (node.start_position().row + 1) as u32,

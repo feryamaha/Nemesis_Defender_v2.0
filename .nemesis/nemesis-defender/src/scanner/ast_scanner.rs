@@ -8,9 +8,9 @@
 //! - Bash/Shell (tree-sitter-bash)
 //! - Python (tree-sitter-python)
 
-use std::path::Path;
-use crate::{DefenderViolation, Language};
 use crate::visitors;
+use crate::{DefenderViolation, Language};
+use std::path::Path;
 
 pub fn scan(_path: &Path, content: &[u8], lang: &Language) -> Vec<DefenderViolation> {
     let mut all_violations = Vec::new();
@@ -53,10 +53,17 @@ fn scan_javascript(content: &[u8]) -> Option<Vec<DefenderViolation>> {
     // Traverse the CST and call visitors
     traverse_javascript_node(&root_node, text, &mut violations);
 
+    // Taint tracking: full-content pass (intra-file data-flow analysis)
+    violations.extend(visitors::taint_tracker::scan_js_content(content));
+
     Some(violations)
 }
 
-fn traverse_javascript_node(node: &tree_sitter::Node, source: &str, violations: &mut Vec<DefenderViolation>) {
+fn traverse_javascript_node(
+    node: &tree_sitter::Node,
+    source: &str,
+    violations: &mut Vec<DefenderViolation>,
+) {
     // Call visitors for this node
     violations.extend(visitors::decode_exec::visit_js_node(node, source));
     violations.extend(visitors::dynamic_cmd::visit_js_node(node, source));
@@ -93,13 +100,19 @@ fn scan_bash(content: &[u8]) -> Option<Vec<DefenderViolation>> {
     Some(violations)
 }
 
-fn traverse_bash_node(node: &tree_sitter::Node, source: &str, violations: &mut Vec<DefenderViolation>) {
+fn traverse_bash_node(
+    node: &tree_sitter::Node,
+    source: &str,
+    violations: &mut Vec<DefenderViolation>,
+) {
     violations.extend(visitors::decode_exec::visit_bash_node(node, source));
     violations.extend(visitors::dynamic_cmd::visit_bash_node(node, source));
     violations.extend(visitors::url_in_exec::visit_bash_node(node, source));
     violations.extend(visitors::credential_harvest::visit_bash_node(node, source));
     violations.extend(visitors::self_clean::visit_bash_node(node, source));
-    violations.extend(visitors::persistence_patterns::visit_bash_node(node, source));
+    violations.extend(visitors::persistence_patterns::visit_bash_node(
+        node, source,
+    ));
     violations.extend(visitors::nemesis_bypass::visit_bash_node(node, source));
 
     let mut cursor = node.walk();
@@ -122,18 +135,31 @@ fn scan_python(content: &[u8]) -> Option<Vec<DefenderViolation>> {
 
     traverse_python_node(&root_node, text, &mut violations);
 
+    // Taint tracking: full-content pass (intra-file data-flow analysis)
+    violations.extend(visitors::taint_tracker::scan_py_content(content));
+
     Some(violations)
 }
 
-fn traverse_python_node(node: &tree_sitter::Node, source: &str, violations: &mut Vec<DefenderViolation>) {
+fn traverse_python_node(
+    node: &tree_sitter::Node,
+    source: &str,
+    violations: &mut Vec<DefenderViolation>,
+) {
     violations.extend(visitors::decode_exec::visit_python_node(node, source));
     violations.extend(visitors::dynamic_cmd::visit_python_node(node, source));
     violations.extend(visitors::url_in_exec::visit_python_node(node, source));
-    violations.extend(visitors::credential_harvest::visit_python_node(node, source));
+    violations.extend(visitors::credential_harvest::visit_python_node(
+        node, source,
+    ));
     violations.extend(visitors::self_clean::visit_python_node(node, source));
-    violations.extend(visitors::persistence_patterns::visit_python_node(node, source));
+    violations.extend(visitors::persistence_patterns::visit_python_node(
+        node, source,
+    ));
     violations.extend(visitors::nemesis_bypass::visit_python_node(node, source));
-    violations.extend(visitors::python_import_injection::visit_python_node(node, source));
+    violations.extend(visitors::python_import_injection::visit_python_node(
+        node, source,
+    ));
 
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {

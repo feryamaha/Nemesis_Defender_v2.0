@@ -9,9 +9,9 @@
 use crate::{DefenderViolation, Language};
 
 struct RegexPattern {
-    visitor:  &'static str,
-    pattern:  &'static str,
-    message:  &'static str,
+    visitor: &'static str,
+    pattern: &'static str,
+    message: &'static str,
 }
 
 /// Patterns that apply to ALL languages
@@ -124,6 +124,18 @@ const UNIVERSAL_PATTERNS: &[RegexPattern] = &[
         pattern: r#"(?i)registry\s*=\s*https?://(?!registry\.npmjs\.org|npm\.pkg\.github\.com)"#,
         message: "Non-standard npm registry in .npmrc. Supply chain redirect attack — packages pulled from attacker's server.",
     },
+    // ── Supply chain: non-canonical PyPI index (requirements.txt / pip.ini) ──
+    RegexPattern {
+        visitor: "manifest_registry_redirect",
+        pattern: r#"--(?:extra-)?index-url\s+https?://(?!pypi\.org|files\.pythonhosted\.org|test\.pypi\.org)\S+"#,
+        message: "Non-canonical PyPI index URL in --extra-index-url / --index-url. Supply chain redirect: all pip installs resolve from attacker-controlled server instead of pypi.org.",
+    },
+    // ── Supply chain: non-canonical PyPI server in .pypirc / pip.ini ──
+    RegexPattern {
+        visitor: "manifest_registry_redirect",
+        pattern: r#"(?:repository|index_url)\s*=\s*https?://(?!pypi\.org|files\.pythonhosted\.org|test\.pypi\.org)\S+"#,
+        message: "Non-canonical PyPI server in registry config (.pypirc / pip.ini). Supply chain redirect: pip resolves packages from attacker's index server.",
+    },
 ];
 
 pub fn scan(content: &[u8], _lang: &Language) -> Vec<DefenderViolation> {
@@ -163,7 +175,9 @@ pub fn scan(content: &[u8], _lang: &Language) -> Vec<DefenderViolation> {
     // ── Layer 3.5: External deny-list (denylist-defender.json) ──
     // Loads patterns from config file, applies on top of hardcoded patterns above
     for severity in &["malicious", "suspicious"] {
-        for (category, pattern_str, description, suggestion) in super::denylist_loader::patterns_by_severity(severity) {
+        for (category, pattern_str, description, suggestion) in
+            super::denylist_loader::patterns_by_severity(severity)
+        {
             let re = match regex::Regex::new(&pattern_str) {
                 Ok(r) => r,
                 Err(_) => continue, // Skip invalid patterns

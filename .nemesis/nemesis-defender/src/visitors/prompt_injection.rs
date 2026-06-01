@@ -104,11 +104,8 @@ fn contains_decoded_hex(node_text: &str, pattern: &str) -> bool {
     let bytes = node_text.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
-        if i + 3 < bytes.len() && bytes[i] == b'\\' && bytes[i+1] == b'x' {
-            if let (Some(a), Some(b)) = (
-                hex_val(bytes[i+2]),
-                hex_val(bytes[i+3]),
-            ) {
+        if i + 3 < bytes.len() && bytes[i] == b'\\' && bytes[i + 1] == b'x' {
+            if let (Some(a), Some(b)) = (hex_val(bytes[i + 2]), hex_val(bytes[i + 3])) {
                 decoded.push((a << 4 | b) as char);
                 i += 4;
                 continue;
@@ -131,8 +128,16 @@ fn hex_val(b: u8) -> Option<u8> {
 
 fn check_hex_encoded_injection(node_text: &str) -> bool {
     let hex_targets = &[
-        "ignore", "override", "bypass", "system", "instructions",
-        "previous", "forget", "disregard", "DAN", "jailbreak",
+        "ignore",
+        "override",
+        "bypass",
+        "system",
+        "instructions",
+        "previous",
+        "forget",
+        "disregard",
+        "DAN",
+        "jailbreak",
     ];
     for target in hex_targets {
         if contains_decoded_hex(node_text, target) {
@@ -145,7 +150,10 @@ fn check_hex_encoded_injection(node_text: &str) -> bool {
 pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     let mut violations = Vec::new();
 
-    let node_text = node.utf8_text(source.as_bytes()).unwrap_or("").to_lowercase();
+    let node_text = node
+        .utf8_text(source.as_bytes())
+        .unwrap_or("")
+        .to_lowercase();
 
     if node.kind() == "string" || node.kind() == "comment" {
         for pattern in INJECTION_PATTERNS {
@@ -182,7 +190,10 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     let mut violations = Vec::new();
 
-    let node_text = node.utf8_text(source.as_bytes()).unwrap_or("").to_lowercase();
+    let node_text = node
+        .utf8_text(source.as_bytes())
+        .unwrap_or("")
+        .to_lowercase();
 
     if node.kind() == "comment" {
         for pattern in INJECTION_PATTERNS {
@@ -193,7 +204,8 @@ pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
                     col: (node.start_position().column + 1) as u32,
                     evidence: pattern.to_string(),
                     decoded: None,
-                    message: "Prompt injection in shell comment. Hidden AI instruction.".to_string(),
+                    message: "Prompt injection in shell comment. Hidden AI instruction."
+                        .to_string(),
                     suggestion: Some(SUGGESTION_INJECTION.to_string()),
                 });
                 break;
@@ -207,7 +219,10 @@ pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     let mut violations = Vec::new();
 
-    let node_text = node.utf8_text(source.as_bytes()).unwrap_or("").to_lowercase();
+    let node_text = node
+        .utf8_text(source.as_bytes())
+        .unwrap_or("")
+        .to_lowercase();
 
     if node.kind() == "string" || node.kind() == "comment" {
         for pattern in INJECTION_PATTERNS {
@@ -218,7 +233,9 @@ pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
                     col: (node.start_position().column + 1) as u32,
                     evidence: pattern.to_string(),
                     decoded: None,
-                    message: "Prompt injection in Python string/comment. AI instruction hidden in code.".to_string(),
+                    message:
+                        "Prompt injection in Python string/comment. AI instruction hidden in code."
+                            .to_string(),
                     suggestion: Some(SUGGESTION_INJECTION.to_string()),
                 });
                 break;

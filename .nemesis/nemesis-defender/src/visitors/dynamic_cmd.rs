@@ -9,11 +9,8 @@ use crate::DefenderViolation;
 use tree_sitter::Node;
 
 const SUSPICIOUS_COMMANDS: &[&str] = &[
-    "curl", "wget", "fetch", "http", "https",
-    "exec", "eval", "spawn", "fork",
-    "rm", "unlink", "rmdir",
-    "chmod", "chown",
-    "bash", "sh", "zsh",
+    "curl", "wget", "fetch", "http", "https", "exec", "eval", "spawn", "fork", "rm", "unlink",
+    "rmdir", "chmod", "chown", "bash", "sh", "zsh",
 ];
 
 const SUGGESTION_DYNAMIC: &str =
@@ -36,7 +33,10 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 
     if node.kind() == "binary_expression" && node_text.contains("+") {
         let parts: Vec<&str> = node_text.split('+').collect();
-        let reconstructed: String = parts.iter().map(|p| p.trim().trim_matches('"').trim_matches('\'')).collect();
+        let reconstructed: String = parts
+            .iter()
+            .map(|p| p.trim().trim_matches('"').trim_matches('\''))
+            .collect();
 
         for cmd in SUSPICIOUS_COMMANDS {
             if contains_command_word(&reconstructed, cmd) {
@@ -59,7 +59,8 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     }
 
     if node.kind() == "template_string" {
-        if node_text.contains("http") && (node_text.contains("exec") || node_text.contains("eval")) {
+        if node_text.contains("http") && (node_text.contains("exec") || node_text.contains("eval"))
+        {
             violations.push(DefenderViolation {
                 visitor: "dynamic_cmd".to_string(),
                 line: (node.start_position().row + 1) as u32,
@@ -67,7 +68,8 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
                 evidence: node_text.to_string(),
                 decoded: None,
                 message: "Template literal contains HTTP URL and execution function. \
-                         Command constructed from potentially external input.".to_string(),
+                         Command constructed from potentially external input."
+                    .to_string(),
                 suggestion: Some(SUGGESTION_DYNAMIC.to_string()),
             });
         }
@@ -110,8 +112,12 @@ pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
             evidence: node_text.to_string(),
             decoded: None,
             message: "Shell variable used in command construction with network tool. \
-                     Dynamic command built from external input.".to_string(),
-            suggestion: Some("Use static, verified URLs. Never interpolate variables into network commands.".to_string()),
+                     Dynamic command built from external input."
+                .to_string(),
+            suggestion: Some(
+                "Use static, verified URLs. Never interpolate variables into network commands."
+                    .to_string(),
+            ),
         });
     }
 
@@ -152,8 +158,11 @@ pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
             evidence: node_text.to_string(),
             decoded: None,
             message: "subprocess with shell=True allows dynamic command injection. \
-                     High risk when combined with external input.".to_string(),
-            suggestion: Some("Use subprocess.run(cmd_list, shell=False) with an argument list.".to_string()),
+                     High risk when combined with external input."
+                .to_string(),
+            suggestion: Some(
+                "Use subprocess.run(cmd_list, shell=False) with an argument list.".to_string(),
+            ),
         });
     }
 

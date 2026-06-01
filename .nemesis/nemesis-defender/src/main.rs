@@ -11,18 +11,23 @@
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let dry_run = args.contains(&"--dry-run".to_string()) ||
-                  std::env::var("NEMESIS_DEFENDER_DRY_RUN").is_ok();
+    let dry_run = args.contains(&"--dry-run".to_string())
+        || std::env::var("NEMESIS_DEFENDER_DRY_RUN").is_ok();
 
     match args.get(1).map(|s| s.as_str()) {
-
         Some("--daemon") => {
             pid::write_pid_file();
             if dry_run {
                 std::env::set_var("NEMESIS_DEFENDER_DRY_RUN", "1");
-                eprintln!("[nemesis-defender] Iron Dome active (DRY-RUN mode) — PID {}", std::process::id());
+                eprintln!(
+                    "[nemesis-defender] Iron Dome active (DRY-RUN mode) — PID {}",
+                    std::process::id()
+                );
             } else {
-                eprintln!("[nemesis-defender] Iron Dome active — PID {}", std::process::id());
+                eprintln!(
+                    "[nemesis-defender] Iron Dome active — PID {}",
+                    std::process::id()
+                );
             }
             watcher::daemon::run();
             pid::remove_pid_file();
@@ -85,11 +90,14 @@ fn main() {
             };
 
             // Use binary's directory to find project root (immune to CWD changes)
-            let project_root = exe.parent()
+            let project_root = exe
+                .parent()
                 .and_then(|release| release.parent())
                 .and_then(|target| target.parent())
                 .map(|nemesis| nemesis.parent().unwrap_or(nemesis).to_path_buf())
-                .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")));
+                .unwrap_or_else(|| {
+                    std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."))
+                });
 
             match std::process::Command::new(&exe)
                 .arg("--daemon")
@@ -146,7 +154,8 @@ fn main() {
             if result.is_blocked() {
                 eprintln!(
                     "[nemesis-defender] BLOCKED: {} — {} violation(s)",
-                    path.display(), result.violations.len()
+                    path.display(),
+                    result.violations.len()
                 );
                 for v in &result.violations {
                     eprintln!("  ├─ [{}] {}", v.visitor, v.message);
@@ -158,7 +167,8 @@ fn main() {
             } else if result.severity == nemesis_defender::Severity::Suspicious {
                 eprintln!(
                     "[nemesis-defender] SUSPICIOUS: {} — {} signal(s) — logged",
-                    path.display(), result.violations.len()
+                    path.display(),
+                    result.violations.len()
                 );
             }
             // CLEAN — silent exit 0
@@ -175,7 +185,9 @@ fn main() {
             eprintln!("  nemesis-defender --ensure-daemon       Start if not running");
             eprintln!("  nemesis-defender --stop                Stop running daemon");
             eprintln!("  nemesis-defender --scan <path>         Scan single file");
-            eprintln!("  nemesis-defender --install-shell-hook  Install terminal hook (once per machine)");
+            eprintln!(
+                "  nemesis-defender --install-shell-hook  Install terminal hook (once per machine)"
+            );
             eprintln!();
             eprintln!("Environment variables:");
             eprintln!("  NEMESIS_DEFENDER_DRY_RUN=1             Same as --dry-run flag");

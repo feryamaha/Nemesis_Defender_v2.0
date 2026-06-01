@@ -7,7 +7,7 @@
 //! - Python os.symlink / os.system targeting Nemesis configs
 //! - Node.js fs operations targeting Nemesis binaries or configs
 
-// Alteração teste versionamento! 
+// Alteração teste versionamento!
 
 use crate::DefenderViolation;
 use tree_sitter::Node;
@@ -79,8 +79,10 @@ pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     // ── 2. Concatenação de variáveis com redirect/tee para escrita ──
     let has_var_concat = (node_text.contains("${") && node_text.matches("${").count() >= 2)
         || (node_text.contains('$') && node_text.matches('$').count() >= 3);
-    let has_redirect = node_text.contains('>') || node_text.contains(">>")
-        || node_text.contains("tee ") || node_text.contains("|tee");
+    let has_redirect = node_text.contains('>')
+        || node_text.contains(">>")
+        || node_text.contains("tee ")
+        || node_text.contains("|tee");
     let has_write_cmd = node_text.contains("echo ")
         || node_text.contains("printf ")
         || node_text.contains("cat ")
@@ -110,8 +112,10 @@ pub fn visit_bash_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 
     // ── 3. Path ofuscado (hex/base64) com destino a arquivo ──
     let has_hex = node_text.contains("\\x") || node_text.contains("\\u");
-    let has_b64 = node_text.contains("base64") && (node_text.contains("-d") || node_text.contains("decode"));
-    let has_output_target = node_text.contains('>') || node_text.contains("tee") || node_text.contains("dd of=");
+    let has_b64 =
+        node_text.contains("base64") && (node_text.contains("-d") || node_text.contains("decode"));
+    let has_output_target =
+        node_text.contains('>') || node_text.contains("tee") || node_text.contains("dd of=");
 
     if (has_hex || has_b64) && has_output_target {
         // Verificar se o output target ou o conteúdo decodificado referencia paths Nemesis
@@ -163,15 +167,20 @@ pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     let node_text = node.utf8_text(source.as_bytes()).unwrap_or("");
 
     // ── 1. open(..., 'w') com path construído apontando para config Nemesis ──
-    if (node_text.contains("open(") || node_text.contains("write_text") || node_text.contains("Path("))
+    if (node_text.contains("open(")
+        || node_text.contains("write_text")
+        || node_text.contains("Path("))
         && (node_text.contains("'w'") || node_text.contains("\"w\"") || node_text.contains("write"))
     {
         for target in NEMESIS_PROTECTED_TARGETS {
             let target_short = target.split('/').last().unwrap_or(target);
             if node_text.contains(target) || node_text.contains(target_short) {
                 // Verifica se é concatenação de path ou variável
-                let has_concat = node_text.contains('+') || node_text.contains("f\"") || node_text.contains("f'")
-                    || node_text.contains(".join") || node_text.contains("os.path")
+                let has_concat = node_text.contains('+')
+                    || node_text.contains("f\"")
+                    || node_text.contains("f'")
+                    || node_text.contains(".join")
+                    || node_text.contains("os.path")
                     || node_text.contains("Path(");
 
                 if has_concat {
@@ -218,8 +227,11 @@ pub fn visit_python_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     }
 
     // ── 3. subprocess / os.system com comando de bypass ──
-    if (node_text.contains("subprocess") || node_text.contains("os.system") || node_text.contains("os.popen"))
-        && node_text.contains("settings.json") || node_text.contains("hooks.json")
+    if (node_text.contains("subprocess")
+        || node_text.contains("os.system")
+        || node_text.contains("os.popen"))
+        && node_text.contains("settings.json")
+        || node_text.contains("hooks.json")
     {
         violations.push(DefenderViolation {
             visitor: "nemesis_bypass".to_string(),
@@ -244,9 +256,12 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
     let node_text = node.utf8_text(source.as_bytes()).unwrap_or("");
 
     // ── 1. fs.writeFileSync / fs.writeFile com path construído contendo config Nemesis ──
-    if (node_text.contains("writeFileSync") || node_text.contains("writeFile")
-        || node_text.contains("rmSync") || node_text.contains("unlinkSync")
-        || node_text.contains("appendFileSync") || node_text.contains("appendFile"))
+    if (node_text.contains("writeFileSync")
+        || node_text.contains("writeFile")
+        || node_text.contains("rmSync")
+        || node_text.contains("unlinkSync")
+        || node_text.contains("appendFileSync")
+        || node_text.contains("appendFile"))
     {
         for target in NEMESIS_PROTECTED_TARGETS {
             let target_short = target.split('/').last().unwrap_or(target);
@@ -256,7 +271,10 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
                     || node_text.contains("path.join")
                     || node_text.contains("path.resolve");
 
-                if has_concat || node_text.contains("process.env") || node_text.contains("__dirname") {
+                if has_concat
+                    || node_text.contains("process.env")
+                    || node_text.contains("__dirname")
+                {
                     violations.push(DefenderViolation {
                         visitor: "nemesis_bypass".to_string(),
                         line: (node.start_position().row + 1) as u32,

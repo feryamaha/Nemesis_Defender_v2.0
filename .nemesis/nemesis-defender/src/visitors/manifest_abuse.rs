@@ -13,7 +13,9 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
 
     let node_text = node.utf8_text(source.as_bytes()).unwrap_or("");
 
-    if node.kind() == "string" && (node_text.contains("preinstall") || node_text.contains("postinstall")) {
+    if node.kind() == "string"
+        && (node_text.contains("preinstall") || node_text.contains("postinstall"))
+    {
         if node_text.contains("curl") || node_text.contains("wget") || node_text.contains("exec") {
             violations.push(DefenderViolation {
                 visitor: "manifest_postinstall_exec".to_string(),

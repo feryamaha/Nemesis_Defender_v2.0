@@ -117,7 +117,11 @@ fn append_if_not_present(path: &Path, snippet: &str) -> AppendResult {
         return AppendResult::AlreadyPresent;
     }
 
-    let mut file = match std::fs::OpenOptions::new().create(true).append(true).open(path) {
+    let mut file = match std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+    {
         Ok(f) => f,
         Err(e) => return AppendResult::Error(e.to_string()),
     };

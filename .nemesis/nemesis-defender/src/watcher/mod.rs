@@ -54,14 +54,11 @@ pub const SYSTEM_WATCH_PATHS: &[&str] = &[
 
 /// Nomes de arquivos suspeitos para filtro em /tmp/
 pub const SUSPICIOUS_FILE_NAMES: &[&str] = &[
-    "setup", "install", "payload", "exploit",
-    "backdoor", "shell", "reverse", "beacon",
-    "monitor", "watcher", "hook", "trojan",
-    "miner", "xmr", "coin", "steal", "exfil",
+    "setup", "install", "payload", "exploit", "backdoor", "shell", "reverse", "beacon", "monitor",
+    "watcher", "hook", "trojan", "miner", "xmr", "coin", "steal", "exfil",
 ];
 
 /// Extensoes suspeitas para filtro em /tmp/
 pub const SUSPICIOUS_EXTENSIONS: &[&str] = &[
-    ".sh", ".bash", ".py", ".js", ".mjs",
-    ".rb", ".pl", ".lua", ".php",
+    ".sh", ".bash", ".py", ".js", ".mjs", ".rb", ".pl", ".lua", ".php",
 ];

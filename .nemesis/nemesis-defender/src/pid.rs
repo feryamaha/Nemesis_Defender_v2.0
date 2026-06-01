@@ -91,9 +91,9 @@ pub fn is_daemon_running() -> bool {
         let out = std::process::Command::new("tasklist")
             .args(["/FI", &format!("PID eq {}", pid)])
             .output();
-        let alive = out.map(|o| {
-            String::from_utf8_lossy(&o.stdout).contains(&pid.to_string())
-        }).unwrap_or(false);
+        let alive = out
+            .map(|o| String::from_utf8_lossy(&o.stdout).contains(&pid.to_string()))
+            .unwrap_or(false);
         if !alive {
             let _ = std::fs::remove_file(pid_path());
         }
