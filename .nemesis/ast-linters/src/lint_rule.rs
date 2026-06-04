@@ -22,6 +22,7 @@ pub enum Severity {
     Info,
     Warning,
     Error,
+    Critical,
 }
 
 impl Severity {
@@ -32,6 +33,7 @@ impl Severity {
             "info" => Severity::Info,
             "warn" | "warning" => Severity::Warning,
             "error" => Severity::Error,
+            "critical" => Severity::Critical,
             _ => Severity::Error, // Default para error
         }
     }
@@ -43,6 +45,7 @@ impl Severity {
             Severity::Info => "info",
             Severity::Warning => "warning",
             Severity::Error => "error",
+            Severity::Critical => "critical",
         }
     }
 }

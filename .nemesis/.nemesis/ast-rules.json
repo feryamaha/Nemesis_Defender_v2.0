@@ -1,11 +1,11 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-06-02T17:31:38.085054934+00:00",
+  "generated_at": "2026-06-04T14:00:08.374933328+00:00",
   "rules": {
-    "prefer-readonly": "error",
-    "jsx-no-target-blank": "error",
+    "no-floating-promises": "error",
     "no-unsafe-assignment": "error",
     "no-console": "error",
-    "no-floating-promises": "error"
+    "prefer-readonly": "error",
+    "jsx-no-target-blank": "error"
   }
 }

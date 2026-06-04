@@ -33,7 +33,7 @@ Pergunta justa e esperada — e a que mais vai aparecer quando o projeto for pú
 | **Deny-list / permissions** (`settings.json` allow/deny) | Bloqueia comandos e paths por nome para as ferramentas internas do agente; deny vence allow. | Pela doc da Anthropic: deny-rules só bloqueiam as ferramentas internas — `Read(./.env)` é barrado, mas `cat .env` no bash passa por cima. Não inspeciona conteúdo. |
 | **Sandbox / isolamento** (`/sandbox` bubblewrap·Seatbelt, devcontainer/Docker) | Isolamento de filesystem e rede no nível do SO; reduz o blast radius. É o recurso nativo mais forte. | Só cobre o Bash, não as ferramentas Read/Edit (issue #26616 do Claude Code). E *contém*, não *detecta*: um `package.json` envenenado ou uma cadeia de exfiltração passam "dentro" do sandbox. Por-IDE. |
 | **Rules / skills / workflows** (`.cursorrules`, `CLAUDE.md`) | Dão contexto e diretrizes ao modelo. | São advisory, não enforcement. O modelo é um motor de previsão, não um aplicador de política — ignora, reinterpreta ou sobrescreve (fórum do Cursor; análise da Knostic). O código vazado do Claude Code mostrou que até o agente da Anthropic trata constraints como dicas. |
-| **eBPF / LSM no kernel** (KubeArmor, Tetragon, Falco) | Enforcement de syscall no kernel — a defesa com mais "dentes", que vale inclusive contra o humano no terminal. | Existe e é maduro — mas no mundo cloud/Kubernetes. Não é entregue como binário local, por-projeto, acoplado ao ciclo de um coding agent. É exatamente a Camada 3 do Nemesis, trazida pra máquina do dev. |
+| **eBPF / LSM no kernel** (KubeArmor, Tetragon, Falco) | Enforcement de syscall no kernel — a defesa com mais "dentes", que vale inclusive contra o humano no terminal. | Existe e é maduro — mas no mundo cloud/Kubernetes. Não é entregue como binário local, por-projeto, acoplado ao ciclo de um coding agent. É exatamente a camada eBPF do Nemesis, trazida pra máquina do dev. |
 
 **A diferença entre "configurar uma regra" e "forçar uma regra" não é teórica.** Em julho de 2025, o agente do Replit deletou um banco de produção *durante um code freeze ativo*, apesar de instruções repetidas — porque, segundo a análise do incidente, as instruções não eram tecnicamente forçadas: não havia um gate que bloqueasse a ação (AI Incident Database #1152). Na mesma linha: o Gemini CLI apagando arquivos por interpretar mal um comando, e o Claude Code rodando um `terraform destroy` acidental. Settings, rules e até sandbox parcial não impediram nenhum deles.
 
@@ -43,7 +43,7 @@ Pergunta justa e esperada — e a que mais vai aparecer quando o projeto for pú
 
 ## O que é
 
-O Nemesis é um sistema de *enforcement* para fluxos de desenvolvimento assistido por LLM (Specification-Driven Development), escrito em Rust. Ele detecta e bloqueia padrões conhecidos de malware de supply-chain e de comandos destrutivos **antes da execução**, em três camadas independentes de defesa.
+O Nemesis é um sistema de *enforcement* para fluxos de desenvolvimento assistido por LLM (Specification-Driven Development), escrito em Rust. Ele detecta e bloqueia padrões conhecidos de malware de supply-chain e de comandos destrutivos **antes da execução**. Tudo parte do **Pretool Hook**, que aciona, na mesma interceptação, as trilhas de segurança (Defender) e de qualidade (ast-linters); no Linux, uma camada eBPF no kernel atua como reforço adicional independente.
 
 Não é um linter genérico. O foco é o contexto específico de desenvolvimento guiado por agentes de IA, onde um output aparentemente inócuo pode conter:
 
@@ -96,29 +96,42 @@ Essa fronteira não depende da boa vontade do modelo — é imposta pelas camada
 
 ---
 
-## Arquitetura — Três camadas
+## Arquitetura — Tudo parte do Pretool
 
-| Camada | Onde atua | Mecanismo | Cobertura de SO |
-|--------|-----------|-----------|-----------------|
-| 1 — Pretool Hook | Antes de `Bash.run()` | Deny-list JSON + parser de workflow | Windows, macOS, Linux |
-| 2 — Defender (content scanner) | Em file-write e em comandos | 6 layers de scanning + 12 visitors | Windows, macOS, Linux |
-| 3 — eBPF Kernel LSM | Syscalls no kernel | BPF LSM (`bprm_check_security`) | **Linux apenas** |
+O **Pretool Hook é o ponto de entrada de todo o sistema** — é ele que intercepta a ação do agente antes da execução e dispara as verificações. **Sem o pretool, o Nemesis não funciona:** as duas trilhas que rodam acopladas a ele (Defender e ast-linters) só são acionadas porque o pretool as invoca. A camada eBPF é a única que opera fora dessa linha, no kernel, como reforço adicional para Linux.
 
-### Camada 1 — Pretool / Posttool Hook
+| Camada | Relação com o Pretool | Onde atua | Mecanismo | Cobertura de SO |
+|--------|-----------------------|-----------|-----------|-----------------|
+| **Pretool / Posttool Hook** | **base — origem de tudo** | Antes de `Bash.run()` / file-write | Deny-list JSON + parser de workflow (exit code 2) | Windows, macOS, Linux |
+| **Nemesis Defender** (content scanner) | **opera junto com o pretool** | Em file-write e em comandos | 6 layers de scanning + visitors | Windows, macOS, Linux |
+| **ast-linters** (qualidade) | **opera junto com o pretool** | Em file-write de código | Visitors tree-sitter + `rules.toml` declarativo | Windows, macOS, Linux |
+| **eBPF Kernel LSM** | **adicional/independente** | Syscalls no kernel | BPF LSM (`bprm_check_security`) | **Linux apenas** |
 
-Intercepta comandos **antes** da execução (`PreToolUse`), valida contra `deny-list.json` e regras de escopo. Bloqueio é *hard-gate*: sem aprovação humana explícita, o fluxo não prossegue (exit code `2`).
+A leitura correta das relações:
+
+- **Pretool + Defender** operam juntos: o pretool intercepta, o Defender escaneia o conteúdo do que está sendo escrito/executado e classifica malicious.
+- **Pretool + ast-linters** operam juntos: na mesma interceptação de escrita de código, a trilha de qualidade analisa a árvore sintática e barra anti-patterns que quebram build/deploy.
+- **eBPF é camada extra, só Linux.** Ela não depende do pretool — vive no kernel. Seu papel é segurar as pontas contra **comandos destrutivos** (e alguns malicious) caso o pretool falhe ou seja contornado: se o modelo tentar destruir algo, o kernel barra. Em macOS/Windows essa rede não existe, e a defesa fica nas trilhas do pretool.
+
+### Pretool / Posttool Hook — a base de tudo
+
+Intercepta comandos **antes** da execução (`PreToolUse`), valida contra `deny-list.json` e regras de escopo. Bloqueio é *hard-gate*: sem aprovação humana explícita, o fluxo não prossegue (exit code `2`). É a partir dele que as trilhas de Defender e de qualidade (ast-linters) são acionadas — por isso, **sem pretool, nada do resto roda.**
 
 Há também um hook **`PostToolUse`** que roda **depois** da execução: ele nunca bloqueia (a ferramenta já rodou), mas escaneia o output gerado e registra violações em `output-audit.log`. Serve de auditoria e rede de detecção para o que passou.
 
 E um `nemesis-pretool-fallback` que opera em **fail-closed**: se o binário esperado não existe (config quebrada, caminho errado), ele **bloqueia tudo** em vez de deixar passar. Segurança que falha fechando, não abrindo.
 
-### Camada 2 — Nemesis Defender
+### Nemesis Defender — junto com o pretool
 
-Escaneia conteúdo de arquivos e de comandos por 6 layers independentes: AST (tree-sitter) → byte-level → regex → denylist → entropia → decoder recursivo (máx. 3 níveis). Doze *visitors* cobrem os vetores de ataque catalogados (ver abaixo).
+Acionado pelo pretool na interceptação, escaneia conteúdo de arquivos e de comandos por 6 layers independentes: AST (tree-sitter) → byte-level → regex → denylist → entropia → decoder recursivo (máx. 3 níveis). Os *visitors* cobrem os vetores de ataque catalogados (ver abaixo).
 
-### Camada 3 — eBPF Kernel LSM
+### ast-linters (qualidade) — junto com o pretool
 
-A camada com mais "dentes" — bloqueia syscalls perigosas no kernel para processos dentro do cgroup do agente. É uma **camada adicional de segurança mínima**, não um plano B de falha: ela opera em paralelo às camadas 1 e 2, garantindo que, mesmo diante de um vetor mais sofisticado que contorne as camadas acima, o kernel ainda barre a destruição. **Importante:** existe apenas no Linux. Em macOS e Windows, a defesa se apoia nas camadas 1 e 2 (deny-list/regex). Estender essa profundidade extra a outros SOs é um objetivo aberto.
+Na mesma interceptação de escrita de código, o pretool aciona a trilha de qualidade: visitors tree-sitter + um motor declarativo (`rules.toml`) analisam a árvore sintática e barram anti-patterns que quebram build/deploy **antes** de o código entrar no repositório. Detalhada na seção [Camada de qualidade](#camada-de-qualidade-ast-linters).
+
+### eBPF Kernel LSM — camada adicional (Linux)
+
+A camada com mais "dentes" — bloqueia syscalls perigosas no kernel para processos dentro do cgroup do agente. **Diferente das trilhas acima, ela não depende do pretool:** vive no kernel e opera de forma independente. É uma **camada adicional de segurança** voltada a **comandos destrutivos** (e alguns malicious): se o pretool falhar ou for contornado e o modelo tentar destruir algo, o kernel ainda barra. **Importante:** existe apenas no Linux. Em macOS e Windows, a defesa se apoia nas trilhas do pretool (Defender + ast-linters). Estender essa profundidade extra a outros SOs é um objetivo aberto.
 
 Em execução real (ver `violations.log`), esta camada registra bloqueios de `rm`, `shred`, `dd`, `truncate`, `kill`, `chmod`, `mount`, `nc` e execução de runtimes arbitrários (`python3`, `perl`), todos como `permission_denied` no kernel.
 
@@ -183,6 +196,8 @@ O ponto crítico: **só um humano comuta essas permissões.** Precisa relaxar um
 
 A primeira versão do Nemesis nasceu como controle de qualidade de código. Na evolução de Node/TS para Rust, o foco virou **100% segurança** — e a camada de qualidade foi reduzida ao que **afeta ou pode afetar segurança e estabilidade**: exposição de API/credenciais, aninhamento de tags que quebra build/deploy, e falhas graves que derrubam a aplicação.
 
+Essa camada passou por uma reformulação recente e hoje está **operante**, acionada pelo pretool na escrita de código, com foco especial na stack **frontend Next.js / React / TypeScript** — exatamente onde os anti-patterns que quebram build/deploy mais aparecem. O motor de regras é **declarativo** (`rules.toml`): cada regra define os nós tree-sitter que detecta, e o bloqueio acontece no momento da escrita, não depois que o código já entrou no repositório. A cobertura inclui `any` (explícito, em alias, em parâmetro, em assertion), hooks fora do topo / condicionais, dependências incompletas de `useEffect`, promises não tratadas, JSX sem `key`, `dangerouslySetInnerHTML`, atribuição/comparação inseguras, além das regras por linguagem abaixo.
+
 Existem deny-lists de qualidade **específicas por linguagem**. O campo `rule` — que apontava para um arquivo de regra `.md` específico do ambiente do autor — vem **em branco** nas deny-lists distribuídas: assim cada usuário aponta para a própria documentação de regras, sem herdar caminhos que só existiam no ambiente original. As categorias cobertas:
 
 - **Rust** — chain de 3+ `unwrap()`, `unsafe` block em library code, `panic!()`/`process::exit()` em lib, `println!` em lib.
@@ -191,7 +206,7 @@ Existem deny-lists de qualidade **específicas por linguagem**. O campo `rule` �
 - **Go** — `unsafe.Pointer`, `panic()` em função pública, `defer` sem checagem de erro, SQL via `Sprintf`.
 - **Genérico** — credenciais hardcoded (OWASP A02), arquivos de secrets, debug output, `TODO`/`FIXME`.
 
-**Importante, e dito sem rodeio:** esta camada (`ast-linters`) está **ativa, mas em amadurecimento** — precisa de ajustes e melhorias. E ela **não substitui ESLint ou Biome.** É um complemento de bloqueio em tempo de execução, não um linter completo. Use suas ferramentas de lint normais; o Nemesis apenas adiciona uma barreira de bloqueio para o subconjunto que toca segurança e estabilidade.
+**Importante, e dito sem rodeio:** esta camada (`ast-linters`) está **operante** e foi validada contra pentests (estáticos e por agente real), mas **continua evoluindo** — gaps conhecidos ficam registrados como pontos de melhoria. E ela **não substitui ESLint ou Biome.** É um complemento de bloqueio em tempo de execução, não um linter completo. Use suas ferramentas de lint normais; o Nemesis apenas adiciona uma barreira de bloqueio, no momento da escrita, para o subconjunto que toca build/deploy, segurança e estabilidade — com foco na stack frontend Next/React/TypeScript.
 
 ---
 
@@ -199,7 +214,7 @@ Existem deny-lists de qualidade **específicas por linguagem**. O campo `rule` �
 
 Esta seção é a mais importante para quem vai instalar. Leia inteira.
 
-O **Nemesis Defender** (a Camada 2) não apenas avisa: ele **age**. Quando detecta um arquivo com violação grave — credencial exposta, script com comando destrutivo embutido, anti-padrão de segurança sério — ele pode **remover o arquivo infrator** (`rm -rf`). Isso intercepta tanto a IA quanto, no Linux com eBPF, o próprio humano.
+O **Nemesis Defender** não apenas avisa: ele **age**. Quando detecta um arquivo com violação grave — credencial exposta, script com comando destrutivo embutido, anti-padrão de segurança sério — ele pode **remover o arquivo infrator** (`rm -rf`). Isso intercepta tanto a IA quanto, no Linux com eBPF, o próprio humano.
 
 **O cenário real que você precisa entender:** ao instalar o Nemesis em um projeto que **não** foi desenvolvido sob ele, esse projeto provavelmente já contém violações acumuladas. Na primeira varredura, o Defender encontrou e removeu **24 arquivos** de um projeto assim — porque continham exatamente o que ele existe para barrar. Não foi bug; foi o sistema fazendo o trabalho dele.
 
@@ -234,7 +249,9 @@ A validação do Nemesis se apoia em três tipos de evidência, da mais forte pa
 
 ### 1. Track record em produção (evidência mais forte)
 
-O Nemesis nasceu dentro de projetos reais de produção (que não podem ser divulgados) e roda há aproximadamente um ano em desenvolvimento ativo do dia a dia, com agentes LLM operando sobre o código. Nesse período, **nenhum agente executou um comando destrutivo nem acessou arquivo sensível para edição/exclusão sem permissão.** Isso não é teste de laboratório — é a única forma de evidência que reflete o caso de uso real: um desenvolvedor trabalhando com um agente que, eventualmente, tenta rodar algo destrutivo por engano. É a função-núcleo do Nemesis, e é a parte mais validada do sistema.
+O Nemesis nasceu dentro de projetos reais de produção (que não podem ser divulgados) e roda há aproximadamente **um ano e meio** em desenvolvimento ativo do dia a dia, com agentes LLM operando sobre o código. Nesse período, **nenhum agente executou um comando destrutivo nem acessou arquivo sensível para edição/exclusão sem permissão.** Isso não é teste de laboratório — é a única forma de evidência que reflete o caso de uso real: um desenvolvedor trabalhando com um agente que, eventualmente, tenta rodar algo destrutivo por engano. É a função-núcleo do Nemesis, e é a parte mais validada do sistema.
+
+Em resumo direto: o Nemesis **resolveu e resolve um problema real** — protegeu o ambiente de desenvolvimento do autor por um ano e meio, em produção, com projetos reais. Essa proteção foi corroborada por duas frentes de teste: **pentests estáticos contra os próprios binários** (resultados satisfatórios) e **pentests reais executados por agentes LLM** — que provam, na prática, que modelos de linguagem *podem* ser manipulados a executar atividade hostil e maliciosa, e que mesmo assim o enforcement do Nemesis segura. A proteção **não é 100%**: os gaps abertos são vetores ainda não contemplados, e os gaps já conhecidos ficam registrados como pontos de melhoria (especialmente agora, em open source). Mas a proteção mais importante para o ambiente de desenvolvimento de *qualquer* dev — **impedir que o ambiente seja destruído por comandos destrutivos** — é justamente a função-núcleo, e a mais validada.
 
 ### 2. Execução adversarial por agente real
 
@@ -260,24 +277,24 @@ O Nemesis inclui uma suíte de **140 vetores autorais** (M1–M20: comandos comp
 - **O que ela cobre:** os vetores que a maioria dos desenvolvedores de fato encontra — `rm -rf` destrutivo, `curl | bash`, postinstall malicioso, exfiltração de `.env`/chaves. Não são vetores exóticos; são os comuns, que é onde o dano real acontece.
 - **O que ela NÃO prova:** completude ou invulnerabilidade. É uma suíte escrita pelo autor; passar nela é o piso esperado, não um diferencial. Cobertura é parcial por definição — vetores não imaginados durante o desenvolvimento podem não ser detectados.
 
-### Os logs: três camadas operando de forma independente
+### Os logs: as camadas operando de forma registrada
 
-Os logs de runtime do Nemesis (`violations.log`, `defender.log`) mostram as três camadas trabalhando de forma separada e registrada, em execução real:
+Os logs de runtime do Nemesis (`violations.log`, `defender.log`) mostram as camadas trabalhando de forma separada e registrada, em execução real. A trilha de segurança (Defender) é acionada pelo pretool; a eBPF opera no kernel de forma independente:
 
-- **Camada 3 (eBPF/kernel)** — `violations.log` registra mais de 2.000 bloqueios reais com `"layer":"ebpf"`, `"type":"permission_denied"`, cobrindo `rm`, `shred`, `dd`, `truncate`, `kill`, `chmod`, `mount`, `nc`, e a execução de runtimes arbitrários (`python3`, `perl`). Estes são bloqueios no kernel, não dependentes de deny-list em userspace.
-- **Camada 2 (Defender / classificador)** — `defender.log` registra vereditos de classificação nomeados (ex.: `[MALICIOUS] ... denylist-defender / reverse_shells`), com a evidência capturada (`bash -i >&`, `/dev/tcp/`) e a instrução de correção.
+- **eBPF / kernel (adicional, Linux)** — `violations.log` registra mais de 2.000 bloqueios reais com `"layer":"ebpf"`, `"type":"permission_denied"`, cobrindo `rm`, `shred`, `dd`, `truncate`, `kill`, `chmod`, `mount`, `nc`, e a execução de runtimes arbitrários (`python3`, `perl`). Estes são bloqueios no kernel, não dependentes de deny-list em userspace.
+- **Defender / classificador (junto com o pretool)** — `defender.log` registra vereditos de classificação nomeados (ex.: `[MALICIOUS] ... denylist-defender / reverse_shells`), com a evidência capturada (`bash -i >&`, `/dev/tcp/`) e a instrução de correção.
 - **Correlação e escalação** — o Defender também correlaciona eventos ao longo do tempo: detecta brute force ("N tentativas maliciosas bloqueadas em 300s") e padrões compostos ("leitura de arquivo sensível seguida de comando de rede"). Isso é detecção comportamental, acima do casamento de padrão simples.
 
-Nota sobre medir via script CLI: ao rodar a suíte por um harness que usa `node`/`python3` para montar payloads, a Camada 3 (eBPF) bloqueia o próprio runtime do harness — o que é o comportamento correto e desejado, mas significa que, nesse cenário, o bloqueio é registrado como `permission_denied` da eBPF e não exercita isoladamente o classificador da Camada 2. As três camadas são complementares: na prática, um ataque que passe por uma é candidato a ser pego por outra.
+Nota sobre medir via script CLI: ao rodar a suíte por um harness que usa `node`/`python3` para montar payloads, a camada eBPF bloqueia o próprio runtime do harness — o que é o comportamento correto e desejado, mas significa que, nesse cenário, o bloqueio é registrado como `permission_denied` da eBPF e não exercita isoladamente o classificador do Defender. As camadas são complementares: na prática, um ataque que passe por uma é candidato a ser pego por outra.
 
 ### Evidência de valor real: um bypass encontrado e corrigido
 
-A evidência mais útil de robustez não veio dos testes próprios — veio de um adversário real. Durante stress-testing, um agente de IA contornou a Camada 1: após uma manutenção em que se esqueceu de readicionar comandos à deny-list, o regex de extração de paths deixou comandos fora da lista passarem sem verificação. O gap foi identificado, os comandos readicionados, e o vetor refechado.
+A evidência mais útil de robustez não veio dos testes próprios — veio de um adversário real. Durante stress-testing, um agente de IA contornou o pretool (a trilha de deny-list/regex): após uma manutenção em que se esqueceu de readicionar comandos à deny-list, o regex de extração de paths deixou comandos fora da lista passarem sem verificação. O gap foi identificado, os comandos readicionados, e o vetor refechado.
 
 O que esse incidente mostra, e por que ele é positivo:
 
-1. **A Camada 1 (regex) é contornável quando a deny-list está incompleta** — confirmado empiricamente. Esperado para qualquer sistema baseado em lista.
-2. **No Linux, a Camada 3 (eBPF) é a rede de segurança** — opera no kernel, independente da deny-list.
+1. **O pretool (regex/deny-list) é contornável quando a deny-list está incompleta** — confirmado empiricamente. Esperado para qualquer sistema baseado em lista.
+2. **No Linux, a camada eBPF é a rede de segurança** — opera no kernel, independente da deny-list.
 3. **O processo de manutenção da deny-list é um ponto de atenção** — o gap surgiu de uma manutenção, não de uma falha de design. Mitigação: testes de regressão que rodam após cada alteração da lista.
 
 Mais importante: este projeto trata bypasses encontrados como o ativo mais valioso de validação, não como vergonha a esconder. Se você encontrar um, veja [Disclosure](#segurança-e-disclosure).
@@ -309,7 +326,7 @@ O Nemesis **complementa** SAST, linters e CI/CD; não os substitui.
 
 Por honestidade: a técnica central do Nemesis tem prior art maduro, e isso não diminui o projeto — situa ele.
 
-- **eBPF/LSM para enforcement de processo/arquivo/syscall** é consolidado no mundo cloud-native (KubeArmor, Tetragon/Cilium, Falco). A Camada 3 do Nemesis aplica a mesma classe de técnica.
+- **eBPF/LSM para enforcement de processo/arquivo/syscall** é consolidado no mundo cloud-native (KubeArmor, Tetragon/Cilium, Falco). A camada eBPF do Nemesis aplica a mesma classe de técnica.
 - **Guardrails para agentes LLM** é categoria estabelecida: LlamaFirewall, LLM Guard, NeMo Guardrails, Lakera Guard, Guardrails AI, entre outros.
 - **Enforcement determinístico em runtime** é também tema de pesquisa ativa (ex.: AgentSpec, ICSE '26).
 
@@ -333,7 +350,7 @@ A biblioteca Rust (`nemesis-defender`) é agnóstica de IDE. Cada IDE contribui 
 
 **Software:** Rust 1.70+ e Cargo (toolchain estável). Clang/LLVM para compilar o core. Em projetos JS/TS, Node disponível para o harvest legado (opcional — veja abaixo).
 
-**Kernel / eBPF (apenas Camada 3, Linux):** kernel Linux **5.8+** com **BPF LSM habilitado**. Em muitas distros o BPF LSM não vem ligado por padrão e precisa ser adicionado na linha de comando do kernel (GRUB: `lsm=...,bpf`), com reboot. Sem isso, a Camada 3 não carrega — e o Nemesis cai para as Camadas 1 e 2.
+**Kernel / eBPF (camada adicional, Linux):** kernel Linux **5.8+** com **BPF LSM habilitado**. Em muitas distros o BPF LSM não vem ligado por padrão e precisa ser adicionado na linha de comando do kernel (GRUB: `lsm=...,bpf`), com reboot. Sem isso, a camada eBPF não carrega — e o Nemesis opera com as trilhas do pretool (Defender + ast-linters).
 
 **Sistema operacional por camada:**
 
@@ -343,7 +360,7 @@ A biblioteca Rust (`nemesis-defender`) é agnóstica de IDE. Cada IDE contribui 
 | 2 — Defender (scanner) | ✅ | ✅ | ✅ |
 | 3 — eBPF Kernel LSM | ✅ | ❌ | ❌ |
 
-No Linux você tem as três camadas, incluindo a proteção de kernel que vale **inclusive contra você mesmo** no terminal. Em macOS e Windows, sem eBPF, você opera com as Camadas 1 e 2 — e o humano mantém liberdade total de comandos destrutivos no terminal (a proteção ali se aplica às ações da IA via hooks da IDE).
+No Linux você tem todas as camadas, incluindo a proteção de kernel (eBPF) que vale **inclusive contra você mesmo** no terminal. Em macOS e Windows, sem eBPF, você opera com as trilhas do pretool (Defender + ast-linters) — e o humano mantém liberdade total de comandos destrutivos no terminal (a proteção ali se aplica às ações da IA via hooks da IDE).
 
 ### Build
 

@@ -21,6 +21,143 @@ category = "suspicious"
 languages = ["typescript", "tsx", "javascript", "jsx"]
 suggestion = "Remove the debugger statement; use breakpoints in DevTools instead."
 
+# JSX: missing key in iterable (correctness) - REMOVIDO: query inválida para TypeScript
+# [rule.use-jsx-key-in-iterable]
+# query = "(jsx_element (jsx_opening_element (jsx_identifier) @tag) @el) @root"
+# message = "JSX element in iterable missing 'key' prop. React requires keys for stable rendering."
+# severity = "error"
+# category = "correctness"
+# languages = ["typescript", "tsx", "javascript", "jsx"]
+# suggestion = "Add a unique 'key' prop to each element in the iterable. Use stable identifiers (e.g., item.id) instead of array index."
+
+# TS/JS: const reassignment (correctness)
+[rule.no-const-assign]
+query = "(assignment_expression left: (identifier) @id) @assign"
+message = "Reassignment of const variable. Use 'let' for variables that need reassignment."
+severity = "error"
+category = "correctness"
+languages = ["typescript", "tsx", "javascript", "jsx"]
+suggestion = "Change 'const' to 'let' if the variable needs to be reassigned, or use a new variable name."
+
+# TS/JS: duplicate function arguments (correctness) - REMOVIDO: query inválida
+# [rule.no-dupe-args]
+# query = "(formal_parameters (identifier) @arg) @params"
+# message = "Duplicate function argument detected. This causes runtime errors."
+# severity = "error"
+# category = "correctness"
+# languages = ["typescript", "tsx", "javascript", "jsx"]
+# suggestion = "Remove or rename the duplicate argument to have unique parameter names."
+
+# TS/JS: duplicate object keys (correctness)
+[rule.no-dupe-keys]
+query = "(object (pair key: (property_identifier) @key) @pair) @obj"
+message = "Duplicate object key detected. The last value overwrites previous ones."
+severity = "error"
+category = "correctness"
+languages = ["typescript", "tsx", "javascript", "jsx"]
+suggestion = "Remove or rename the duplicate key to have unique property names."
+
+# TS/JS: calling object as function (correctness)
+[rule.no-obj-calls]
+query = "(call_expression function: (object) @obj) @call"
+message = "Object called as function. This will throw a runtime error."
+severity = "error"
+category = "correctness"
+languages = ["typescript", "tsx", "javascript", "jsx"]
+suggestion = "Ensure the called value is a function. Check for typos or missing function references."
+
+
+# TS/JS: unreachable code (correctness)
+[rule.no-unreachable]
+query = "(return_statement) @return"
+message = "Unreachable code detected after return/throw/break. This code will never execute."
+severity = "error"
+category = "correctness"
+languages = ["typescript", "tsx", "javascript", "jsx"]
+suggestion = "Remove the unreachable code or restructure the control flow."
+
+# React: direct state mutation (correctness)
+[rule.no-direct-mutation-state]
+query = "(assignment_expression left: (member_expression object: (identifier) @obj)) @assign"
+message = "Direct state mutation detected. Use setState() instead of modifying state directly."
+severity = "error"
+category = "correctness"
+languages = ["typescript", "tsx", "javascript", "jsx"]
+suggestion = "Use setState() or functional updates (setState(prev => ...)) instead of mutating state directly."
+
+# React: children prop (correctness)
+[rule.no-children-prop]
+query = "(jsx_attribute (property_identifier) @attr) @prop"
+message = "children prop should be passed as JSX children, not as a prop attribute."
+severity = "error"
+category = "correctness"
+languages = ["typescript", "tsx", "javascript", "jsx"]
+suggestion = "Pass children as JSX content between opening and closing tags: <Component>children</Component>"
+
+# React: unescaped entities (security)
+[rule.no-unescaped-entities]
+query = "(jsx_text) @text"
+message = "Unescaped HTML entity detected. Use JSX expressions for user content to prevent XSS."
+severity = "error"
+category = "security"
+languages = ["typescript", "tsx", "javascript", "jsx"]
+suggestion = "Use JSX expressions for dynamic content: {userInput} instead of direct interpolation."
+
+# React: useless fragment (style) - REMOVIDO: query inválida para TypeScript
+# [rule.jsx-no-useless-fragment]
+# query = "(jsx_fragment (jsx_element) @child) @frag"
+# message = "React Fragment with single child is unnecessary. Remove the Fragment wrapper."
+# severity = "warning"
+# category = "style"
+# languages = ["typescript", "tsx", "javascript", "jsx"]
+# suggestion = "Remove the Fragment wrapper and use the child element directly."
+
+# TS: explicit any (suspicious) - REMOVIDO: query inválida para TypeScript
+# [rule.no-explicit-any]
+# query = "(type_annotation type: (predefined_type) @type) @annot"
+# message = "Explicit use of 'any' type disables type checking. Use specific types instead."
+# severity = "error"
+# category = "suspicious"
+# languages = ["typescript", "tsx"]
+# suggestion = "Replace 'any' with a specific type (e.g., string, number, or interface)."
+
+
+# TS: unsafe return (suspicious) - REMOVIDO: query muito genérica
+# [rule.no-unsafe-return]
+# query = "(return_statement) @return"
+# message = "Unsafe return statement detected. Ensure return type matches function signature."
+# severity = "error"
+# category = "suspicious"
+# languages = ["typescript", "tsx"]
+# suggestion = "Add type annotation to the return value or adjust the function return type."
+
+# TS: unsafe call (suspicious) - REMOVIDO: query muito genérica
+# [rule.no-unsafe-call]
+# query = "(call_expression) @call"
+# message = "Unsafe function call detected. Ensure the callable is properly typed."
+# severity = "error"
+# category = "suspicious"
+# languages = ["typescript", "tsx"]
+# suggestion = "Add type annotations to the function or ensure it's typed correctly."
+
+# TS: unsafe member access (suspicious) - REMOVIDO: query muito genérica
+# [rule.no-unsafe-member-access]
+# query = "(member_expression) @member"
+# message = "Unsafe member access detected. Ensure the object has the property."
+# severity = "error"
+# category = "suspicious"
+# languages = ["typescript", "tsx"]
+# suggestion = "Add type guards or ensure the object type includes the accessed property."
+
+# TS: unsafe argument (suspicious) - REMOVIDO: query muito genérica
+# [rule.no-unsafe-argument]
+# query = "(arguments) @args"
+# message = "Unsafe argument passed to function. Ensure argument type matches parameter type."
+# severity = "error"
+# category = "suspicious"
+# languages = ["typescript", "tsx"]
+# suggestion = "Add type annotations to the argument or ensure it matches the expected type."
+
 # Go: unsafe.Pointer (security)
 [rule.go-no-unsafe-pointer]
 query = "(selector_expression field: (field_identifier) @field) @sel"

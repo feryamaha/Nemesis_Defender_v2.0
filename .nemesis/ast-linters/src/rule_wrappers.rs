@@ -20,7 +20,7 @@ impl LintRule for AnyViaAliasRule {
     }
 
     fn default_severity(&self) -> Severity {
-        Severity::Error
+        Severity::Critical
     }
 
     fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
@@ -48,7 +48,7 @@ impl LintRule for ConditionalHooksRule {
     }
 
     fn default_severity(&self) -> Severity {
-        Severity::Error
+        Severity::Critical
     }
 
     fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
@@ -76,7 +76,7 @@ impl LintRule for FetchInComponentRule {
     }
 
     fn default_severity(&self) -> Severity {
-        Severity::Error
+        Severity::Critical
     }
 
     fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
@@ -104,7 +104,7 @@ impl LintRule for ExhaustiveDepsRule {
     }
 
     fn default_severity(&self) -> Severity {
-        Severity::Error
+        Severity::Critical
     }
 
     fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
@@ -162,7 +162,7 @@ impl LintRule for NoFloatingPromisesRule {
     }
 
     fn default_severity(&self) -> Severity {
-        Severity::Error
+        Severity::Critical
     }
 
     fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
@@ -192,7 +192,7 @@ impl LintRule for NoUnsafeAssignmentRule {
     }
 
     fn default_severity(&self) -> Severity {
-        Severity::Error
+        Severity::Critical
     }
 
     fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
@@ -220,7 +220,7 @@ impl LintRule for JsxNoTargetBlankRule {
     }
 
     fn default_severity(&self) -> Severity {
-        Severity::Error
+        Severity::Critical
     }
 
     fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {

@@ -11,19 +11,35 @@ baseada em árvore sintática (Classe B da auditoria).
 - [x] Estrutura do crate criada
 - [x] `language.rs` — detecção de linguagem por extensão
 - [x] `parser.rs` — wrapper tree-sitter (TS/JS)
+- [x] Sistema de regras declarativas via `rules.toml` (build.rs gera visitors)
+- [x] Visitors manuais para casos complexos (exhaustive_deps, no_floating_promises)
+- [x] 20 regras declarativas em `rules.toml` (TS/JS, React, Python, Go, Java, Rust)
+- [x] 30+ visitors manuais para casos específicos (React hooks, segurança, tipagem)
+- [x] Severity Critical adicionado ao enum para blocking
 - [x] `any_via_alias.rs` — detecta `type X = any`
 - [x] `conditional_hooks.rs` — detecta hooks dentro de if/for/while
 - [x] `fetch_in_component.rs` — detecta fetch/axios em componente
 - [x] `exhaustive_deps.rs` — detecta useEffect com deps incompletas
+- [x] `no_floating_promises.rs` — detecta promises sem await
 - [x] `unused_vars.rs` — detecta variáveis declaradas não usadas
 - [x] `cache.rs` — LRU cache para AST parseado
 - [x] `validator.rs` — `validate_semantic()` integrado ao workflow_enforcer
-- [x] Compilação limpa (sem warnings) + 37 testes passando
-- [x] Integrado ao `workflow-enforcer.rs` (library) e `pretool-hook.rs` (CLI)
-- [x] Pentest integration tests: 8/8 validando detecção em padrões reais de violação
-- [x] `any_via_alias` estendido: detecta `props: any`, `useState<any>`, parâmetros com `any`
-- [x] `fetch_in_component` estendido: detecta fetch dentro de callbacks (useEffect, etc.)
-- [ ] Etapa 5: Documentação completa + logs com layer
+- [x] Compilação limpa + 55 testes passando (lib + generated_rules)
+- [x] Integrado ao `workflow_enforcer.rs` (library) e `pretool-hook.rs` (CLI)
+- [x] Pentest estático: 200/203 testes passando (98.5%) — critério ≥98% atingido
+- [x] FASE 1-4: 17 regras novas adicionadas (BUILD-BREAK, React, Tipagem)
+- [x] FASE 5A: Validação estática contra binário concluída
+- [ ] Etapa 5B: Pentest real (modelo LLM escrevendo código)
+- [ ] Etapa 5C: Integração ao cargo test/check
+
+### Gaps Conhecidos (aceitos)
+- **T-8.13 (no-obj-calls)**: `const obj={};obj()` — caso de borda, baixa prioridade
+- **T-8.14 (sparse arrays)**: `const arr=[1,,3]` — caso de borda, baixa prioridade
+- **T-8.21 (unsafe assignment)**: `const x:string=123` — **responsabilidade do tsc**, exige inferência de tipo (fora do escopo do ast-linters)
+
+### Falsos Positivos Esperados (CORRETOS)
+- **T-26.01**: docs/aws-guide.md — documentação legítima não deve bloquear ✅
+- **T-26.06**: docs/security-guide.md — guia de segurança legítimo não deve bloquear ✅
 
 ## Dependências
 

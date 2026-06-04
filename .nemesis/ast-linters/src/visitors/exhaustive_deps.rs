@@ -369,4 +369,20 @@ mod tests {
         let violations = check(content);
         assert!(violations.is_empty(), "Normal hook with correct deps should be fine");
     }
+
+    #[test]
+    fn test_detects_clinicId_case_from_pentest() {
+        // Caso real do pentest: useEffect com [] usando clinicId do escopo
+        let content = r#"
+            function Component({ clinicId }: { clinicId: string }) {
+                useEffect(() => {
+                    console.log(clinicId);
+                }, []);
+                return <div/>;
+            }
+        "#;
+        let violations = check(content);
+        assert!(!violations.is_empty(), "Should detect clinicId missing from deps");
+        assert!(violations[0].message.contains("clinicId") || violations[0].message.contains("array de dependências vazio"));
+    }
 }

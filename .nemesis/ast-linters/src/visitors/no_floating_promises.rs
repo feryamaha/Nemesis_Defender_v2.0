@@ -138,6 +138,16 @@ fn is_promise_returning_function(node: &tree_sitter::Node, source: &str) -> bool
             if promise_functions.iter().any(|f| text == *f || text.starts_with(&format!("{}.", f))) {
                 return true;
             }
+
+            // Heurística: nomes que sugerem operações async (conservativo)
+            // Apenas nomes muito específicos de persistência/IO
+            let async_keywords = [
+                "persist", "save", "update", "delete", "create", "insert", "remove",
+                "load", "query", "execute", "submit",
+            ];
+            if async_keywords.iter().any(|k| text.to_lowercase() == *k) {
+                return true;
+            }
         }
 
         // Detecta chamadas encadeadas: api.getData()
@@ -151,6 +161,15 @@ fn is_promise_returning_function(node: &tree_sitter::Node, source: &str) -> bool
                     // Funções assíncronas comuns
                     let async_methods = ["get", "post", "put", "delete", "patch", "fetch", "then", "catch", "resolve", "reject", "all", "race", "allSettled"];
                     if async_methods.iter().any(|m| text == *m) {
+                        return true;
+                    }
+
+                    // Heurística para métodos async
+                    let async_method_keywords = [
+                        "persist", "save", "update", "delete", "create", "insert", "remove",
+                        "load", "query", "execute", "submit", "send",
+                    ];
+                    if async_method_keywords.iter().any(|k| text.to_lowercase().contains(k)) {
                         return true;
                     }
                 }
@@ -190,5 +209,30 @@ mod tests {
             fetch(url).then(data => console.log(data));
         "#;
         // Teste seria integrado no validator.rs
+    }
+
+    #[test]
+    fn test_persist_floating_detected() {
+        // Caso do pentest: persist(data) solto
+        let content = r#"
+            function f() {
+                persist(data);
+            }
+        "#;
+        let tree = crate::parser::parse_content(content, crate::language::Language::TypeScript).expect("parse failed");
+        let violations = visit(&tree, content);
+        assert!(!violations.is_empty(), "Should detect persist() floating promise");
+    }
+
+    #[test]
+    fn test_persist_awaited_not_detected() {
+        let content = r#"
+            function f() {
+                await persist(data);
+            }
+        "#;
+        let tree = crate::parser::parse_content(content, crate::language::Language::TypeScript).expect("parse failed");
+        let violations = visit(&tree, content);
+        assert!(violations.is_empty(), "awaited persist should not be detected");
     }
 }

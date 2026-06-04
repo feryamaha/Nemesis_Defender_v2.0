@@ -160,9 +160,10 @@ impl LintRule for {struct_name} {{
     // Escrever o código gerado em OUT_DIR
     let out_dir = std::env::var("OUT_DIR")?;
     let output_path = Path::new(&out_dir).join("generated_visitors.rs");
-    fs::write(output_path, generated_code)?;
+    fs::write(&output_path, generated_code)?;
     
-    println!("Generated visitors: {}", rules.rule.len());
+    println!("cargo:warning=Generated {} visitors from rules.toml", rules.rule.len());
+    println!("cargo:warning=Output path: {:?}", output_path);
     
     Ok(())
 }
