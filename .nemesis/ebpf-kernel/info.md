@@ -35,6 +35,32 @@ cat /sys/kernel/security/lsm
 cargo build -p nemesis-ebpf-kernel
 ```
 
+**IMPORTANTE - Bloqueio de build pelo BPF LSM:**
+
+Se o BPF LSM estiver ativo e bloqueando o build (erro "Operation not permitted" no `rm` do make durante a compilação do libbpf-sys), siga estes passos:
+
+```bash
+# 1. Verificar se o daemon está rodando
+ps aux | grep nemesis-ebpf-daemon
+
+# 2. Parar o daemon
+sudo systemctl stop nemesis-ebpf  # se estiver como serviço
+# ou mate o processo manualmente
+kill <PID_DO_DAEMON>
+
+# 3. Tentar compilar novamente
+cargo build -p nemesis-ebpf-kernel
+```
+
+Se mesmo após parar o daemon o build falhar, o programa BPF LSM pode estar carregado no kernel. Programas BPF não podem ser removidos dinamicamente. Nesse caso:
+
+```bash
+# Reinicie o sistema para descarregar o programa BPF LSM
+sudo reboot
+```
+
+Após o reinício, compile antes de iniciar o daemon novamente.
+
 O objeto BPF (`.bpf.o`) é compilado automaticamente pelo daemon na primeira execução via `make`.
 
 ---

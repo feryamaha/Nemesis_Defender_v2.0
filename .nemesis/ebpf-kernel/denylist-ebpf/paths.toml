@@ -1,6 +1,6 @@
 blocked_write_prefixes = [
   ".nemesis/runtime/",
-  ".windsurf/",
+  ".devin/",
   ".claude/",
   ".cursor/",
   ".nemesis/ebpf-kernel/",
