@@ -69,7 +69,7 @@ suggestion = "Ensure the called value is a function. Check for typos or missing 
 
 # TS/JS: unreachable code (correctness)
 [rule.no-unreachable]
-query = "(return_statement) @return"
+query = "(statement_block (return_statement) @return (expression_statement) @unreachable) @block"
 message = "Unreachable code detected after return/throw/break. This code will never execute."
 severity = "error"
 category = "correctness"
@@ -85,23 +85,23 @@ category = "correctness"
 languages = ["typescript", "tsx", "javascript", "jsx"]
 suggestion = "Use setState() or functional updates (setState(prev => ...)) instead of mutating state directly."
 
-# React: children prop (correctness)
-[rule.no-children-prop]
-query = "(jsx_attribute (property_identifier) @attr) @prop"
-message = "children prop should be passed as JSX children, not as a prop attribute."
-severity = "error"
-category = "correctness"
-languages = ["typescript", "tsx", "javascript", "jsx"]
-suggestion = "Pass children as JSX content between opening and closing tags: <Component>children</Component>"
+# React: children prop (correctness) - REMOVIDO: query não específica causa falsos-positivos
+# [rule.no-children-prop]
+# query = "(jsx_attribute (property_identifier) @attr) @prop"
+# message = "children prop should be passed as JSX children, not as a prop attribute."
+# severity = "error"
+# category = "correctness"
+# languages = ["typescript", "tsx", "javascript", "jsx"]
+# suggestion = "Pass children as JSX content between opening and closing tags: <Component>children</Component>"
 
-# React: unescaped entities (security)
-[rule.no-unescaped-entities]
-query = "(jsx_text) @text"
-message = "Unescaped HTML entity detected. Use JSX expressions for user content to prevent XSS."
-severity = "error"
-category = "security"
-languages = ["typescript", "tsx", "javascript", "jsx"]
-suggestion = "Use JSX expressions for dynamic content: {userInput} instead of direct interpolation."
+# React: unescaped entities (security) - REMOVIDO: query incorreta causa falsos-positivos
+# [rule.no-unescaped-entities]
+# query = "(jsx_text) @text"
+# message = "Unescaped HTML entity detected. Use JSX expressions for user content to prevent XSS."
+# severity = "error"
+# category = "security"
+# languages = ["typescript", "tsx", "javascript", "jsx"]
+# suggestion = "Use JSX expressions for dynamic content: {userInput} instead of direct interpolation."
 
 # React: useless fragment (style) - REMOVIDO: query inválida para TypeScript
 # [rule.jsx-no-useless-fragment]
@@ -158,110 +158,5 @@ suggestion = "Use JSX expressions for dynamic content: {userInput} instead of di
 # languages = ["typescript", "tsx"]
 # suggestion = "Add type annotations to the argument or ensure it matches the expected type."
 
-# Go: unsafe.Pointer (security)
-[rule.go-no-unsafe-pointer]
-query = "(selector_expression field: (field_identifier) @field) @sel"
-message = "unsafe.Pointer detected. Avoid unsafe operations in production code."
-severity = "error"
-category = "security"
-languages = ["go"]
-suggestion = "Use safe Go idioms; avoid the unsafe package unless strictly necessary."
-
-# Go: panic() (suspicious)
-[rule.go-no-panic]
-query = "(call_expression function: (identifier) @fn) @call"
-message = "panic() detected. Use explicit error handling instead."
-severity = "error"
-category = "suspicious"
-languages = ["go"]
-suggestion = "Return errors as values; use panic only for unrecoverable programmer errors."
-
-# Go: defer with unchecked error (correctness)
-[rule.go-defer-unchecked-err]
-query = "(defer_statement) @defer"
-message = "Defer statement with potentially unchecked error. Verify error handling."
-severity = "warning"
-category = "correctness"
-languages = ["go"]
-suggestion = "Check and handle errors explicitly in deferred calls."
-
-# Go: SQL injection via fmt.Sprintf (security)
-[rule.go-sql-sprintf-injection]
-query = "(call_expression function: (selector_expression field: (field_identifier) @method)) @call"
-message = "Potential SQL injection via fmt.Sprintf. Use parameterized queries."
-severity = "error"
-category = "security"
-languages = ["go"]
-suggestion = "Use placeholders ($1, $2) with database/sql instead of fmt.Sprintf for query strings."
-
-# Java: Runtime.exec / ProcessBuilder (security)
-[rule.java-no-runtime-exec]
-query = "(method_invocation) @call"
-message = "Runtime.exec() or ProcessBuilder detected. Validate all inputs to prevent command injection."
-severity = "error"
-category = "security"
-languages = ["java"]
-suggestion = "Use ProcessBuilder with input validation; avoid passing unsanitized user input to shell commands."
-
-# Java: Reflection (suspicious)
-[rule.java-no-reflection]
-query = "(method_invocation) @call"
-message = "Reflection usage detected (Method.invoke / Class.forName). Avoid unless strictly necessary."
-severity = "error"
-category = "suspicious"
-languages = ["java"]
-suggestion = "Use direct method calls instead of reflection; if unavoidable, validate all reflective access."
-
-# Java: SQL injection via Statement (security)
-[rule.java-sql-injection]
-query = "(method_invocation) @call"
-message = "Potential SQL injection via Statement.executeQuery with string concatenation. Use PreparedStatement."
-severity = "error"
-category = "security"
-languages = ["java"]
-suggestion = "Use PreparedStatement with parameterized queries instead of string concatenation."
-
-# Java: ObjectInputStream deserialization (security)
-[rule.java-no-objectinputstream]
-query = "(object_creation_expression) @new"
-message = "ObjectInputStream or readObject() detected. Unsafe deserialization can lead to RCE."
-severity = "error"
-category = "security"
-languages = ["java"]
-suggestion = "Use safe deserialization with input validation; consider JSON or other safe formats."
-
-# Rust: unwrap() chains (suspicious)
-[rule.rust-no-unwrap-chain]
-query = "(call_expression) @call"
-message = "Multiple chained unwrap() calls detected. Use proper error handling with ? operator or combinators."
-severity = "error"
-category = "suspicious"
-languages = ["rust"]
-suggestion = "Use the ? operator for error propagation, or combinators like .map(), .and_then(), .unwrap_or()."
-
-# Rust: unsafe block (security)
-[rule.rust-no-unsafe]
-query = "(unsafe_block) @unsafe"
-message = "Unsafe block detected. Avoid unsafe code in production unless strictly necessary."
-severity = "error"
-category = "security"
-languages = ["rust"]
-suggestion = "Minimize unsafe code; wrap in safe abstractions with thorough documentation and testing."
-
-# Rust: panic!() (suspicious)
-[rule.rust-no-panic]
-query = "(macro_invocation) @macro"
-message = "panic!() detected. Use Result-based error handling instead of panicking."
-severity = "error"
-category = "suspicious"
-languages = ["rust"]
-suggestion = "Return Result<T, E> and use the ? operator for error propagation."
-
-# Rust: std::process::exit (suspicious)
-[rule.rust-no-process-exit]
-query = "(call_expression) @call"
-message = "std::process::exit() detected. Abrupt termination can skip cleanup and drop implementations."
-severity = "error"
-category = "suspicious"
-languages = ["rust"]
-suggestion = "Use proper error propagation to main() and let the program exit naturally."
+# NOTE: Regras multi-stack (Go/Java/Rust) removidas — o linter é dedicado à stack
+# Next.js/React/TypeScript. Apenas regras typescript/tsx/javascript/jsx são suportadas.

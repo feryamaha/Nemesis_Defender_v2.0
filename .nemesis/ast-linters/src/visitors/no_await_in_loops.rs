@@ -18,7 +18,7 @@ fn visit_node(cursor: &mut tree_sitter::TreeCursor, source: &str, violations: &m
             violations.push(Violation::new(
                 "await dentro de loop detectado. Isso executa operacoes assincronas sequencialmente.",
                 line, RuleCategory::Suspicious,
-            ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use Promise.all() para executar em paralelo. Consulte: https://biomejs.dev/"));
+            ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use Promise.all() para executar em paralelo."));
         }
     }
     if cursor.goto_first_child() {

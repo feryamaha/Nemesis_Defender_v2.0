@@ -94,7 +94,7 @@ fn check_type_annotation_for_any(node: &tree_sitter::Node, source: &str, violati
                 let line = node.start_position().row + 1;
                 violations.push(
                     Violation::new("Atribuição de tipo 'any' detectada. Use tipos específicos ou unknown.", line, RuleCategory::Suspicious)
-                        .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Declare o tipo explícito: const x: TipoEspecífico = valor. Consulte: https://biomejs.dev/")
+                        .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Declare o tipo explícito: const x: TipoEspecífico = valor.")
                 );
             }
         }
@@ -110,7 +110,7 @@ fn check_type_annotation_for_any(node: &tree_sitter::Node, source: &str, violati
                         let line = node.start_position().row + 1;
                         violations.push(
                             Violation::new("Atribuição de tipo 'any[]' detectada. Use tipos específicos.", line, RuleCategory::Suspicious)
-                                .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Declare o tipo explícito: const x: TipoEspecífico = valor. Consulte: https://biomejs.dev/")
+                                .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Declare o tipo explícito: const x: TipoEspecífico = valor.")
                         );
                     }
                 }
@@ -130,7 +130,7 @@ fn check_as_expression_for_any(node: &tree_sitter::Node, source: &str, violation
                 let line = node.start_position().row + 1;
                 violations.push(
                     Violation::new("Type assertion 'as any' detectada. Use type guards ou unknown.", line, RuleCategory::Suspicious)
-                        .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Declare o tipo explícito: const x: TipoEspecífico = valor. Consulte: https://biomejs.dev/")
+                        .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Declare o tipo explícito: const x: TipoEspecífico = valor.")
                 );
             }
         }

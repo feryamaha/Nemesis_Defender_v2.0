@@ -112,7 +112,7 @@ fn check_jsx_element(node: &tree_sitter::Node, source: &str, violations: &mut Ve
                 line,
                 RuleCategory::Security
             )
-            .with_suggestion("[STOP] Leia .windsurf/rules/react-hooks-patterns-rules.md antes de reescrever. Adicione rel=\"noreferrer\" ao link com target=\"_blank\". Consulte: https://biomejs.dev/")
+            .with_suggestion("[STOP] Leia .windsurf/rules/react-hooks-patterns-rules.md antes de reescrever. Adicione rel=\"noreferrer\" ao link com target=\"_blank\".")
         );
     }
 }

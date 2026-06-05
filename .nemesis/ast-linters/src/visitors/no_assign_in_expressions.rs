@@ -131,7 +131,7 @@ fn check_assignment_in_condition(
                 line,
                 RuleCategory::Suspicious,
             )
-            .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use === para comparação. Atribuição em condicional é provavelmente um bug. Consulte: https://biomejs.dev/")
+            .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use === para comparação. Atribuição em condicional é provavelmente um bug.")
         );
     }
 }

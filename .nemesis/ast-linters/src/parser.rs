@@ -78,10 +78,6 @@ impl TreeEdit {
 pub struct ParserPool {
     typescript: Mutex<Option<tree_sitter::Parser>>,
     javascript: Mutex<Option<tree_sitter::Parser>>,
-    python: Mutex<Option<tree_sitter::Parser>>,
-    go: Mutex<Option<tree_sitter::Parser>>,
-    java: Mutex<Option<tree_sitter::Parser>>,
-    rust: Mutex<Option<tree_sitter::Parser>>,
 }
 
 impl ParserPool {
@@ -90,10 +86,6 @@ impl ParserPool {
         Self {
             typescript: Mutex::new(None),
             javascript: Mutex::new(None),
-            python: Mutex::new(None),
-            go: Mutex::new(None),
-            java: Mutex::new(None),
-            rust: Mutex::new(None),
         }
     }
 
@@ -118,50 +110,6 @@ impl ParserPool {
                     parser
                         .set_language(&tree_sitter_javascript::LANGUAGE.into())
                         .map_err(|e| ParseError::ParseFailed(format!("Failed to set javascript language: {}", e)))?;
-                    *guard = Some(parser);
-                }
-                Ok(guard)
-            }
-            Language::Python => {
-                let mut guard = self.python.lock().map_err(|_| ParseError::LanguageNotInitialized)?;
-                if guard.is_none() {
-                    let mut parser = tree_sitter::Parser::new();
-                    parser
-                        .set_language(&tree_sitter_python::language().into())
-                        .map_err(|e| ParseError::ParseFailed(format!("Failed to set python language: {}", e)))?;
-                    *guard = Some(parser);
-                }
-                Ok(guard)
-            }
-            Language::Go => {
-                let mut guard = self.go.lock().map_err(|_| ParseError::LanguageNotInitialized)?;
-                if guard.is_none() {
-                    let mut parser = tree_sitter::Parser::new();
-                    parser
-                        .set_language(&tree_sitter_go::LANGUAGE.into())
-                        .map_err(|e| ParseError::ParseFailed(format!("Failed to set go language: {}", e)))?;
-                    *guard = Some(parser);
-                }
-                Ok(guard)
-            }
-            Language::Java => {
-                let mut guard = self.java.lock().map_err(|_| ParseError::LanguageNotInitialized)?;
-                if guard.is_none() {
-                    let mut parser = tree_sitter::Parser::new();
-                    parser
-                        .set_language(&tree_sitter_java::LANGUAGE.into())
-                        .map_err(|e| ParseError::ParseFailed(format!("Failed to set java language: {}", e)))?;
-                    *guard = Some(parser);
-                }
-                Ok(guard)
-            }
-            Language::Rust => {
-                let mut guard = self.rust.lock().map_err(|_| ParseError::LanguageNotInitialized)?;
-                if guard.is_none() {
-                    let mut parser = tree_sitter::Parser::new();
-                    parser
-                        .set_language(&tree_sitter_rust::LANGUAGE.into())
-                        .map_err(|e| ParseError::ParseFailed(format!("Failed to set rust language: {}", e)))?;
                     *guard = Some(parser);
                 }
                 Ok(guard)
@@ -286,12 +234,5 @@ mod tests {
         let content = "";
         let result = parse_content(content, Language::TypeScript);
         assert!(result.is_ok(), "Empty content should parse: {:?}", result.err());
-    }
-
-    #[test]
-    fn test_parse_python_simple() {
-        let content = "x = 1";
-        let result = parse_content(content, Language::Python);
-        assert!(result.is_ok(), "Python parse should succeed: {:?}", result.err());
     }
 }

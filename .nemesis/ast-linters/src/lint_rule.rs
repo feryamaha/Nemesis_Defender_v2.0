@@ -5,7 +5,7 @@
 use crate::parser::ParsedTree;
 use crate::language::Language;
 
-/// Categoria da regra — inspirado em Biome lint categories.
+/// Categoria da regra.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RuleCategory {
     Correctness, // bugs reais, crashes
@@ -14,7 +14,7 @@ pub enum RuleCategory {
     Style,       // formatação, preferências
 }
 
-/// Configuração de severidade — copiado de Biome RulePlainConfiguration.
+/// Configuração de severidade.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Severity {
@@ -70,7 +70,7 @@ impl<'a> Context<'a> {
     }
 }
 
-/// Sugestão de código correto — novo campo inspirado no Biome.
+/// Sugestão de código correto.
 #[derive(Debug, Clone)]
 pub struct Suggestion {
     /// O que usar no lugar — código ou padrão correto.
@@ -78,7 +78,6 @@ pub struct Suggestion {
 }
 
 /// Violação detectada por um visitor AST.
-/// Inspirado no RuleDiagnostic do Biome com adaptação para tree-sitter.
 #[derive(Debug, Clone)]
 pub struct Violation {
     pub rule_name: String,
@@ -86,7 +85,6 @@ pub struct Violation {
     pub line: usize,
     pub category: RuleCategory,
     pub severity: Severity,
-    // NOVOS campos do Biome:
     pub suggestion: Option<Suggestion>,
     pub notes: Vec<String>,
 }

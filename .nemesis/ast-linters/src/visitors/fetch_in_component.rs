@@ -153,7 +153,7 @@ fn visit_node(
                     line,
                     RuleCategory::Suspicious
                 )
-                .with_suggestion("[STOP] Leia .windsurf/rules/API-convention.md antes de reescrever. Use hook personalizado em src/hooks/ ou route handler em src/app/api/. Consulte: https://biomejs.dev/")
+                .with_suggestion("[STOP] Leia .windsurf/rules/API-convention.md antes de reescrever. Use hook personalizado em src/hooks/ ou route handler em src/app/api/.")
             );
         }
     }

@@ -78,7 +78,7 @@ fn check_parameter_type(node: &tree_sitter::Node, source: &str, violations: &mut
                     let line = node.start_position().row + 1;
                     violations.push(
                         Violation::new("Parâmetro tipado como 'any'. Declare tipos corretos.", line, RuleCategory::Suspicious)
-                            .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use unknown, generics <T> ou tipo específico em src/types/. Consulte: https://biomejs.dev/")
+                            .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use unknown, generics <T> ou tipo específico em src/types/.")
                     );
                 }
             }
@@ -95,7 +95,7 @@ fn check_type_arguments_for_any(node: &tree_sitter::Node, source: &str, violatio
             let line = child.start_position().row + 1;
             violations.push(
                 Violation::new("Tipo 'any' utilizado como argumento de tipo (ex: useState<any>). Declare tipos corretos.", line, RuleCategory::Suspicious)
-                    .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use unknown, generics <T> ou tipo específico em src/types/. Consulte: https://biomejs.dev/")
+                    .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use unknown, generics <T> ou tipo específico em src/types/.")
             );
         }
         // Suporta aninhamento: SomeType<any>
@@ -152,7 +152,7 @@ fn check_property_type(node: &tree_sitter::Node, source: &str, violations: &mut 
                     let line = node.start_position().row + 1;
                     violations.push(
                         Violation::new("Propriedade de interface tipada como 'any'. Declare tipos corretos.", line, RuleCategory::Suspicious)
-                            .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use unknown, generics <T> ou tipo específico em src/types/. Consulte: https://biomejs.dev/")
+                            .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use unknown, generics <T> ou tipo específico em src/types/.")
                     );
                 }
             }
@@ -173,7 +173,7 @@ fn check_type_parameter_for_any(node: &tree_sitter::Node, source: &str, violatio
                     let line = node.start_position().row + 1;
                     violations.push(
                         Violation::new("Type parameter com default 'any'. Declare tipos corretos.", line, RuleCategory::Suspicious)
-                            .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use unknown, generics <T> ou tipo específico em src/types/. Consulte: https://biomejs.dev/")
+                            .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use unknown, generics <T> ou tipo específico em src/types/.")
                     );
                 }
             }

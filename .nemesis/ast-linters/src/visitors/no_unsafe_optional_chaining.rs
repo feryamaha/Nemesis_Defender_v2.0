@@ -32,7 +32,7 @@ fn check_optional_chain(node: &tree_sitter::Node, source: &str, violations: &mut
             violations.push(Violation::new(
                 "Uso inseguro de optional chaining em expressao binaria. Se short-circuitar com undefined, causara NaN ou TypeError.",
                 line, RuleCategory::Correctness,
-            ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Verifique se o valor pode ser undefined antes de operar. Consulte: https://biomejs.dev/"));
+            ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Verifique se o valor pode ser undefined antes de operar."));
         }
         "member_expression" => {
             // optional_chain wrapped in member_expression (e.g. arr?.length + 1)
@@ -43,7 +43,7 @@ fn check_optional_chain(node: &tree_sitter::Node, source: &str, violations: &mut
                     violations.push(Violation::new(
                         "Uso inseguro de optional chaining em expressao binaria. Se short-circuitar com undefined, causara NaN ou TypeError.",
                         line, RuleCategory::Correctness,
-                    ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Verifique se o valor pode ser undefined antes de operar. Consulte: https://biomejs.dev/"));
+                    ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Verifique se o valor pode ser undefined antes de operar."));
                 }
             }
         }
@@ -55,7 +55,7 @@ fn check_optional_chain(node: &tree_sitter::Node, source: &str, violations: &mut
                     violations.push(Violation::new(
                         "Optional chaining usado como funcao. Se for undefined, causara TypeError.",
                         line, RuleCategory::Correctness,
-                    ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use (obj?.method)?.() ou verifique antes de chamar. Consulte: https://biomejs.dev/"));
+                    ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use (obj?.method)?.() ou verifique antes de chamar."));
                 }
             }
         }

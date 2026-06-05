@@ -73,7 +73,7 @@ fn check_string_literal(node: &tree_sitter::Node, source: &str, violations: &mut
                 line,
                 RuleCategory::Security,
             )
-            .with_suggestion("[STOP] Leia .windsurf/rules/Conformidade.md antes de reescrever. Use variável de ambiente server-side. OWASP A02: Cryptographic Failures. Consulte: https://biomejs.dev/")
+            .with_suggestion("[STOP] Leia .windsurf/rules/Conformidade.md antes de reescrever. Use variável de ambiente server-side. OWASP A02: Cryptographic Failures.")
         );
     }
 }
@@ -111,7 +111,7 @@ fn check_variable_declarator(
                 line,
                 RuleCategory::Security,
             )
-            .with_suggestion("[STOP] Leia .windsurf/rules/Conformidade.md antes de reescrever. Use variável de ambiente server-side. OWASP A02: Cryptographic Failures. Consulte: https://biomejs.dev/")
+            .with_suggestion("[STOP] Leia .windsurf/rules/Conformidade.md antes de reescrever. Use variável de ambiente server-side. OWASP A02: Cryptographic Failures.")
         );
     }
 }

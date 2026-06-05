@@ -87,7 +87,7 @@ fn check_switch_statement(
                             line,
                             RuleCategory::Suspicious,
                         )
-                        .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Remova o case duplicado. Consulte: https://biomejs.dev/")
+                        .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Remova o case duplicado.")
                     );
                 }
             }

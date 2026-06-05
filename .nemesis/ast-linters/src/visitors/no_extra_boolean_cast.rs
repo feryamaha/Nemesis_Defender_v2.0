@@ -41,7 +41,7 @@ fn check_double_negation(node: &tree_sitter::Node, source: &str, violations: &mu
         violations.push(Violation::new(
             "Double-negation redundante em contexto booleano.",
             line, RuleCategory::Suspicious,
-        ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use o valor diretamente sem cast booleano. Consulte: https://biomejs.dev/").with_severity(Severity::Warning));
+        ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use o valor diretamente sem cast booleano.").with_severity(Severity::Warning));
     }
 }
 
@@ -52,6 +52,6 @@ fn check_boolean_call(node: &tree_sitter::Node, source: &str, violations: &mut V
         violations.push(Violation::new(
             "Boolean() redundante em contexto ja booleano.",
             line, RuleCategory::Suspicious,
-        ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use o valor diretamente sem Boolean(). Consulte: https://biomejs.dev/").with_severity(Severity::Warning));
+        ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use o valor diretamente sem Boolean().").with_severity(Severity::Warning));
     }
 }

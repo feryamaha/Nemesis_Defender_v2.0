@@ -17,7 +17,7 @@ fn visit_node(cursor: &mut tree_sitter::TreeCursor, source: &str, violations: &m
             violations.push(Violation::new(
                 "Uso de 'var' detectado. Use const para imutaveis ou let para mutaveis.",
                 line, RuleCategory::Suspicious,
-            ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use const para imutaveis ou let para mutaveis. Consulte: https://biomejs.dev/"));
+            ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use const para imutaveis ou let para mutaveis."));
         }
     }
     if cursor.goto_first_child() {

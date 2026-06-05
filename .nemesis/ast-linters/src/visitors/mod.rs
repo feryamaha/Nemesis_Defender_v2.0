@@ -49,5 +49,6 @@ pub mod no_extra_boolean_cast;
 // Performance
 pub mod no_await_in_loops;
 
-// Python (security and correctness)
-pub mod python;
+// React (semantic-aware)
+pub mod no_set_state_in_effect;
+pub mod no_impure_in_render;

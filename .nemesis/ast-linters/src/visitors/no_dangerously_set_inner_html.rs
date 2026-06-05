@@ -55,7 +55,7 @@ fn check_jsx_attribute(node: &tree_sitter::Node, source: &str, violations: &mut 
                         line,
                         RuleCategory::Security,
                     )
-                    .with_suggestion("[STOP] Leia .windsurf/rules/Conformidade.md antes de reescrever. Use DOMPurify.sanitize() ou reestruture sem HTML dinâmico. Consulte: https://biomejs.dev/")
+                    .with_suggestion("[STOP] Leia .windsurf/rules/Conformidade.md antes de reescrever. Use DOMPurify.sanitize() ou reestruture sem HTML dinâmico.")
                 );
                 return;
             }

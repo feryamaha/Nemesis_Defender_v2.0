@@ -17,7 +17,7 @@ fn visit_node(cursor: &mut tree_sitter::TreeCursor, source: &str, violations: &m
                 violations.push(Violation::new(
                     "Bloco vazio detectado. Blocos vazios sao geralmente resultado de refatoracao incompleta.",
                     line, RuleCategory::Suspicious,
-                ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Adicione implementacao ou comentario explicando o bloco vazio. Consulte: https://biomejs.dev/").with_severity(Severity::Warning));
+                ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Adicione implementacao ou comentario explicando o bloco vazio.").with_severity(Severity::Warning));
             }
         }
         "switch_body" => {
@@ -27,7 +27,7 @@ fn visit_node(cursor: &mut tree_sitter::TreeCursor, source: &str, violations: &m
                 violations.push(Violation::new(
                     "Switch statement vazio detectado.",
                     line, RuleCategory::Suspicious,
-                ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Adicione cases ou remova o switch. Consulte: https://biomejs.dev/").with_severity(Severity::Warning));
+                ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Adicione cases ou remova o switch.").with_severity(Severity::Warning));
             }
         }
         _ => {}

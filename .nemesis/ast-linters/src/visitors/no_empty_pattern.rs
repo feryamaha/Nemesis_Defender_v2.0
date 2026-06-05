@@ -23,7 +23,7 @@ fn visit_node(cursor: &mut tree_sitter::TreeCursor, source: &str, violations: &m
             violations.push(Violation::new(
                 format!("Desestruturacao de {} vazia detectada. Nao extrai nenhum valor.", pattern_type),
                 line, RuleCategory::Correctness,
-            ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Adicione propriedades ou elementos a desestruturacao. Consulte: https://biomejs.dev/"));
+            ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Adicione propriedades ou elementos a desestruturacao."));
         }
     }
     if cursor.goto_first_child() {

@@ -543,103 +543,33 @@ impl LintRule for NoAwaitInLoopsRule {
     }
 }
 
-// ===== PYTHON SECURITY RULES =====
+// ===== REACT (SEMANTIC-AWARE) =====
 
-pub struct PythonNoEvalExecRule;
+pub struct NoSetStateInEffectRule;
 
-impl LintRule for PythonNoEvalExecRule {
-    fn name(&self) -> &str { "python-no-eval-exec" }
-    fn category(&self) -> RuleCategory { RuleCategory::Security }
-    fn default_severity(&self) -> Severity { Severity::Error }
-    fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
-        visitors::python::no_eval_exec::visit(tree, ctx.source)
-    }
-    fn supported_languages(&self) -> &[crate::language::Language] {
-        &[crate::language::Language::Python]
-    }
-}
-
-pub struct PythonNoShellTrueRule;
-
-impl LintRule for PythonNoShellTrueRule {
-    fn name(&self) -> &str { "python-no-shell-true" }
-    fn category(&self) -> RuleCategory { RuleCategory::Security }
-    fn default_severity(&self) -> Severity { Severity::Error }
-    fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
-        visitors::python::no_shell_true::visit(tree, ctx.source)
-    }
-    fn supported_languages(&self) -> &[crate::language::Language] {
-        &[crate::language::Language::Python]
-    }
-}
-
-pub struct PythonSqlInjectionRule;
-
-impl LintRule for PythonSqlInjectionRule {
-    fn name(&self) -> &str { "python-sql-injection" }
-    fn category(&self) -> RuleCategory { RuleCategory::Security }
-    fn default_severity(&self) -> Severity { Severity::Error }
-    fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
-        visitors::python::sql_injection::visit(tree, ctx.source)
-    }
-    fn supported_languages(&self) -> &[crate::language::Language] {
-        &[crate::language::Language::Python]
-    }
-}
-
-pub struct PythonNoPickleLoadsRule;
-
-impl LintRule for PythonNoPickleLoadsRule {
-    fn name(&self) -> &str { "python-no-pickle-loads" }
-    fn category(&self) -> RuleCategory { RuleCategory::Security }
-    fn default_severity(&self) -> Severity { Severity::Error }
-    fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
-        visitors::python::no_pickle_loads::visit(tree, ctx.source)
-    }
-    fn supported_languages(&self) -> &[crate::language::Language] {
-        &[crate::language::Language::Python]
-    }
-}
-
-pub struct PythonNoYamlUnsafeRule;
-
-impl LintRule for PythonNoYamlUnsafeRule {
-    fn name(&self) -> &str { "python-no-yaml-unsafe" }
-    fn category(&self) -> RuleCategory { RuleCategory::Security }
-    fn default_severity(&self) -> Severity { Severity::Error }
-    fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
-        visitors::python::no_yaml_unsafe::visit(tree, ctx.source)
-    }
-    fn supported_languages(&self) -> &[crate::language::Language] {
-        &[crate::language::Language::Python]
-    }
-}
-
-pub struct PythonNoBarExceptRule;
-
-impl LintRule for PythonNoBarExceptRule {
-    fn name(&self) -> &str { "python-no-bare-except" }
+impl LintRule for NoSetStateInEffectRule {
+    fn name(&self) -> &str { "no-set-state-in-effect" }
     fn category(&self) -> RuleCategory { RuleCategory::Correctness }
     fn default_severity(&self) -> Severity { Severity::Warning }
     fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
-        visitors::python::no_bare_except::visit(tree, ctx.source)
+        visitors::no_set_state_in_effect::visit(tree, ctx.source)
     }
     fn supported_languages(&self) -> &[crate::language::Language] {
-        &[crate::language::Language::Python]
+        &[crate::language::Language::TypeScriptReact, crate::language::Language::JavaScriptReact]
     }
 }
 
-pub struct PythonNoMutableDefaultRule;
+pub struct NoImpureInRenderRule;
 
-impl LintRule for PythonNoMutableDefaultRule {
-    fn name(&self) -> &str { "python-no-mutable-default" }
+impl LintRule for NoImpureInRenderRule {
+    fn name(&self) -> &str { "no-impure-in-render" }
     fn category(&self) -> RuleCategory { RuleCategory::Correctness }
     fn default_severity(&self) -> Severity { Severity::Warning }
     fn visit(&self, tree: &ParsedTree, ctx: &Context) -> Vec<Violation> {
-        visitors::python::no_mutable_default::visit(tree, ctx.source)
+        visitors::no_impure_in_render::visit(tree, ctx.source)
     }
     fn supported_languages(&self) -> &[crate::language::Language] {
-        &[crate::language::Language::Python]
+        &[crate::language::Language::TypeScriptReact, crate::language::Language::JavaScriptReact]
     }
 }
 
@@ -681,96 +611,7 @@ pub fn register_default_rules(registry: &mut crate::rule_registry::RuleRegistry)
     registry.register(Box::new(NoExtraBooleanCastRule));
     // Performance
     registry.register(Box::new(NoAwaitInLoopsRule));
-
-    // Python Security
-    registry.register(Box::new(PythonNoEvalExecRule));
-    registry.register(Box::new(PythonNoShellTrueRule));
-    registry.register(Box::new(PythonSqlInjectionRule));
-    registry.register(Box::new(PythonNoPickleLoadsRule));
-    registry.register(Box::new(PythonNoYamlUnsafeRule));
-    registry.register(Box::new(PythonNoBarExceptRule));
-    registry.register(Box::new(PythonNoMutableDefaultRule));
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_python_no_eval_exec_rule_properties() {
-        let rule = PythonNoEvalExecRule;
-        assert_eq!(rule.name(), "python-no-eval-exec");
-        assert_eq!(rule.category(), RuleCategory::Security);
-        assert_eq!(rule.default_severity(), Severity::Error);
-        assert!(rule.supported_languages().contains(&crate::language::Language::Python));
-    }
-
-    #[test]
-    fn test_python_no_shell_true_rule_properties() {
-        let rule = PythonNoShellTrueRule;
-        assert_eq!(rule.name(), "python-no-shell-true");
-        assert_eq!(rule.category(), RuleCategory::Security);
-        assert_eq!(rule.default_severity(), Severity::Error);
-        assert!(rule.supported_languages().contains(&crate::language::Language::Python));
-    }
-
-    #[test]
-    fn test_python_sql_injection_rule_properties() {
-        let rule = PythonSqlInjectionRule;
-        assert_eq!(rule.name(), "python-sql-injection");
-        assert_eq!(rule.category(), RuleCategory::Security);
-        assert_eq!(rule.default_severity(), Severity::Error);
-        assert!(rule.supported_languages().contains(&crate::language::Language::Python));
-    }
-
-    #[test]
-    fn test_python_no_pickle_loads_rule_properties() {
-        let rule = PythonNoPickleLoadsRule;
-        assert_eq!(rule.name(), "python-no-pickle-loads");
-        assert_eq!(rule.category(), RuleCategory::Security);
-        assert_eq!(rule.default_severity(), Severity::Error);
-        assert!(rule.supported_languages().contains(&crate::language::Language::Python));
-    }
-
-    #[test]
-    fn test_python_no_yaml_unsafe_rule_properties() {
-        let rule = PythonNoYamlUnsafeRule;
-        assert_eq!(rule.name(), "python-no-yaml-unsafe");
-        assert_eq!(rule.category(), RuleCategory::Security);
-        assert_eq!(rule.default_severity(), Severity::Error);
-        assert!(rule.supported_languages().contains(&crate::language::Language::Python));
-    }
-
-    #[test]
-    fn test_python_no_bare_except_rule_properties() {
-        let rule = PythonNoBarExceptRule;
-        assert_eq!(rule.name(), "python-no-bare-except");
-        assert_eq!(rule.category(), RuleCategory::Correctness);
-        assert_eq!(rule.default_severity(), Severity::Warning);
-        assert!(rule.supported_languages().contains(&crate::language::Language::Python));
-    }
-
-    #[test]
-    fn test_python_no_mutable_default_rule_properties() {
-        let rule = PythonNoMutableDefaultRule;
-        assert_eq!(rule.name(), "python-no-mutable-default");
-        assert_eq!(rule.category(), RuleCategory::Correctness);
-        assert_eq!(rule.default_severity(), Severity::Warning);
-        assert!(rule.supported_languages().contains(&crate::language::Language::Python));
-    }
-
-    #[test]
-    fn test_all_python_rules_registered() {
-        let mut registry = crate::rule_registry::RuleRegistry::new();
-        register_default_rules(&mut registry);
-
-        let rule_names = registry.list_rules();
-        assert!(rule_names.contains(&"python-no-eval-exec".to_string()));
-        assert!(rule_names.contains(&"python-no-shell-true".to_string()));
-        assert!(rule_names.contains(&"python-sql-injection".to_string()));
-        assert!(rule_names.contains(&"python-no-pickle-loads".to_string()));
-        assert!(rule_names.contains(&"python-no-yaml-unsafe".to_string()));
-        assert!(rule_names.contains(&"python-no-bare-except".to_string()));
-        assert!(rule_names.contains(&"python-no-mutable-default".to_string()));
-    }
+    // React (semantic-aware)
+    registry.register(Box::new(NoSetStateInEffectRule));
+    registry.register(Box::new(NoImpureInRenderRule));
 }
