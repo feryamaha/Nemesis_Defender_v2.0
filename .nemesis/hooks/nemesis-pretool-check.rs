@@ -4,7 +4,7 @@
 // =============================================================================
 //
 // Funciona em Windows (PowerShell), MacOS (zsh/bash) e Linux (bash).
-// Recebe JSON via stdin do Windsurf, delega para pretool-hook.rs via execucao.
+// Recebe JSON via stdin do Devin, delega para pretool-hook.rs via execucao.
 // Retorna exit code 0 (permitir) ou 2 (bloquear).
 //
 // POLITICA DE FALHAS:

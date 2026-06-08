@@ -94,7 +94,7 @@ fn check_console_call(node: &tree_sitter::Node, source: &str, violations: &mut V
                     line,
                     RuleCategory::Style
                 )
-                .with_suggestion("[STOP] Leia .windsurf/rules/react-hooks-patterns-rules.md antes de reescrever. Use console.error para erros reais. Remova console.log antes de commit. Consulte: https://eslint.org/docs/rules/no-console")
+                .with_suggestion("[STOP] Leia .devin/rules/react-hooks-patterns-rules.md antes de reescrever. Use console.error para erros reais. Remova console.log antes de commit. Consulte: https://eslint.org/docs/rules/no-console")
                 .with_severity(Severity::Warning)
             );
         }

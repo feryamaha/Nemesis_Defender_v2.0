@@ -77,17 +77,17 @@ impl ViolationLogger {
                     return model;
                 }
             }
-            return "Cascade (Windsurf) - Unknown Model".to_string();
+            return "Cascade (Devin) - Unknown Model".to_string();
         }
 
         if std::env::var("WINDSURF_CONTEXT").map(|v| v == "true").unwrap_or(false)
             || std::env::var("WINDSURF_IDE").map(|v| v == "true").unwrap_or(false)
         {
-            return "Cascade (Windsurf) - Unknown Model".to_string();
+            return "Cascade (Devin) - Unknown Model".to_string();
         }
 
         if std::env::var("TRAJECTORY_ID").is_ok() || std::env::var("EXECUTION_ID").is_ok() {
-            return "Cascade (Windsurf) - Unknown Model".to_string();
+            return "Cascade (Devin) - Unknown Model".to_string();
         }
 
         for env_var in ["CASCADE_MODEL", "WINDSURF_MODEL", "AI_AGENT_MODEL", "LLM_PROVIDER_MODEL"] {
@@ -119,7 +119,7 @@ impl ViolationLogger {
         if args_lower.contains("grok") { return "Grok (Cascade)".to_string(); }
         if args_lower.contains("copilot") { return "GitHub Copilot".to_string(); }
 
-        if args_lower.contains("cascade") || args_lower.contains("windsurf") {
+        if args_lower.contains("cascade") || args_lower.contains("devin") {
             return "Cascade (Unknown Model)".to_string();
         }
 

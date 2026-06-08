@@ -48,7 +48,7 @@ pub fn uninstall(target_dir: &Path) -> anyhow::Result<()> {
 fn remove_hooks(target_dir: &Path) -> anyhow::Result<()> {
     let hooks = vec![
         (".claude/settings.json", "Claude Code"),
-        (".windsurf/hooks.json", "Windsurf"),
+        (".devin/hooks.json", "Devin"),
         (".cursor/hooks.json", "Cursor"),
         (".codex/hooks.json", "Codex"),
         (".openclaude/settings.json", "OpenClaude"),

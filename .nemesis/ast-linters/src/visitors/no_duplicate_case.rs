@@ -87,7 +87,7 @@ fn check_switch_statement(
                             line,
                             RuleCategory::Suspicious,
                         )
-                        .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Remova o case duplicado.")
+                        .with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Remova o case duplicado.")
                     );
                 }
             }

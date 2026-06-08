@@ -24,7 +24,7 @@ fn visit_node(cursor: &mut tree_sitter::TreeCursor, source: &str, violations: &m
             violations.push(Violation::new(
                 format!("{} dentro de bloco finally detectado. Isso suprime excecoes do try/catch.", stmt_type),
                 line, RuleCategory::Correctness,
-            ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Evite controle de fluxo em finally. Isso suprime excecoes do try."));
+            ).with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Evite controle de fluxo em finally. Isso suprime excecoes do try."));
         }
     }
     if cursor.goto_first_child() {

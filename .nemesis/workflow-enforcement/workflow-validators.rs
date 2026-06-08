@@ -5,8 +5,8 @@ pub struct WorkflowValidators;
 
 lazy_static::lazy_static! {
     static ref MANDATORY_RULES: Vec<&'static str> = vec![
-        ".windsurf/rules/rule-main-rules.md",
-        ".windsurf/rules/origin-rules.md",
+        ".devin/rules/rule-main-rules.md",
+        ".devin/rules/origin-rules.md",
     ];
 
     static ref ALLOWED_LANGUAGES: Vec<&'static str> = vec![

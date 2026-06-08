@@ -37,7 +37,7 @@ pub fn status(target_dir: &Path) -> anyhow::Result<()> {
 }
 
 fn count_hooks(target_dir: &Path) -> usize {
-    let ides = vec![".claude", ".windsurf", ".cursor", ".codex", ".openclaude"];
+    let ides = vec![".claude", ".devin", ".cursor", ".codex", ".openclaude"];
     ides.iter()
         .filter(|ide| target_dir.join(ide).exists())
         .count()

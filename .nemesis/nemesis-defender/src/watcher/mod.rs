@@ -17,7 +17,7 @@ pub const WATCH_PATHS: &[&str] = &[
     ".openclaude",
     ".codex",
     ".agents",
-    ".windsurf",
+    ".devin",
     ".vscode",
     ".cursor",
     // Project source

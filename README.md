@@ -130,7 +130,7 @@ A biblioteca Rust (`nemesis-defender`) é agnóstica de IDE. O que muda entre ID
 | **Cursor** (1.7+) | `preToolUse`, `postToolUse` | `.cursor/hooks.json` |
 | **GitHub Copilot** | `preToolUse` | `.github/hooks/` |
 | **VS Code** (agent, preview) | eventos de hook | `.github/hooks/` |
-| **Windsurf / Devin** (Cognition) | `pre_write_code`, `pre_run_command`, `pre_read_code`, `pre_mcp_tool_use` (+ `post_*`) | `.devin/hooks.json` |
+| **Devin / Devin** (Cognition) | `pre_write_code`, `pre_run_command`, `pre_read_code`, `pre_mcp_tool_use` (+ `post_*`) | `.devin/hooks.json` |
 
 > **Regra de ouro do enforcement:** o bloqueio só acontece com **exit code 2**. Exit code 1 é tratado como erro não-bloqueante e a ação prossegue. Todo hook de segurança precisa terminar em exit 2 para barrar de fato.
 
@@ -245,7 +245,7 @@ Configuração real em `.codex/hooks.json`, com `matcher` curinga e `timeout`:
 
 > **Atenção:** confirme que o caminho no `command` aponta para o diretório real do seu projeto. Um caminho errado faz o hook não rodar e o Codex fica desprotegido.
 
-### Windsurf / Devin (Cognition)
+### Devin / Devin (Cognition)
 
 Onde o Nemesis nasceu nativamente. Configuração real em `.devin/hooks.json`, que usa eventos próprios (`pre_write_code`, `pre_run_command`, `pre_read_code`, `pre_mcp_tool_use`, e os `post_*` equivalentes):
 
@@ -351,7 +351,7 @@ A camada eBPF opera no nível do kernel via BPF LSM (`bprm_check_security`), blo
 
 Após a instalação, o que o agente pode tocar é definido em `denylist-folder-files.json`, sob controle **exclusivamente humano**, em três níveis:
 
-- **`absolute_block`** - bloqueio total (leitura + escrita + deleção). Inclui `.env`, `.ssh/id_rsa`, `.bashrc`/`.zshrc`, os settings/hooks de cada IDE (`.claude/`, `.cursor/`, `.windsurf/`) e o próprio `.nemesis/`.
+- **`absolute_block`** - bloqueio total (leitura + escrita + deleção). Inclui `.env`, `.ssh/id_rsa`, `.bashrc`/`.zshrc`, os settings/hooks de cada IDE (`.claude/`, `.cursor/`, `.devin/`) e o próprio `.nemesis/`.
 - **`write_block`** - leitura permitida, escrita/edição bloqueada. Inclui `package.json`, `next.config.js`, `eslint.config.mjs`, `.gitignore` e os logs.
 - **`allowed_exceptions`** - o scaffold liberado (ex.: `/src/`), onde o agente escreve e edita livremente.
 

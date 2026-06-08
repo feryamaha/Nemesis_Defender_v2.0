@@ -118,7 +118,7 @@ fn check_class_declaration(node: &tree_sitter::Node, source: &str, violations: &
                         line,
                         RuleCategory::Style
                     )
-                    .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Adicione readonly à propriedade: private readonly nome: Tipo.")
+                    .with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Adicione readonly à propriedade: private readonly nome: Tipo.")
                     .with_severity(Severity::Warning)
                 );
             }

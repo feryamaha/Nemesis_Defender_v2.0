@@ -123,7 +123,7 @@ pub fn create_enforcement_config(
             "python".to_string(),
             "markdown".to_string(),
         ],
-        mandatory_rules: vec![".windsurf/rules/rule-main-rules.md".to_string()],
+        mandatory_rules: vec![".devin/rules/rule-main-rules.md".to_string()],
         mode: None,
     };
 

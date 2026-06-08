@@ -8,7 +8,7 @@ Linguagem: 100% Rust. Zero Node, zero Python, zero TS.
 
 Cobertura — IDE/CLI Agnóstica
 O Defender é ativado via pretool, que já é o hub agnóstico do Nemesis. Funciona em qualquer runtime que suporte hooks pretool:
-Windsurf  ✓    Claude Code  ✓    Codex  ✓
+Devin  ✓    Claude Code  ✓    Codex  ✓
 OpenClaude ✓   VS Code       ✓    Cursor ✓
 Antigravity → assim que tiver suporte a pretool hooks
 Expansão futura: interceptor eBPF dispara o Defender via kernel (fase posterior — arquitetura BPF ring buffer).
@@ -20,7 +20,7 @@ O Defender não referencia nenhum path de IDE específico. Monitora tudo que for
 .openclaude/
 .codex/
 .agents/
-.windsurf/
+.devin/
 .vscode/
 .cursor/
 

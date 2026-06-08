@@ -69,7 +69,7 @@ fn check_call_expression(node: &tree_sitter::Node, source: &str, violations: &mu
                 line,
                 RuleCategory::Correctness
             )
-            .with_suggestion("[STOP] Leia .windsurf/rules/react-hooks-patterns-rules.md antes de reescrever. Use await, .then().catch() ou void se intencional.")
+            .with_suggestion("[STOP] Leia .devin/rules/react-hooks-patterns-rules.md antes de reescrever. Use await, .then().catch() ou void se intencional.")
         );
     }
 }

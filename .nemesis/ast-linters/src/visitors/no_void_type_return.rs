@@ -40,7 +40,7 @@ fn check_return_statement(node: &tree_sitter::Node, source: &str, violations: &m
                 violations.push(Violation::new(
                     "Retorno de valor em funcao com tipo void. Funcoes void nao devem retornar valor.",
                     line, RuleCategory::Correctness,
-                ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Remova o valor de retorno ou mude o tipo da funcao."));
+                ).with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Remova o valor de retorno ou mude o tipo da funcao."));
             }
             return;
         }

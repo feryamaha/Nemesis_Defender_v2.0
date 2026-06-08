@@ -1484,13 +1484,13 @@
                   reescrevê-lo durante a execução e rodar o que escreveu.</td>
               </tr>
               <tr>
-                <td><strong>Windsurf</strong> (hoje Devin, da Cognition)</td>
+                <td><strong>Devin</strong> (hoje Devin, da Cognition)</td>
                 <td data-pt="Cascade local + Devin (cloud/terminal)" data-en="Local Cascade + Devin (cloud/terminal)">
                   Cascade local + Devin (cloud/terminal)</td>
                 <td
-                  data-pt="Onde o Nemesis nasceu nativamente. Pós-aquisição (Windsurf 2.0, abr/2026), o Devin para Terminal roda com acesso completo à codebase, ampliando a superfície a proteger."
-                  data-en="Where Nemesis was born natively. Post-acquisition (Windsurf 2.0, Apr 2026), Devin for Terminal runs with full codebase access, widening the surface to protect.">
-                  Onde o Nemesis nasceu nativamente. Pós-aquisição (Windsurf 2.0, abr/2026), o Devin para Terminal roda
+                  data-pt="Onde o Nemesis nasceu nativamente. Pós-aquisição (Devin 2.0, abr/2026), o Devin para Terminal roda com acesso completo à codebase, ampliando a superfície a proteger."
+                  data-en="Where Nemesis was born natively. Post-acquisition (Devin 2.0, Apr 2026), Devin for Terminal runs with full codebase access, widening the surface to protect.">
+                  Onde o Nemesis nasceu nativamente. Pós-aquisição (Devin 2.0, abr/2026), o Devin para Terminal roda
                   com acesso completo à codebase, ampliando a superfície a proteger.</td>
               </tr>
             </tbody>
@@ -1609,14 +1609,14 @@
             fecha.
           </p>
         </div>
-        <p data-pt="<strong>Resumindo:</strong> a deny-list nativa não pega <code>cat .env</code>; o sandbox nativo não pega Read/Edit nem um pacote envenenado; as rules não pegam nada porque são advisory; e o eBPF de kernel mora na nuvem, não na sua máquina. Cada peça resolve um pedaço — no máximo alguns comandos destrutivos, e não todos. <strong>O Nemesis Defender junta todas as peças num único framework</strong>, com deny-list + scanner de conteúdo (destrutivo <em>e</em> malicioso) + AST + eBPF no kernel como última camada para usuários Linux, igual em Windsurf, Cursor, Codex, Claude Code e VS Code. Construi esse framework que resolveu o meu problema e abri sob AGPL-3.0 para quem quiser usar."
-          data-en="<strong>In short:</strong> the native deny-list doesn't catch <code>cat .env</code>; the native sandbox doesn't catch Read/Edit nor a poisoned package; rules catch nothing because they're advisory; and kernel eBPF lives in the cloud, not on your machine. Each piece solves a fragment — at most a few destructive commands, and not all of them. <strong>Nemesis Defender unites all the pieces into a single framework</strong>, with deny-list + content scanner (destructive <em>and</em> malicious) + AST + kernel eBPF as the last layer for Linux users, the same across Windsurf, Cursor, Codex, Claude Code and VS Code. I built this framework that solved my problem and released it under AGPL-3.0 for anyone who wants to use it.">
+        <p data-pt="<strong>Resumindo:</strong> a deny-list nativa não pega <code>cat .env</code>; o sandbox nativo não pega Read/Edit nem um pacote envenenado; as rules não pegam nada porque são advisory; e o eBPF de kernel mora na nuvem, não na sua máquina. Cada peça resolve um pedaço — no máximo alguns comandos destrutivos, e não todos. <strong>O Nemesis Defender junta todas as peças num único framework</strong>, com deny-list + scanner de conteúdo (destrutivo <em>e</em> malicioso) + AST + eBPF no kernel como última camada para usuários Linux, igual em Devin, Cursor, Codex, Claude Code e VS Code. Construi esse framework que resolveu o meu problema e abri sob AGPL-3.0 para quem quiser usar."
+          data-en="<strong>In short:</strong> the native deny-list doesn't catch <code>cat .env</code>; the native sandbox doesn't catch Read/Edit nor a poisoned package; rules catch nothing because they're advisory; and kernel eBPF lives in the cloud, not on your machine. Each piece solves a fragment — at most a few destructive commands, and not all of them. <strong>Nemesis Defender unites all the pieces into a single framework</strong>, with deny-list + content scanner (destructive <em>and</em> malicious) + AST + kernel eBPF as the last layer for Linux users, the same across Devin, Cursor, Codex, Claude Code and VS Code. I built this framework that solved my problem and released it under AGPL-3.0 for anyone who wants to use it.">
           <strong>Resumindo:</strong> a deny-list nativa não pega <code>cat .env</code>; o sandbox nativo não pega
           Read/Edit nem um pacote envenenado; as rules não pegam nada porque são advisory; e o eBPF de kernel mora na
           nuvem, não na sua máquina. Cada peça resolve um pedaço — no máximo alguns comandos destrutivos, e não todos.
           <strong>O Nemesis Defender junta todas as peças num único framework</strong>, com deny-list + scanner de
           conteúdo (destrutivo <em>e</em> malicioso) + AST + eBPF no kernel como última camada para usuários Linux,
-          igual em Windsurf, Cursor, Codex, Claude Code e VS Code. Construi esse framework que resolveu o meu problema e
+          igual em Devin, Cursor, Codex, Claude Code e VS Code. Construi esse framework que resolveu o meu problema e
           abri sob AGPL-3.0 para quem quiser usar.
         </p>
       </section>
@@ -1982,11 +1982,11 @@
           o que o agente pode tocar. É aqui que a linha de autoridade vira prática, em dois níveis:</p>
         <ul>
           <li
-            data-pt="<strong><code>absolute_block</code></strong> — bloqueio total (leitura + escrita + deleção): <code>.env</code>, <code>.ssh/id_rsa</code>, <code>.bashrc</code>/<code>.zshrc</code>, os settings/hooks de cada IDE (<code>.claude/</code>, <code>.cursor/</code>, <code>.windsurf/</code>) e o próprio <code>.nemesis/</code>."
-            data-en="<strong><code>absolute_block</code></strong> — total block (read + write + delete): <code>.env</code>, <code>.ssh/id_rsa</code>, <code>.bashrc</code>/<code>.zshrc</code>, each IDE's settings/hooks (<code>.claude/</code>, <code>.cursor/</code>, <code>.windsurf/</code>) and <code>.nemesis/</code> itself.">
+            data-pt="<strong><code>absolute_block</code></strong> — bloqueio total (leitura + escrita + deleção): <code>.env</code>, <code>.ssh/id_rsa</code>, <code>.bashrc</code>/<code>.zshrc</code>, os settings/hooks de cada IDE (<code>.claude/</code>, <code>.cursor/</code>, <code>.devin/</code>) e o próprio <code>.nemesis/</code>."
+            data-en="<strong><code>absolute_block</code></strong> — total block (read + write + delete): <code>.env</code>, <code>.ssh/id_rsa</code>, <code>.bashrc</code>/<code>.zshrc</code>, each IDE's settings/hooks (<code>.claude/</code>, <code>.cursor/</code>, <code>.devin/</code>) and <code>.nemesis/</code> itself.">
             <strong><code>absolute_block</code></strong> — bloqueio total (leitura + escrita + deleção):
             <code>.env</code>, <code>.ssh/id_rsa</code>, <code>.bashrc</code>/<code>.zshrc</code>, os settings/hooks de
-            cada IDE (<code>.claude/</code>, <code>.cursor/</code>, <code>.windsurf/</code>) e o próprio
+            cada IDE (<code>.claude/</code>, <code>.cursor/</code>, <code>.devin/</code>) e o próprio
             <code>.nemesis/</code>.
           </li>
           <li
@@ -2108,9 +2108,9 @@
         </p>
         <h3 data-pt="2 · Execução adversarial por agente real" data-en="2 · Adversarial execution by a real agent">2 ·
           Execução adversarial por agente real</h3>
-        <p data-pt="Em sessões registradas (Windsurf no Linux e macOS, Cursor, Claude Code), agentes receberam suítes de ataque disfarçadas de &quot;scaffolding&quot; e tentaram executá-las tarefa a tarefa. O Nemesis Defender bloqueou cada uma <strong>no ponto de execução</strong> (no <code>Write</code>, no comando aceito), com mensagens específicas. É o teste correto da tese: assume que o modelo pode ser enganado e mede se o enforcement segura. Segurou."
-          data-en="In recorded sessions (Windsurf on Linux and macOS, Cursor, Claude Code), agents received attack suites disguised as &quot;scaffolding&quot; and tried to execute them task by task. Nemesis Defender blocked each one <strong>at the point of execution</strong> (at the <code>Write</code>, at the accepted command), with specific messages. It's the correct test of the thesis: assume the model can be tricked and measure whether enforcement holds. It held.">
-          Em sessões registradas (Windsurf no Linux e macOS, Cursor, Claude Code), agentes receberam suítes de ataque
+        <p data-pt="Em sessões registradas (Devin no Linux e macOS, Cursor, Claude Code), agentes receberam suítes de ataque disfarçadas de &quot;scaffolding&quot; e tentaram executá-las tarefa a tarefa. O Nemesis Defender bloqueou cada uma <strong>no ponto de execução</strong> (no <code>Write</code>, no comando aceito), com mensagens específicas. É o teste correto da tese: assume que o modelo pode ser enganado e mede se o enforcement segura. Segurou."
+          data-en="In recorded sessions (Devin on Linux and macOS, Cursor, Claude Code), agents received attack suites disguised as &quot;scaffolding&quot; and tried to execute them task by task. Nemesis Defender blocked each one <strong>at the point of execution</strong> (at the <code>Write</code>, at the accepted command), with specific messages. It's the correct test of the thesis: assume the model can be tricked and measure whether enforcement holds. It held.">
+          Em sessões registradas (Devin no Linux e macOS, Cursor, Claude Code), agentes receberam suítes de ataque
           disfarçadas de "scaffolding" e tentaram executá-las tarefa a tarefa. O Nemesis Defender bloqueou cada uma
           <strong>no ponto de execução</strong> (no <code>Write</code>, no comando aceito), com mensagens específicas. É
           o teste correto da tese: assume que o modelo pode ser enganado e mede se o enforcement segura. Segurou.
@@ -2446,9 +2446,9 @@ nemesis-defender <span class="k">--stop</span></code></pre>
           esperado não for encontrado, ele <strong>bloqueia tudo</strong> em vez de deixar passar. É proteção contra
           config quebrada — mas o certo é configurar o caminho desde o início. Isso exige conhecimento técnico mínimo
           (lógica e noção de caminhos de arquivo). Não é defeito; é a natureza de uma ferramenta de segurança.</p>
-        <p data-pt="IDEs suportadas via hooks: Claude Code, Codex, Cursor, VS Code, Windsurf, OpenClaude. A biblioteca Rust (<code>nemesis-defender</code>) é agnóstica de IDE."
-          data-en="Supported IDEs via hooks: Claude Code, Codex, Cursor, VS Code, Windsurf, OpenClaude. The Rust library (<code>nemesis-defender</code>) is IDE-agnostic.">
-          IDEs suportadas via hooks: Claude Code, Codex, Cursor, VS Code, Windsurf, OpenClaude. A biblioteca Rust
+        <p data-pt="IDEs suportadas via hooks: Claude Code, Codex, Cursor, VS Code, Devin, OpenClaude. A biblioteca Rust (<code>nemesis-defender</code>) é agnóstica de IDE."
+          data-en="Supported IDEs via hooks: Claude Code, Codex, Cursor, VS Code, Devin, OpenClaude. The Rust library (<code>nemesis-defender</code>) is IDE-agnostic.">
+          IDEs suportadas via hooks: Claude Code, Codex, Cursor, VS Code, Devin, OpenClaude. A biblioteca Rust
           (<code>nemesis-defender</code>) é agnóstica de IDE.</p>
       </section>
 

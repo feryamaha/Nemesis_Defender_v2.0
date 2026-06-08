@@ -79,7 +79,7 @@ impl ASTBuilder {
 
     /// Generate example AST from work-01-rag.md
     pub async fn generate_example_ast() -> Option<WorkflowAST> {
-        let workflow_path = Path::new(".windsurf/workflows/work-01-rag.md");
+        let workflow_path = Path::new(".devin/workflows/work-01-rag.md");
         
         match Self::build_ast(&workflow_path.to_string_lossy()).await {
             Ok(result) => result.ast,

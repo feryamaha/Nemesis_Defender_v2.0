@@ -4,7 +4,7 @@ use tokio::fs;
 
 pub struct WorkflowCatalog;
 
-const WORKFLOWS_DIR: &str = ".windsurf/workflows";
+const WORKFLOWS_DIR: &str = ".devin/workflows";
 
 impl WorkflowCatalog {
     pub async fn list_workflows(base_path: Option<&str>) -> Vec<String> {
@@ -86,7 +86,7 @@ impl WorkflowCatalog {
     }
 
     fn normalize_base_path(base_path: &str) -> String {
-        let re = regex::Regex::new(r"[/\\]\.windsurf[/\\]workflows[/\\]?$").unwrap();
+        let re = regex::Regex::new(r"[/\\]\.devin[/\\]workflows[/\\]?$").unwrap();
         re.replace(base_path, "").to_string()
     }
 

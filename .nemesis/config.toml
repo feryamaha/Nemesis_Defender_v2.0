@@ -17,7 +17,7 @@ web_design_guidelines = true
 [ide_detection]
 auto_detect = true
 fallback_to_prompt = true
-supported_ides = ["windsurf", "cursor", "copilot", "claude", "aider"]
+supported_ides = ["devin", "cursor", "copilot", "claude", "aider"]
 
 [feature_documentation]
 create_issues_folder = true

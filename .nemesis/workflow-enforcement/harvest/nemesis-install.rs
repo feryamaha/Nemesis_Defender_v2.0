@@ -115,8 +115,8 @@ fn detect_ides() -> Vec<String> {
         detected_ides.push("cursor".to_string());
     }
 
-    // Windsurf (default)
-    detected_ides.push("windsurf".to_string());
+    // Devin (default)
+    detected_ides.push("devin".to_string());
 
     detected_ides
 }
@@ -189,10 +189,10 @@ fn generate_ide_configs(ides: &[String], project_root: &Path) {
                     println!("[NEMESIS INSTALL] → .cursor/settings.json ja existe (mantido)");
                 }
             }
-            "windsurf" => {
+            "devin" => {
                 let script_path = project_root.join(".nemesis/hooks/nemesis-pretool-check.sh");
-                let hooks_path = project_root.join(".windsurf/hooks.json");
-                let ws_dir = project_root.join(".windsurf");
+                let hooks_path = project_root.join(".devin/hooks.json");
+                let ws_dir = project_root.join(".devin");
 
                 if !ws_dir.exists() {
                     fs::create_dir_all(&ws_dir).ok();
@@ -208,7 +208,7 @@ fn generate_ide_configs(ides: &[String], project_root: &Path) {
                 });
 
                 fs::write(&hooks_path, serde_json::to_string_pretty(&config).unwrap()).ok();
-                println!("  ✓ .windsurf/hooks.json regenerado com path dinamico");
+                println!("  ✓ .devin/hooks.json regenerado com path dinamico");
             }
             _ => {}
         }
@@ -241,7 +241,7 @@ pub fn main() {
     println!("\n[NEMESIS INSTALL] [2/4] Re-hidratando rules...");
     if !result.rules_rehydrated.is_empty() {
         for f in &result.rules_rehydrated {
-            println!("  ✓ .windsurf/rules/{} atualizado", f);
+            println!("  ✓ .devin/rules/{} atualizado", f);
         }
     } else {
         println!("  → Nenhuma rule atualizada");
@@ -250,7 +250,7 @@ pub fn main() {
     if !result.new_rules_created.is_empty() {
         println!("\n[NEMESIS INSTALL] [3/4] Novas rules criadas (precisam de revisao humana):");
         for f in &result.new_rules_created {
-            println!("  ✓ .windsurf/rules/auto-harvest/{}", f);
+            println!("  ✓ .devin/rules/auto-harvest/{}", f);
         }
     } else {
         println!("\n[NEMESIS INSTALL] [3/4] Nenhuma nova rule auto-harvest criada");

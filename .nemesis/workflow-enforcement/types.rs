@@ -149,7 +149,7 @@ pub struct PreToolValidationResult {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WindsurfHookInput {
+pub struct DevinHookInput {
     #[serde(rename = "agent_action_name")]
     pub agent_action_name: String,
     #[serde(rename = "trajectory_id")]
@@ -158,15 +158,15 @@ pub struct WindsurfHookInput {
     pub execution_id: String,
     pub timestamp: String,
     #[serde(rename = "tool_info")]
-    pub tool_info: WindsurfToolInfo,
+    pub tool_info: DevinToolInfo,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WindsurfToolInfo {
+pub struct DevinToolInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file_path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub edits: Option<Vec<WindsurfEdit>>,
+    pub edits: Option<Vec<DevinEdit>>,
     #[serde(rename = "command_line", skip_serializing_if = "Option::is_none")]
     pub command_line: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -190,7 +190,7 @@ pub struct WindsurfToolInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WindsurfEdit {
+pub struct DevinEdit {
     #[serde(rename = "old_string")]
     pub old_string: String,
     #[serde(rename = "new_string")]

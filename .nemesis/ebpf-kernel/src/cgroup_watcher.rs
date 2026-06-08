@@ -1,5 +1,5 @@
 // =============================================================================
-// nemesis-cgroup-watcher — Monitora processos do Windsurf e move
+// nemesis-cgroup-watcher — Monitora processos do Devin e move
 // automaticamente para o cgroup nemesis-agent.
 // Roda como serviço systemd (root) para ter permissão de escrita no cgroup.
 // =============================================================================
@@ -33,9 +33,9 @@ const POLL_INTERVAL: Duration = Duration::from_secs(2);
 // Usar paths específicos para evitar false positives
 #[cfg(target_os = "linux")]
 const AGENT_PATTERNS: &[&str] = &[
-    // Windsurf
-    "/usr/share/windsurf/windsurf",
-    "windsurf",
+    // Devin
+    "/usr/share/devin/devin",
+    "devin",
     // Claude Code (todas as variantes de instalacao)
     ".claude/local/claude",
     ".local/share/claude/versions/",

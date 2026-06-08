@@ -39,7 +39,7 @@ fn check_jsx_element(node: &tree_sitter::Node, source: &str, violations: &mut Ve
                         violations.push(Violation::new(
                             format!("Atributo JSX '{}' duplicado.", name),
                             line, RuleCategory::Suspicious,
-                        ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Remova o atributo duplicado."));
+                        ).with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Remova o atributo duplicado."));
                     }
                     break;
                 }

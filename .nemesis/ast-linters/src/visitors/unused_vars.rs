@@ -189,7 +189,7 @@ fn visit_node(
                     var.line,
                     RuleCategory::Correctness
                 )
-                .with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Remova a variável ou prefixe com _ se for intencional.")
+                .with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Remova a variável ou prefixe com _ se for intencional.")
             );
         }
     }

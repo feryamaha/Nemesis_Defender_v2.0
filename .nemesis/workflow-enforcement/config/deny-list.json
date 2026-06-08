@@ -250,7 +250,7 @@
 					"type": "regex",
 					"severity": "critical",
 					"message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
-					"suggestion": "Veja o padrão correto em .windsurf/rules/react-hooks-patterns-rules.md",
+					"suggestion": "Veja o padrão correto em .devin/rules/react-hooks-patterns-rules.md",
 					"rule": "",
 					"source": "rules",
 					"enabled": true
@@ -261,7 +261,7 @@
 					"type": "regex",
 					"severity": "critical",
 					"message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
-					"suggestion": "Veja o padrão correto em .windsurf/rules/react-hooks-patterns-rules.md",
+					"suggestion": "Veja o padrão correto em .devin/rules/react-hooks-patterns-rules.md",
 					"rule": "",
 					"source": "rules",
 					"enabled": true
@@ -272,7 +272,7 @@
 					"type": "regex",
 					"severity": "critical",
 					"message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
-					"suggestion": "Veja o padrão correto em .windsurf/rules/react-hooks-patterns-rules.md",
+					"suggestion": "Veja o padrão correto em .devin/rules/react-hooks-patterns-rules.md",
 					"rule": "",
 					"source": "rules",
 					"enabled": true
@@ -283,7 +283,7 @@
 					"type": "regex",
 					"severity": "critical",
 					"message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
-					"suggestion": "Veja o padrão correto em .windsurf/rules/react-hooks-patterns-rules.md",
+					"suggestion": "Veja o padrão correto em .devin/rules/react-hooks-patterns-rules.md",
 					"rule": "",
 					"source": "rules",
 					"enabled": true

@@ -244,27 +244,27 @@ fn get_config_violation_patterns() -> Vec<ConfigViolationPattern> {
         ConfigViolationPattern {
             pattern: Regex::new(r#""strict"\s*:\s*false"#).unwrap(),
             reason: "strict: false em tsconfig — desabilita TypeScript strict mode globalmente, invalidando todo o enforcement de tipos do projeto".to_string(),
-            rule: ".windsurf/rules/Conformidade.md - Seção 2.3 (TypeScript Strict Mode)".to_string(),
+            rule: ".devin/rules/Conformidade.md - Seção 2.3 (TypeScript Strict Mode)".to_string(),
         },
         ConfigViolationPattern {
             pattern: Regex::new(r#""noImplicitAny"\s*:\s*false"#).unwrap(),
             reason: "noImplicitAny: false em tsconfig — permite any implícito em todo o projeto".to_string(),
-            rule: ".windsurf/rules/Conformidade.md - Seção 2.3".to_string(),
+            rule: ".devin/rules/Conformidade.md - Seção 2.3".to_string(),
         },
         ConfigViolationPattern {
             pattern: Regex::new(r#""strictNullChecks"\s*:\s*false"#).unwrap(),
             reason: "strictNullChecks: false em tsconfig — desabilita verificação de null/undefined".to_string(),
-            rule: ".windsurf/rules/Conformidade.md - Seção 2.3".to_string(),
+            rule: ".devin/rules/Conformidade.md - Seção 2.3".to_string(),
         },
         ConfigViolationPattern {
             pattern: Regex::new(r#""strictFunctionTypes"\s*:\s*false"#).unwrap(),
             reason: "strictFunctionTypes: false em tsconfig".to_string(),
-            rule: ".windsurf/rules/Conformidade.md - Seção 2.3".to_string(),
+            rule: ".devin/rules/Conformidade.md - Seção 2.3".to_string(),
         },
         ConfigViolationPattern {
             pattern: Regex::new(r#"styled-jsx"#).unwrap(),
             reason: "Dependência styled-jsx detectada — proibida pelo design system (apenas Tailwind é permitido)".to_string(),
-            rule: ".windsurf/rules/design-system-convention.md - Seção 3 (Tokens: fonte única de verdade)".to_string(),
+            rule: ".devin/rules/design-system-convention.md - Seção 3 (Tokens: fonte única de verdade)".to_string(),
         },
     ]
 }
@@ -311,7 +311,7 @@ impl WorkflowEnforcer {
                 "python".to_string(),
                 "markdown".to_string(),
             ],
-            mandatory_rules: vec![".windsurf/rules/rule-main-rules.md".to_string()],
+            mandatory_rules: vec![".devin/rules/rule-main-rules.md".to_string()],
             mode: None,
         })
     }
@@ -389,7 +389,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: Tipagem \"any\" detectada no conteúdo a ser escrito.",
-                        ".windsurf/rules/typescript-typing-convention.md - Seção 7",
+                        ".devin/rules/typescript-typing-convention.md - Seção 7",
                         "Use tipos explícitos, unknown, generics ou tipos existentes em src/types/. Remover \"any\" para burlar o enforcement é uma violação — o bloco inteiro é rejeitado.",
                     );
                 }
@@ -402,7 +402,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: @ts-ignore ou @ts-nocheck detectado.",
-                        ".windsurf/rules/Conformidade.md - Seção 2.3 (TypeScript Strict)",
+                        ".devin/rules/Conformidade.md - Seção 2.3 (TypeScript Strict)",
                         "Não suprima erros TypeScript. Corrija o tipo ou use unknown com type guard adequado.",
                     );
                 }
@@ -415,7 +415,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: Hook chamado condicionalmente (dentro de if/else/ternário/early return).",
-                        ".windsurf/rules/react-hooks-patterns-rules.md - Seção 3.1 (Hooks Condicionais)",
+                        ".devin/rules/react-hooks-patterns-rules.md - Seção 3.1 (Hooks Condicionais)",
                         "Mova todos os hooks para o topo do componente, antes de qualquer condicional ou early return.",
                     );
                 }
@@ -428,7 +428,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: setState síncrono direto no corpo do useEffect detectado.",
-                        ".windsurf/rules/react-hooks-patterns-rules.md - Seção 3.2 (setState em useEffect)",
+                        ".devin/rules/react-hooks-patterns-rules.md - Seção 3.2 (setState em useEffect)",
                         "Envolva o setState em um if condicional antes de chamar. Nunca chame setState diretamente no corpo do useEffect sem guarda condicional.",
                     );
                 }
@@ -441,7 +441,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: Reatribuição de variável durante render detectada.",
-                        ".windsurf/rules/react-hooks-patterns-rules.md - Seção 3.3 (Variable Reassignment)",
+                        ".devin/rules/react-hooks-patterns-rules.md - Seção 3.3 (Variable Reassignment)",
                         "Use useState ou derive o valor sem mutar variáveis após o início do render.",
                     );
                 }
@@ -454,7 +454,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: CSS inline (style={{}}) detectado.",
-                        ".windsurf/rules/design-system-convention.md - Seção 3 (Tokens) e Seção 9 (Proibições)",
+                        ".devin/rules/design-system-convention.md - Seção 3 (Tokens) e Seção 9 (Proibições)",
                         "Use apenas classes Tailwind definidas em tailwind.config.ts. CSS inline é proibido.",
                     );
                 }
@@ -467,7 +467,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: Cor hexadecimal hardcoded detectada.",
-                        ".windsurf/rules/design-system-convention.md - Seção 2.1 (Paleta de Cores)",
+                        ".devin/rules/design-system-convention.md - Seção 2.1 (Paleta de Cores)",
                         "Use tokens semânticos do design system (ex: bg-primary-500). Nunca use #hex diretamente em componentes.",
                     );
                 }
@@ -480,7 +480,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: Múltiplas constantes de classe separadas repetindo a mesma condição de variante.",
-                        ".windsurf/rules/design-system-convention.md - Seção 9 (Proibições Absolutas)",
+                        ".devin/rules/design-system-convention.md - Seção 9 (Proibições Absolutas)",
                         "Toda lógica de variante deve viver em um único bloco clsx. Nunca repita a mesma condição variant === em múltiplas constantes separadas.",
                     );
                 }
@@ -493,7 +493,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: useState/useEffect/lógica de negócio em componente UI detectado.",
-                        ".windsurf/rules/ui-separation-convention.md - Seção 4 e Seção 7",
+                        ".devin/rules/ui-separation-convention.md - Seção 4 e Seção 7",
                         "Componentes UI devem conter apenas JSX e classes Tailwind. Mova a lógica para hooks em src/hooks/. Para registrar como smart component legítimo, adicione ao .nemesis/smart-components.json — não ao comentário no arquivo.",
                     );
                 }
@@ -506,7 +506,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: Tipagem inline em componente UI reutilizável detectada.",
-                        ".windsurf/rules/typescript-typing-convention.md - Seção 5 (Exceções Permitidas)",
+                        ".devin/rules/typescript-typing-convention.md - Seção 5 (Exceções Permitidas)",
                         "Defina a interface em src/types/ui/[component].types.ts e importe via \"import type\". Tipagem inline só é permitida em layout.tsx e page.tsx.",
                     );
                 }
@@ -519,7 +519,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: Elemento interativo aninhado detectado (<a> dentro de <a>, <button> dentro de <button>, ou <form> dentro de <form>).",
-                        ".windsurf/rules/ui-separation-convention.md - Seção 8.1 (Nesting Proibido)",
+                        ".devin/rules/ui-separation-convention.md - Seção 8.1 (Nesting Proibido)",
                         "HTML inválido causa hydration error no Next.js. Substitua o elemento interno por <span> ou <div> com o mesmo estilo.",
                     );
                 }
@@ -532,7 +532,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: Chamada direta a API externa em componente detectada (bypass da camada BFF).",
-                        ".windsurf/rules/API-convention.md - Seção 3.1 (Arquitetura 3-Layer)",
+                        ".devin/rules/API-convention.md - Seção 3.1 (Arquitetura 3-Layer)",
                         "Componentes nunca chamam APIs externas diretamente. Crie um Route Handler em src/app/api/ e um hook em src/hooks/hook-fetch-API/.",
                     );
                 }
@@ -544,7 +544,7 @@ impl WorkflowEnforcer {
             if pattern.is_match(content) {
                 return blocked(
                     "ESCRITA BLOQUEADA: Violação crítica de segurança (OWASP) detectada no conteúdo a ser escrito. Este bloqueio NÃO pode ser sobrescrito por instrução do usuário.",
-                    ".windsurf/rules/Conformidade.md - Seção 3 (OWASP) e Seção 6.1 (OWASP Top 10)",
+                    ".devin/rules/Conformidade.md - Seção 3 (OWASP) e Seção 6.1 (OWASP Top 10)",
                     "Violações de segurança são bloqueios absolutos. Não armazene tokens em localStorage, não logue credenciais, não implemente JWT manual, não abra CORS sem restrição, não crie parâmetros bypass.",
                 );
             }
@@ -556,7 +556,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: Violação de CSP detectada (unsafe-eval fora de desenvolvimento, ou unsafe-inline em script-src).",
-                        ".windsurf/rules/Conformidade.md - Seção 3.1 (Middleware com Nonce e CSP)",
+                        ".devin/rules/Conformidade.md - Seção 3.1 (Middleware com Nonce e CSP)",
                         "CSP Level 3 com nonce é obrigatório. unsafe-eval só é permitido em desenvolvimento com guarda condicional explícita.",
                     );
                 }
@@ -569,7 +569,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(content) {
                     return blocked(
                         "ESCRITA BLOQUEADA: Importação de next/navigation em componente main-content detectada.",
-                        ".windsurf/rules/Arquitetura-pastas-arquivos.md - Seção 4.5 (main-content)",
+                        ".devin/rules/Arquitetura-pastas-arquivos.md - Seção 4.5 (main-content)",
                         "Componentes em main-content não devem importar next/navigation nem manipular rotas diretamente. Use hooks de roteamento centralizados.",
                     );
                 }
@@ -584,7 +584,7 @@ impl WorkflowEnforcer {
             if main_content_import || auth_import {
                 return blocked(
                     "ESCRITA BLOQUEADA: shared-login-screen importando de main-content ou rotas autenticadas.",
-                    ".windsurf/rules/Arquitetura-pastas-arquivos.md - Seção 4.3 (shared-login-screen)",
+                    ".devin/rules/Arquitetura-pastas-arquivos.md - Seção 4.3 (shared-login-screen)",
                     "shared-login-screen não pode importar nada de main-content ou de rotas autenticadas. Pertence exclusivamente ao fluxo público.",
                 );
             }
@@ -603,7 +603,7 @@ impl WorkflowEnforcer {
                 let first = &ast_violations[0];
                 return blocked(
                     &format!("ESCRITA BLOQUEADA: [AST] {} (linha {})", first.message, first.line),
-                    ".windsurf/rules/Conformidade.md - Seção 3 (AST Semantic Validation)",
+                    ".devin/rules/Conformidade.md - Seção 3 (AST Semantic Validation)",
                     "Violação semântica detectada por análise de AST. Revise o código e corrija o problema antes de prosseguir.",
                 );
             }
@@ -619,7 +619,7 @@ impl WorkflowEnforcer {
             _ => {
                 return blocked(
                     "Caminho do arquivo não fornecido.",
-                    ".windsurf/rules/rule-main-rules.md",
+                    ".devin/rules/rule-main-rules.md",
                     "Especifique o arquivo a ser modificado.",
                 );
             }
@@ -629,7 +629,7 @@ impl WorkflowEnforcer {
             if !Path::new(file_path).exists() {
                 return blocked(
                     &format!("Arquivo não existe: {}", file_path),
-                    ".windsurf/rules/rule-main-rules.md",
+                    ".devin/rules/rule-main-rules.md",
                     "Verifique o caminho do arquivo antes de tentar editar.",
                 );
             }
@@ -658,7 +658,7 @@ impl WorkflowEnforcer {
         if !is_in_project && !is_allowed_external {
             return blocked(
                 &format!("Arquivo fora do escopo do projeto: {}", file_path),
-                ".windsurf/rules/rule-main-rules.md - Seção 5 (Proibições)",
+                ".devin/rules/rule-main-rules.md - Seção 5 (Proibições)",
                 "NUNCA editar arquivos fora do escopo do projeto sem permissão explícita do usuário.",
             );
         }
@@ -683,7 +683,7 @@ impl WorkflowEnforcer {
             _ => {
                 return blocked(
                     "Comando não fornecido.",
-                    ".windsurf/rules/rule-main-rules.md",
+                    ".devin/rules/rule-main-rules.md",
                     "Especifique o comando a ser executado.",
                 );
             }
@@ -700,7 +700,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(target_file) {
                     return blocked(
                         &format!("BASH BLOQUEADO: Criação/sobrescrita de arquivo de configuração crítico via terminal: {}. Este bloqueio NÃO pode ser sobrescrito.", target_file),
-                        ".windsurf/rules/rule-main-rules.md - Seção 5 (Proibições)",
+                        ".devin/rules/rule-main-rules.md - Seção 5 (Proibições)",
                         "Arquivos de configuração críticos (tsconfig.json, package.json, next.config, etc.) não podem ser sobrescritos via comando Bash. Use a ferramenta Edit com aprovação explícita.",
                     );
                 }
@@ -728,7 +728,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(target_file) {
                     return blocked(
                         &format!("BASH BLOQUEADO: echo redirect para arquivo de configuração crítico: {}", target_file),
-                        ".windsurf/rules/rule-main-rules.md - Seção 5",
+                        ".devin/rules/rule-main-rules.md - Seção 5",
                         "Não crie ou sobrescreva arquivos de configuração via echo redirect.",
                     );
                 }
@@ -749,7 +749,7 @@ impl WorkflowEnforcer {
         if Regex::new(r"printf\s+.+(?:>>?)\s*\S+\.(tsx?|jsx?|json)").unwrap().is_match(command) {
             return blocked(
                 "BASH BLOQUEADO: printf redirect para arquivo de código detectado.",
-                ".windsurf/rules/rule-main-rules.md - Seção 5",
+                ".devin/rules/rule-main-rules.md - Seção 5",
                 "Não crie arquivos de código via printf redirect. Use a ferramenta Write/Edit com aprovação explícita.",
             );
         }
@@ -762,7 +762,7 @@ impl WorkflowEnforcer {
                 if pattern.is_match(target_file) {
                     return blocked(
                         &format!("BASH BLOQUEADO: pipe | tee para arquivo de configuração crítico: {}", target_file),
-                        ".windsurf/rules/rule-main-rules.md - Seção 5",
+                        ".devin/rules/rule-main-rules.md - Seção 5",
                         "Não sobrescreva arquivos de configuração via pipe | tee.",
                     );
                 }
@@ -774,7 +774,7 @@ impl WorkflowEnforcer {
             if pattern.is_match(command) {
                 return blocked(
                     &format!("Comando proibido detectado: {}", &command[..command.len().min(100)]),
-                    ".windsurf/rules/rule-main-rules.md - Seção 5 (Proibições Absolutas)",
+                    ".devin/rules/rule-main-rules.md - Seção 5 (Proibições Absolutas)",
                     "Este comando é proibido por questões de segurança do sistema operacional.",
                 );
             }
@@ -785,7 +785,7 @@ impl WorkflowEnforcer {
             if pattern.is_match(command) {
                 return blocked(
                     &format!("Comando de bypass de governança detectado: {}", &command[..command.len().min(100)]),
-                    ".windsurf/rules/Conformidade.md - Seção 2.5 (Bun) e Seção 6.2 (Validação de Dependências)",
+                    ".devin/rules/Conformidade.md - Seção 2.5 (Bun) e Seção 6.2 (Validação de Dependências)",
                     "Não force instalações, não ignore scripts de segurança, não sobrescreva configuração ESLint centralizada.",
                 );
             }
@@ -796,7 +796,7 @@ impl WorkflowEnforcer {
         if safety_check.risk_level == RiskLevel::High {
             return blocked(
                 &format!("Comando de alto risco: {}", safety_check.reasons.join(", ")),
-                ".windsurf/rules/Conformidade.md - Seção 3 (Segurança OWASP)",
+                ".devin/rules/Conformidade.md - Seção 3 (Segurança OWASP)",
                 "Comandos de sistema precisam de permissão explícita do usuário.",
             );
         }
@@ -893,7 +893,7 @@ impl WorkflowEnforcer {
                 ViolationLogger::log_violation(&Violation {
                     violation_type: crate::types::ViolationType::RuleViolation,
                     message: error.message.clone(),
-                    rule: Some(".windsurf/rules".to_string()),
+                    rule: Some(".devin/rules".to_string()),
                     command: None,
                     timestamp: chrono::Utc::now().to_rfc3339(),
                     llm_model: None,
@@ -914,7 +914,7 @@ impl WorkflowEnforcer {
                 ViolationLogger::log_violation(&Violation {
                     violation_type: crate::types::ViolationType::RuleViolation,
                     message: format!("Command uses unsupported language: {}", command_language),
-                    rule: Some(".windsurf/rules".to_string()),
+                    rule: Some(".devin/rules".to_string()),
                     command: Some(command.to_string()),
                     timestamp: chrono::Utc::now().to_rfc3339(),
                     llm_model: None,
@@ -933,7 +933,7 @@ impl WorkflowEnforcer {
                 ViolationLogger::log_violation(&Violation {
                     violation_type: crate::types::ViolationType::RuleViolation,
                     message: "Workflow does not reference mandatory rules".to_string(),
-                    rule: Some(".windsurf/rules".to_string()),
+                    rule: Some(".devin/rules".to_string()),
                     command: None,
                     timestamp: chrono::Utc::now().to_rfc3339(),
                     llm_model: None,
@@ -959,7 +959,7 @@ impl WorkflowEnforcer {
             ViolationLogger::log_violation(&Violation {
                 violation_type: crate::types::ViolationType::PermissionDenied,
                 message: format!("Permission denied for command: {}", command),
-                rule: Some(".windsurf/rules/rule-main-rules.md".to_string()),
+                rule: Some(".devin/rules/rule-main-rules.md".to_string()),
                 command: Some(command.to_string()),
                 timestamp: chrono::Utc::now().to_rfc3339(),
                 llm_model: None,
@@ -1001,7 +1001,7 @@ impl WorkflowEnforcer {
                     let v = Violation {
                         violation_type: crate::types::ViolationType::RuleViolation,
                         message: "Command blocked due to workflow validation failure".to_string(),
-                        rule: Some(".windsurf/rules".to_string()),
+                        rule: Some(".devin/rules".to_string()),
                         command: Some(command.clone()),
                         timestamp: chrono::Utc::now().to_rfc3339(),
                         llm_model: None,

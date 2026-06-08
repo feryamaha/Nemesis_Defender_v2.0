@@ -40,7 +40,7 @@ fn check_new_expression(node: &tree_sitter::Node, source: &str, violations: &mut
         violations.push(Violation::new(
             "Executor de Promise nao deve ser async. Erros lancados em executor async nao sao capturados.",
             line, RuleCategory::Suspicious,
-        ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Nao use async em executores de Promise. Erros nao sao capturados."));
+        ).with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Nao use async em executores de Promise. Erros nao sao capturados."));
     }
 }
 

@@ -50,7 +50,7 @@ impl IAActionValidator {
     pub fn new(rules_path: Option<&str>) -> Self {
         let rules_path = rules_path
             .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from(".windsurf/rules"));
+            .unwrap_or_else(|| PathBuf::from(".devin/rules"));
 
         let rule_patterns = Self::initialize_rule_patterns();
 
@@ -351,7 +351,7 @@ impl IAActionValidator {
         let mut severity = Severity::Info;
 
         let critical_files = vec![
-            ".windsurf/",
+            ".devin/",
             "src/types/",
             "package.json",
             "tsconfig.json",

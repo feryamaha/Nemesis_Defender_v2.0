@@ -3,8 +3,8 @@
 //! Detects malicious content in IDE config files that arrive poisoned from outside
 //! (via PR, clone, postinstall) and that the AI will read as instruction.
 //!
-//! Target files: CLAUDE.md, .cursorrules, AGENTS.md, GEMINI.md, .windsurfrules,
-//! .github/copilot-instructions.md, .continue/rules/, .claude/, .windsurf/, .cursor/
+//! Target files: CLAUDE.md, .cursorrules, AGENTS.md, GEMINI.md, .devinrules,
+//! .github/copilot-instructions.md, .continue/rules/, .claude/, .devin/, .cursor/
 //!
 //! Detects:
 //! - Unicode invisible (tag chars U+E0000–U+E007F, bidi overrides, zero-width)
@@ -25,7 +25,7 @@ fn is_ide_config_file(path: &Path) -> bool {
         ".cursorrules",
         "agents.md",
         "gemini.md",
-        ".windsurfrules",
+        ".devinrules",
         ".github/copilot-instructions.md",
     ];
 
@@ -36,7 +36,7 @@ fn is_ide_config_file(path: &Path) -> bool {
     }
 
     // IDE config directories
-    let ide_config_dirs = [".claude/", ".windsurf/", ".cursor/", ".continue/rules/"];
+    let ide_config_dirs = [".claude/", ".devin/", ".cursor/", ".continue/rules/"];
 
     for config_dir in &ide_config_dirs {
         if path_str.contains(config_dir) {

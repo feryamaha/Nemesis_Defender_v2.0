@@ -63,7 +63,7 @@ fn check_call_expression(node: &tree_sitter::Node, source: &str, violations: &mu
                         line,
                         RuleCategory::Security,
                     )
-                    .with_suggestion("[STOP] Leia .windsurf/rules/Conformidade.md antes de reescrever. Use funções explícitas. eval() é vetor de code injection.")
+                    .with_suggestion("[STOP] Leia .devin/rules/Conformidade.md antes de reescrever. Use funções explícitas. eval() é vetor de code injection.")
                 );
                 return;
             }
@@ -131,7 +131,7 @@ fn check_new_expression(node: &tree_sitter::Node, source: &str, violations: &mut
                         line,
                         RuleCategory::Security,
                     )
-                    .with_suggestion("[STOP] Leia .windsurf/rules/Conformidade.md antes de reescrever. Use funções explícitas. new Function() é vetor de code injection.")
+                    .with_suggestion("[STOP] Leia .devin/rules/Conformidade.md antes de reescrever. Use funções explícitas. new Function() é vetor de code injection.")
                 );
                 return;
             }

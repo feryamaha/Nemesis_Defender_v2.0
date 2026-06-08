@@ -13,11 +13,11 @@ O pipeline consiste em 5 skills sequenciais:
 
 | Skill | Proposito | Localizacao |
 |-------|-----------|-------------|
-| `nemesis-specification-design` | Converter request informal em especificacao tecnica | `.windsurf/skills/nemesis-specification-design/SKILL.md` |
-| `pre-writing-rule-control` | Validar plano contra regras Nemesis antes da escrita | `.windsurf/skills/pre-writing-rule-control/SKILL.md` |
-| `nemesis-writing-plans` | Criar plano de implementacao com tarefas atomicas | `.windsurf/skills/nemesis-writing-plans/SKILL.md` |
-| `nemesis-subagent-driven-development` | Executar plano via subagentes com two-stage review | `.windsurf/skills/nemesis-subagent-driven-development/SKILL.md` |
-| `nemesis-finishing-branch` | Finalizar, gerar PR, apresentar opcoes de branch | `.windsurf/skills/nemesis-finishing-branch/SKILL.md` |
+| `nemesis-specification-design` | Converter request informal em especificacao tecnica | `.devin/skills/nemesis-specification-design/SKILL.md` |
+| `pre-writing-rule-control` | Validar plano contra regras Nemesis antes da escrita | `.devin/skills/pre-writing-rule-control/SKILL.md` |
+| `nemesis-writing-plans` | Criar plano de implementacao com tarefas atomicas | `.devin/skills/nemesis-writing-plans/SKILL.md` |
+| `nemesis-subagent-driven-development` | Executar plano via subagentes com two-stage review | `.devin/skills/nemesis-subagent-driven-development/SKILL.md` |
+| `nemesis-finishing-branch` | Finalizar, gerar PR, apresentar opcoes de branch | `.devin/skills/nemesis-finishing-branch/SKILL.md` |
 
 ### Agentes Disponiveis
 

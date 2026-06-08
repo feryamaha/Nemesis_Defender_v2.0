@@ -6,7 +6,7 @@ use std::path::Path;
 
 // ============================================================
 // PRE-EDIT HOOK for Nemesis Enforcement Engine
-// Intercepta EDICOES de codigo e valida contra @.windsurf/rules
+// Intercepta EDICOES de codigo e valida contra @.devin/rules
 //
 // REGRAS DE BLOQUEIO (apenas violacoes reais):
 // 1. CSS inline em componentes UI (style={{ }})
@@ -330,8 +330,8 @@ fn is_file_allowed(file_path: &str) -> bool {
 
     // Arquivos sempre permitidos (planos de trabalho, nao codigo de enforcement)
     let always_allowed = [
-        ".windsurf/plans/",
-        ".windsurf/workflows/",
+        ".devin/plans/",
+        ".devin/workflows/",
         ".nemesis/runtime/",
         ".nemesis/smart-components.json",
         ".nemesis/logs/",
@@ -356,7 +356,7 @@ fn is_file_allowed(file_path: &str) -> bool {
 
     // Arquivos de configuracao e regras — bloqueados por padrao
     let critical_files = [
-        ".windsurf/rules/",
+        ".devin/rules/",
         "package.json",
         "tsconfig.json",
         "tsconfig.base.json",

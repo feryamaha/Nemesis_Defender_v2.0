@@ -137,7 +137,7 @@ fn check_condition(node: &tree_sitter::Node, source: &str, violations: &mut Vec<
                     violations.push(Violation::new(
                         "Condicao constante detectada. Revise a logica.",
                         line, RuleCategory::Correctness,
-                    ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Substitua por uma condicao que dependa de valores em runtime."));
+                    ).with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Substitua por uma condicao que dependa de valores em runtime."));
                     return;
                 }
                 // Check for binary_expression tautologies like x === 5 where const x = 5
@@ -147,7 +147,7 @@ fn check_condition(node: &tree_sitter::Node, source: &str, violations: &mut Vec<
                         violations.push(Violation::new(
                             "Condicao constante detectada (comparacao tautologica). Revise a logica.",
                             line, RuleCategory::Correctness,
-                        ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Substitua por uma condicao que dependa de valores em runtime."));
+                        ).with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Substitua por uma condicao que dependa de valores em runtime."));
                         return;
                     }
                 }
@@ -170,7 +170,7 @@ fn check_for_condition(node: &tree_sitter::Node, source: &str, violations: &mut 
                 violations.push(Violation::new(
                     "Condicao constante em for detectada.",
                     line, RuleCategory::Correctness,
-                ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Revise a condicao do loop."));
+                ).with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Revise a condicao do loop."));
             }
         }
     }

@@ -26,7 +26,7 @@ fn walk(cursor: &mut tree_sitter::TreeCursor, source: &str, out: &mut Vec<Violat
                 line,
                 RuleCategory::Correctness,
             )
-            .with_suggestion("[STOP] Leia .windsurf/rules/react-hooks-patterns-rules.md. Render deve ser puro; mova efeitos colaterais para fora do corpo do componente."),
+            .with_suggestion("[STOP] Leia .devin/rules/react-hooks-patterns-rules.md. Render deve ser puro; mova efeitos colaterais para fora do corpo do componente."),
         );
     }
     if cursor.goto_first_child() {

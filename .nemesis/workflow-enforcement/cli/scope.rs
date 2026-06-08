@@ -103,7 +103,7 @@ fn extract_files_from_rag(rag_content: &str) -> Vec<String> {
 
     // Filtrar arquivos de regras e workflows (nao sao editaveis)
     files.into_iter()
-        .filter(|f| !f.starts_with(".windsurf/") && !f.starts_with("Feature-Documentation/") && !f.starts_with(".nemesis/"))
+        .filter(|f| !f.starts_with(".devin/") && !f.starts_with("Feature-Documentation/") && !f.starts_with(".nemesis/"))
         .collect()
 }
 

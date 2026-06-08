@@ -2,7 +2,7 @@
 //!
 //! Detects scripts that attempt to disable or bypass the Nemesis enforcement:
 //! - Path obfuscation via variable concatenation targeting protected configs
-//! - Direct write to .claude/settings.json, .windsurf/hooks.json, .codex/hooks.json
+//! - Direct write to .claude/settings.json, .devin/hooks.json, .codex/hooks.json
 //! - Hex/base64 encoded paths pointing to Nemesis infrastructure
 //! - Python os.symlink / os.system targeting Nemesis configs
 //! - Node.js fs operations targeting Nemesis binaries or configs
@@ -20,8 +20,8 @@ const SUGGESTION_NEMESIS_BYPASS: &str =
 const NEMESIS_PROTECTED_TARGETS: &[&str] = &[
     ".claude/settings.json",
     ".claude/settings.local.json",
-    ".windsurf/hooks.json",
-    ".windsurf/rules/",
+    ".devin/hooks.json",
+    ".devin/rules/",
     ".codex/hooks.json",
     ".codex/config.toml",
     ".openclaude/settings.json",

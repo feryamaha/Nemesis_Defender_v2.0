@@ -34,7 +34,7 @@ pub fn detect_ides(target_dir: &Path) -> Vec<String> {
 
     let ide_dirs = vec![
         (".claude", "Claude Code"),
-        (".windsurf", "Windsurf"),
+        (".devin", "Devin"),
         (".cursor", "Cursor"),
         (".codex", "Codex"),
         (".agents", "Agents"),

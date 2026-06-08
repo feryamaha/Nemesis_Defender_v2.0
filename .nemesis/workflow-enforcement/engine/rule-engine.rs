@@ -101,7 +101,7 @@ impl RuleEngine {
         
         let rules_path = rules_path
             .map(PathBuf::from)
-            .unwrap_or_else(|| project_root.join(".windsurf/rules"));
+            .unwrap_or_else(|| project_root.join(".devin/rules"));
 
         let mut engine = Self {
             rules: HashMap::new(),

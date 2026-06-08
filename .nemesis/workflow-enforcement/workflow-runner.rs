@@ -41,7 +41,7 @@ impl WorkflowRunner {
                 "python".to_string(),
                 "markdown".to_string(),
             ],
-            mandatory_rules: vec![".windsurf/rules/rule-main-rules.md".to_string()],
+            mandatory_rules: vec![".devin/rules/rule-main-rules.md".to_string()],
             mode: None,
         });
 
@@ -72,7 +72,7 @@ impl WorkflowRunner {
             let violation = Violation {
                 violation_type: ViolationType::RuleViolation,
                 message: format!("Pre-execution check failed: {}", pre_check.reasons.join(", ")),
-                rule: Some(".windsurf/rule-main-rules.md".to_string()),
+                rule: Some(".devin/rule-main-rules.md".to_string()),
                 command: None,
                 timestamp: chrono::Utc::now().to_rfc3339(),
                 llm_model: None,
@@ -121,7 +121,7 @@ impl WorkflowRunner {
             let violation = Violation {
                 violation_type: ViolationType::PermissionDenied,
                 message: "Command blocked by enforcement engine".to_string(),
-                rule: Some(".windsurf/rule-main-rules.md".to_string()),
+                rule: Some(".devin/rule-main-rules.md".to_string()),
                 command: Some(blocked_command.clone()),
                 timestamp: chrono::Utc::now().to_rfc3339(),
                 llm_model: None,

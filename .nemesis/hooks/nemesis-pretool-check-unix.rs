@@ -49,7 +49,7 @@ fn map_tool_type(raw: &str) -> &'static str {
     }
 }
 
-/// Normaliza payload Antigravity para formato WindsurfInput.
+/// Normaliza payload Antigravity para formato DevinInput.
 /// Antigravity envia: {"toolCall": {"name": "X", "args": {...}}, "stepIdx": N, ...}
 /// Nemesis espera: {"toolName": "X", "toolInput": {...}}
 fn normalize_antigravity_input(raw: &str) -> Option<String> {
@@ -220,7 +220,7 @@ struct DenyPattern {
 }
 
 #[derive(Debug, serde::Deserialize)]
-struct WindsurfInput {
+struct DevinInput {
     #[serde(rename = "toolName")]
     tool_name: Option<String>,
     #[serde(rename = "tool_name")]
@@ -280,7 +280,7 @@ fn read_state_field(state_path: &Path, field: &str) -> String {
     }
 }
 
-fn translate_windsurf_to_nemesis(input_json: &str) -> Result<String, String> {
+fn translate_devin_to_nemesis(input_json: &str) -> Result<String, String> {
     if input_json.contains("\"agent_action_name\"") {
         return Ok(input_json.to_string());
     }
@@ -290,7 +290,7 @@ fn translate_windsurf_to_nemesis(input_json: &str) -> Result<String, String> {
         return Ok(input_json.to_string());
     }
 
-    let parsed: WindsurfInput = match serde_json::from_str(input_json) {
+    let parsed: DevinInput = match serde_json::from_str(input_json) {
         Ok(p) => p,
         Err(e) => {
             nemesis_log("WARNING", &format!("Erro ao parsear JSON: {}", e));
@@ -304,7 +304,7 @@ fn translate_windsurf_to_nemesis(input_json: &str) -> Result<String, String> {
         .unwrap_or("");
 
     let agent_action = match tool_name {
-        // Windsurf
+        // Devin
         "Edit" | "Write" | "MultiEdit" | "EditNotebook" => "pre_write_code",
         "Bash" => "pre_run_command",
         "Read" | "Grep" => "pre_read_code",
@@ -909,7 +909,7 @@ fn run_pretool() {
     // ============================================================
     // DETECAO DE IDE
     // ============================================================
-    let mut ide_type = "windsurf".to_string();
+    let mut ide_type = "devin".to_string();
 
     if env::var("CLAUDE_PROJECT_DIR").is_ok() || env::var("CLAUDE_CODE").is_ok() {
         ide_type = "claude_code".to_string();
@@ -1047,7 +1047,7 @@ fn run_pretool() {
 
     // ── BLOQUEIO GLOBAL: Delete tool (ANTES da tradução) ──
     // Política: NENHUM agente IA pode deletar arquivos. Exclusivo humano.
-    // Deve rodar ANTES de translate_windsurf_to_nemesis() porque
+    // Deve rodar ANTES de translate_devin_to_nemesis() porque
     // a tradução converte "Delete" → "pre_write_code", mascarando a tool.
     if let Ok(raw_val) = serde_json::from_str::<serde_json::Value>(&stdin_peek) {
         let raw_tool = raw_val.get("tool_name")
@@ -1066,7 +1066,7 @@ fn run_pretool() {
     if !stdin_peek.is_empty() {
         let preview = &stdin_peek[..stdin_peek.len().min(100)];
 
-        match translate_windsurf_to_nemesis(&stdin_peek) {
+        match translate_devin_to_nemesis(&stdin_peek) {
             Ok(translated) => {
                 if translated != stdin_peek {
                     stdin_peek = translated;
@@ -1106,7 +1106,7 @@ fn run_pretool() {
             };
 
             // Extrair path de varios formatos de stdin
-            // Suporta formato Windsurf/Codex (tool_input) e formato Nemesis (tool_info)
+            // Suporta formato Devin/Codex (tool_input) e formato Nemesis (tool_info)
             let tool_input_val = val.get("tool_input")
                 .or_else(|| val.get("toolInput"))
                 .or_else(|| val.get("tool_info"));
@@ -1316,7 +1316,7 @@ fn run_pretool() {
             .unwrap_or("")
             .to_string()
     } else if stdin_peek.contains("\"toolName\"") || stdin_peek.contains("\"tool_name\"") {
-        let parsed: WindsurfInput = serde_json::from_str(&stdin_peek).unwrap_or_else(|_| WindsurfInput {
+        let parsed: DevinInput = serde_json::from_str(&stdin_peek).unwrap_or_else(|_| DevinInput {
             tool_name: None,
             tool_name_alt: None,
             tool_input: None,

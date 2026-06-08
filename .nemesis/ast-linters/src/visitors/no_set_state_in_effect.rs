@@ -94,7 +94,7 @@ fn check_effect(
                                 line,
                                 RuleCategory::Correctness,
                             )
-                            .with_suggestion("[STOP] Leia .windsurf/rules/react-hooks-patterns-rules.md. Evite setState direto no effect; condicione ou derive o estado."),
+                            .with_suggestion("[STOP] Leia .devin/rules/react-hooks-patterns-rules.md. Evite setState direto no effect; condicione ou derive o estado."),
                         );
                     }
                 }

@@ -2,7 +2,7 @@
 # Tudo fora desta lista receberá EACCES do kernel via Landlock.
 allowed_exec = [
     "/usr/bin/node",
-    "/usr/bin/windsurf",
+    "/usr/bin/devin",
     "/usr/bin/code",
     "/usr/bin/git",
     "/usr/bin/cargo",

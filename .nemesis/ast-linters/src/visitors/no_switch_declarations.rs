@@ -42,7 +42,7 @@ fn check_switch_case(node: &tree_sitter::Node, source: &str, violations: &mut Ve
                         violations.push(Violation::new(
                         "Declaracao lexica diretamente em switch case sem bloco. Isso pode causar acesso indevido em outros cases.",
                         line, RuleCategory::Correctness,
-                    ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Envolva o case em bloco: case x: { const y = ... }."));
+                    ).with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Envolva o case em bloco: case x: { const y = ... }."));
                     }
                 }
                 _ => {}

@@ -139,7 +139,7 @@ fn visit_node(
                             line,
                             RuleCategory::Correctness
                         )
-                        .with_suggestion("[STOP] Leia .windsurf/rules/react-hooks-patterns-rules.md antes de reescrever. Mova hooks para o topo do componente, antes de qualquer return. Consulte: https://react.dev/reference/rules/rules-of-hooks")
+                        .with_suggestion("[STOP] Leia .devin/rules/react-hooks-patterns-rules.md antes de reescrever. Mova hooks para o topo do componente, antes de qualquer return. Consulte: https://react.dev/reference/rules/rules-of-hooks")
                     );
                 }
             }

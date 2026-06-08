@@ -64,7 +64,7 @@ lazy_static::lazy_static! {
             context_type: None,
             message: r#"Uso de "any" detectado. Viola typescript-typing-convention.md."#.to_string(),
             suggestion: "Use tipos explicitos, unknown, generics <T> ou tipos existentes em src/types/".to_string(),
-            rule: ".windsurf/rules/typescript-typing-convention.md".to_string(),
+            rule: ".devin/rules/typescript-typing-convention.md".to_string(),
             source: "harvest".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -80,7 +80,7 @@ lazy_static::lazy_static! {
             context_type: None,
             message: r#"Import de tipo sem keyword "type". Use import type { ... }."#.to_string(),
             suggestion: r#"Substitua por: import type { NomeDoTipo } from "...";"#.to_string(),
-            rule: ".windsurf/rules/typescript-typing-convention.md".to_string(),
+            rule: ".devin/rules/typescript-typing-convention.md".to_string(),
             source: "harvest".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -96,7 +96,7 @@ lazy_static::lazy_static! {
             context_type: None,
             message: "require() detectado em TypeScript. Use import ES6.".to_string(),
             suggestion: r#"Substitua por: import NomeModulo from "caminho""#.to_string(),
-            rule: ".windsurf/rules/typescript-typing-convention.md".to_string(),
+            rule: ".devin/rules/typescript-typing-convention.md".to_string(),
             source: "harvest".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -112,7 +112,7 @@ lazy_static::lazy_static! {
             context_type: None,
             message: "Variavel declarada e potencialmente nao utilizada.".to_string(),
             suggestion: "Remova variaveis nao utilizadas ou prefixe com _ se intencional.".to_string(),
-            rule: ".windsurf/rules/typescript-typing-convention.md".to_string(),
+            rule: ".devin/rules/typescript-typing-convention.md".to_string(),
             source: "harvest".to_string(),
             enabled: true,
             needs_manual_pattern: Some(true),
@@ -128,7 +128,7 @@ lazy_static::lazy_static! {
             context_type: None,
             message: "Hook condicional detectado. Violacao react-hooks/rules-of-hooks.".to_string(),
             suggestion: "Mova todos os hooks para o topo do componente, antes de qualquer condicional.".to_string(),
-            rule: ".windsurf/rules/react-hooks-patterns-rules.md".to_string(),
+            rule: ".devin/rules/react-hooks-patterns-rules.md".to_string(),
             source: "harvest".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -144,7 +144,7 @@ lazy_static::lazy_static! {
             context_type: None,
             message: "useEffect com dependencias vazias e corpo nao-trivial.".to_string(),
             suggestion: "Revise as dependencias do useEffect. Considere se [] e intencional.".to_string(),
-            rule: ".windsurf/rules/react-hooks-patterns-rules.md".to_string(),
+            rule: ".devin/rules/react-hooks-patterns-rules.md".to_string(),
             source: "harvest".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -160,7 +160,7 @@ lazy_static::lazy_static! {
             context_type: Some("path_contains".to_string()),
             message: "Import de Head em _document. Use next/document.".to_string(),
             suggestion: r#"Use import { Head } from "next/document" em arquivos _document."#.to_string(),
-            rule: ".windsurf/rules/Arquitetura-pastas-arquivos.md".to_string(),
+            rule: ".devin/rules/Arquitetura-pastas-arquivos.md".to_string(),
             source: "harvest".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -176,7 +176,7 @@ lazy_static::lazy_static! {
             context_type: None,
             message: "module.exports detectado. Use export statements ES6.".to_string(),
             suggestion: "Substitua por: export const nome = ... ou export default ...".to_string(),
-            rule: ".windsurf/rules/typescript-typing-convention.md".to_string(),
+            rule: ".devin/rules/typescript-typing-convention.md".to_string(),
             source: "harvest".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -380,7 +380,7 @@ fn escape_for_regex(s: &str) -> String {
 }
 
 fn extract_patterns_from_rules() -> Vec<HarvestPattern> {
-    let rules_dir = ".windsurf/rules";
+    let rules_dir = ".devin/rules";
     if !Path::new(rules_dir).exists() {
         return vec![];
     }
@@ -407,8 +407,8 @@ fn extract_patterns_from_rules() -> Vec<HarvestPattern> {
                             context: None,
                             context_type: None,
                             message: format!("Violacao detectada: {}", desc),
-                            suggestion: format!("Consulte .windsurf/rules/{}.md para o padrao correto.", rule_name),
-                            rule: format!(".windsurf/rules/{}.md", rule_name),
+                            suggestion: format!("Consulte .devin/rules/{}.md para o padrao correto.", rule_name),
+                            rule: format!(".devin/rules/{}.md", rule_name),
                             source: "rules".to_string(),
                             enabled: true,
                             needs_manual_pattern: Some(true),
@@ -431,8 +431,8 @@ fn extract_patterns_from_rules() -> Vec<HarvestPattern> {
                                 context: None,
                                 context_type: None,
                                 message: format!("Padrao proibido detectado ({})", rule_name),
-                                suggestion: format!("Veja o padrao correto em .windsurf/rules/{}.md", rule_name),
-                                rule: format!(".windsurf/rules/{}.md", rule_name),
+                                suggestion: format!("Veja o padrao correto em .devin/rules/{}.md", rule_name),
+                                rule: format!(".devin/rules/{}.md", rule_name),
                                 source: "rules".to_string(),
                                 enabled: true,
                                 needs_manual_pattern: None,
@@ -574,7 +574,7 @@ fn rehydrate_rules(
     next_config: &NextConfig,
 ) -> Vec<String> {
     let mut rehydrated: Vec<String> = vec![];
-    let rules_dir = ".windsurf/rules";
+    let rules_dir = ".devin/rules";
     
     if !Path::new(rules_dir).exists() {
         return rehydrated;
@@ -835,8 +835,8 @@ pub async fn run_harvest() -> HarvestResult {
         }
     }
 
-    let existing_rules: Vec<String> = if Path::new(".windsurf/rules").exists() {
-        fs::read_dir(".windsurf/rules")
+    let existing_rules: Vec<String> = if Path::new(".devin/rules").exists() {
+        fs::read_dir(".devin/rules")
             .map(|entries| {
                 entries
                     .flatten()
@@ -986,7 +986,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "Atualizacao em massa de dependencias bloqueada.".to_string(),
             suggestion: "Use atualizacao cirurgica: bun add [pacote]@[versao]".to_string(),
-            rule: ".windsurf/rules/rule-main-rules.md".to_string(),
+            rule: ".devin/rules/rule-main-rules.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1002,7 +1002,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "Operacao system-level de alto risco bloqueada.".to_string(),
             suggestion: "Use carregamento cirurgico das rules — leia apenas o dominio classificado.".to_string(),
-            rule: ".windsurf/rules/Conformidade.md".to_string(),
+            rule: ".devin/rules/Conformidade.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1018,7 +1018,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "Comando destrutivo de sistema bloqueado.".to_string(),
             suggestion: "Use remocao cirurgica com path completo e confirmacao.".to_string(),
-            rule: ".windsurf/rules/rule-main-rules.md".to_string(),
+            rule: ".devin/rules/rule-main-rules.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1034,7 +1034,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "Insercao de bypass manual detectada. Modelos IA nao tem autorizacao.".to_string(),
             suggestion: "Encontre a solucao tecnica correta. Apenas usuarios podem adicionar bypass.".to_string(),
-            rule: ".windsurf/rules/origin-rules.md".to_string(),
+            rule: ".devin/rules/origin-rules.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1057,7 +1057,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "Insercao manual de SMART COMPONENT detectada.".to_string(),
             suggestion: "Use: bun nemesis:smart add NomeDoComponente".to_string(),
-            rule: ".windsurf/rules/ui-separation-convention.md".to_string(),
+            rule: ".devin/rules/ui-separation-convention.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1073,7 +1073,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "Bypass de regra detectado.".to_string(),
             suggestion: "Resolva o erro tecnico. Nao use bypass.".to_string(),
-            rule: ".windsurf/rules/origin-rules.md".to_string(),
+            rule: ".devin/rules/origin-rules.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1096,7 +1096,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "CSS inline (style={{...}}) detectado.".to_string(),
             suggestion: "Use classes Tailwind. CSS inline apenas para valores dinamicos calculados por JS.".to_string(),
-            rule: ".windsurf/rules/design-system-convention.md".to_string(),
+            rule: ".devin/rules/design-system-convention.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1112,7 +1112,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "Tag style ou styled-jsx detectado.".to_string(),
             suggestion: "Use classes Tailwind definidas no tailwind.config.ts.".to_string(),
-            rule: ".windsurf/rules/design-system-convention.md".to_string(),
+            rule: ".devin/rules/design-system-convention.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1128,7 +1128,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "CSS manual externo detectado.".to_string(),
             suggestion: "Use classes Tailwind. CSS externo nao e permitido.".to_string(),
-            rule: ".windsurf/rules/design-system-convention.md".to_string(),
+            rule: ".devin/rules/design-system-convention.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1151,7 +1151,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "Variavel de ambiente publica detectada em componente.".to_string(),
             suggestion: "Mova para route handler server-side. Violacao OWASP A03.".to_string(),
-            rule: ".windsurf/rules/Conformidade.md".to_string(),
+            rule: ".devin/rules/Conformidade.md".to_string(),
             source: "harvest".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1167,7 +1167,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: None,
             message: "API key hardcoded detectada.".to_string(),
             suggestion: "Use variaveis de ambiente server-side. Violacao OWASP A02.".to_string(),
-            rule: ".windsurf/rules/Conformidade.md".to_string(),
+            rule: ".devin/rules/Conformidade.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1183,7 +1183,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: Some("path_contains".to_string()),
             message: "Log de credencial detectado em route handler.".to_string(),
             suggestion: "Remova o log. Violacao OWASP A03: Sensitive Data Exposure.".to_string(),
-            rule: ".windsurf/rules/Conformidade.md".to_string(),
+            rule: ".devin/rules/Conformidade.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1206,7 +1206,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: Some("path_contains".to_string()),
             message: "Chamada HTTP direta em componente detectada.".to_string(),
             suggestion: "Use route handlers em src/app/api/. Violacao do padrao BFF.".to_string(),
-            rule: ".windsurf/rules/API-convention.md".to_string(),
+            rule: ".devin/rules/API-convention.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1222,7 +1222,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: Some("path_contains".to_string()),
             message: "Storage direto detectado em hook.".to_string(),
             suggestion: "Use context providers. Violacao da arquitetura BFF.".to_string(),
-            rule: ".windsurf/rules/API-convention.md".to_string(),
+            rule: ".devin/rules/API-convention.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1245,7 +1245,7 @@ pub async fn run_harvest() -> HarvestResult {
             context_type: Some("path_contains".to_string()),
             message: "Hook de estado em componente UI puro bloqueado.".to_string(),
             suggestion: "Mova logica para src/hooks/. Componentes em ui/ devem ser puros.".to_string(),
-            rule: ".windsurf/rules/ui-separation-convention.md".to_string(),
+            rule: ".devin/rules/ui-separation-convention.md".to_string(),
             source: "rules".to_string(),
             enabled: true,
             needs_manual_pattern: None,
@@ -1308,7 +1308,7 @@ fn create_auto_harvest_rules(
     existing_rules: &[String],
 ) -> Vec<String> {
     let mut created: Vec<String> = vec![];
-    let auto_harvest_dir = ".windsurf/rules/auto-harvest";
+    let auto_harvest_dir = ".devin/rules/auto-harvest";
     let timestamp = chrono::Utc::now().to_rfc3339();
 
     std::fs::create_dir_all(auto_harvest_dir).ok();

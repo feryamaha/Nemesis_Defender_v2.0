@@ -252,7 +252,7 @@ fn check_any_usage(new_string: &str) -> CodeValidationResult {
             return CodeValidationResult {
                 valid: false,
                 reason: Some(format!(r#"Uso de "any" detectado. Linha: "{}""#, context)),
-                rule: Some(".windsurf/rules/typescript-typing-convention.md - Secao 7".to_string()),
+                rule: Some(".devin/rules/typescript-typing-convention.md - Secao 7".to_string()),
                 suggestion: Some("Use tipos explicitos, unknown, generics ou tipos existentes em src/types/".to_string()),
             };
         }
@@ -302,7 +302,7 @@ fn check_ui_hooks(
             return CodeValidationResult {
                 valid: false,
                 reason: Some(format!(r#"Hook "{}" detectado em componente UI puro: {}"#, name, file_name)),
-                rule: Some(".windsurf/rules/ui-separation-convention.md - Secao 4.1".to_string()),
+                rule: Some(".devin/rules/ui-separation-convention.md - Secao 4.1".to_string()),
                 suggestion: Some(format!("Mova logica de estado para src/hooks/. Componentes em src/components/ui/ devem ser puros. Excecoes: {}", UI_EXCEPTIONS.join(", "))),
             };
         }
@@ -356,7 +356,7 @@ fn check_inline_types(
                     return CodeValidationResult {
                         valid: false,
                         reason: Some(format!("Definicao de tipo inline em componente reutilizavel: {}", file_name)),
-                        rule: Some(".windsurf/rules/typescript-typing-convention.md - Secao 4".to_string()),
+                        rule: Some(".devin/rules/typescript-typing-convention.md - Secao 4".to_string()),
                         suggestion: Some("Mova tipos para src/types/. Use import type { ... } no componente.".to_string()),
                     };
                 }
@@ -391,7 +391,7 @@ fn check_css_inline(new_string: &str) -> CodeValidationResult {
             return CodeValidationResult {
                 valid: false,
                 reason: Some(format!("{} detectado. Proibido por design-system-convention.md", name)),
-                rule: Some(".windsurf/rules/design-system-convention.md - Secao 5".to_string()),
+                rule: Some(".devin/rules/design-system-convention.md - Secao 5".to_string()),
                 suggestion: Some("Use classes Tailwind definidas no tailwind.config.ts. CSS manual e proibido.".to_string()),
             };
         }
@@ -466,7 +466,7 @@ fn check_conditional_hooks(new_string: &str) -> CodeValidationResult {
                 return CodeValidationResult {
                     valid: false,
                     reason: Some(format!("Hook condicional detectado. Linha {}: \"{}\"", line_num, context)),
-                    rule: Some(".windsurf/rules/react-hooks-patterns-rules.md - Secao 3.1".to_string()),
+                    rule: Some(".devin/rules/react-hooks-patterns-rules.md - Secao 3.1".to_string()),
                     suggestion: Some("Mova todos os hooks para o topo do componente, antes de qualquer condicional. Hooks nunca podem ser chamados dentro de if/else/ternary/early-return.".to_string()),
                 };
             }
@@ -492,7 +492,7 @@ fn check_conditional_hooks(new_string: &str) -> CodeValidationResult {
                     return CodeValidationResult {
                         valid: false,
                         reason: Some(format!("Hook possivelmente dentro de bloco condicional. Linha {}: \"{}\"", i + 1, context)),
-                        rule: Some(".windsurf/rules/react-hooks-patterns-rules.md - Secao 3.1".to_string()),
+                        rule: Some(".devin/rules/react-hooks-patterns-rules.md - Secao 3.1".to_string()),
                         suggestion: Some("Mova todos os hooks para o topo do componente, antes de qualquer estrutura de controle.".to_string()),
                     };
                 }
@@ -543,7 +543,7 @@ fn check_security_violations(normalized_path: &str, new_string: &str) -> CodeVal
             return CodeValidationResult {
                 valid: false,
                 reason: Some("Log de credenciais detectado em route handler. Violacao OWASP A03: Sensitive Data Exposure.".to_string()),
-                rule: Some(".windsurf/rules/Conformidade.md - Secao 3 (OWASP Security)".to_string()),
+                rule: Some(".devin/rules/Conformidade.md - Secao 3 (OWASP Security)".to_string()),
                 suggestion: Some("Remova logs de credenciais. Use logging seguro sem dados sensiveis.".to_string()),
             };
         }
@@ -562,7 +562,7 @@ fn check_security_violations(normalized_path: &str, new_string: &str) -> CodeVal
             return CodeValidationResult {
                 valid: false,
                 reason: Some("Token de autenticacao simplificado ou bypass detectado. Violacao OWASP A07: Identification and Authentication Failures.".to_string()),
-                rule: Some(".windsurf/rules/Conformidade.md - Secao 3 (OWASP Security)".to_string()),
+                rule: Some(".devin/rules/Conformidade.md - Secao 3 (OWASP Security)".to_string()),
                 suggestion: Some("Use tokens JWT properly signed com expiracao adequada. Nunca implemente bypass de autenticacao.".to_string()),
             };
         }
@@ -580,7 +580,7 @@ fn check_security_violations(normalized_path: &str, new_string: &str) -> CodeVal
             return CodeValidationResult {
                 valid: false,
                 reason: Some("Headers de seguranca removidos ou desabilitados. Violacao OWASP A05: Security Misconfiguration.".to_string()),
-                rule: Some(".windsurf/rules/Conformidade.md - Secao 3 (OWASP Security)".to_string()),
+                rule: Some(".devin/rules/Conformidade.md - Secao 3 (OWASP Security)".to_string()),
                 suggestion: Some("Mantenha headers de seguranca (CSP, CORS, HSTS). Nunca desabilite controles de seguranca.".to_string()),
             };
         }
@@ -599,7 +599,7 @@ fn check_security_violations(normalized_path: &str, new_string: &str) -> CodeVal
             return CodeValidationResult {
                 valid: false,
                 reason: Some("Dados sensiveis expostos na resposta. Violacao OWASP A03: Sensitive Data Exposure.".to_string()),
-                rule: Some(".windsurf/rules/Conformidade.md - Secao 3 (OWASP Security)".to_string()),
+                rule: Some(".devin/rules/Conformidade.md - Secao 3 (OWASP Security)".to_string()),
                 suggestion: Some("Remova dados sensiveis (senhas, hashes, secrets) das respostas da API.".to_string()),
             };
         }
@@ -645,7 +645,7 @@ fn check_bff_violations(normalized_path: &str, new_string: &str) -> CodeValidati
             return CodeValidationResult {
                 valid: false,
                 reason: Some("Chamada direta para API externa detectada em componente. Violacao do padrao BFF (Backend-for-Frontend).".to_string()),
-                rule: Some(".windsurf/rules/API-convention.md - Secao 2 (BFF Pattern)".to_string()),
+                rule: Some(".devin/rules/API-convention.md - Secao 2 (BFF Pattern)".to_string()),
                 suggestion: Some("Use route handlers em src/app/api/ para integracoes externas. Componentes devem consumir apenas o BFF.".to_string()),
             };
         }
@@ -663,7 +663,7 @@ fn check_bff_violations(normalized_path: &str, new_string: &str) -> CodeValidati
             return CodeValidationResult {
                 valid: false,
                 reason: Some("Uso de storage direto detectado em componente. Violacao da separacao de responsabilidades.".to_string()),
-                rule: Some(".windsurf/rules/API-convention.md - Secao 3 (Layer Architecture)".to_string()),
+                rule: Some(".devin/rules/API-convention.md - Secao 3 (Layer Architecture)".to_string()),
                 suggestion: Some("Use hooks/context para gerenciamento de estado e storage. Componentes nao devem acessar storage diretamente.".to_string()),
             };
         }
@@ -708,7 +708,7 @@ fn check_environment_variables(new_string: &str) -> CodeValidationResult {
         return CodeValidationResult {
             valid: false,
             reason: Some(format!("Variaveis de ambiente publicas detectadas: {}. Violacao OWASP A03: Sensitive Data Exposure.", unique_vars.join(", "))),
-            rule: Some(".windsurf/rules/Conformidade.md - Secao 3.3 (Sensitive Data Protection)".to_string()),
+            rule: Some(".devin/rules/Conformidade.md - Secao 3.3 (Sensitive Data Protection)".to_string()),
             suggestion: Some("Mova variaveis de ambiente para route handlers (server-side). Nunca exponha configs sensiveis no client-side.".to_string()),
         };
     }
@@ -724,7 +724,7 @@ fn check_environment_variables(new_string: &str) -> CodeValidationResult {
             return CodeValidationResult {
                 valid: false,
                 reason: Some("Possivel secret ou API key hardcoded detectado. Violacao OWASP A02: Cryptographic Failures.".to_string()),
-                rule: Some(".windsurf/rules/Conformidade.md - Secao 3.3 (Sensitive Data Protection)".to_string()),
+                rule: Some(".devin/rules/Conformidade.md - Secao 3.3 (Sensitive Data Protection)".to_string()),
                 suggestion: Some("Use variaveis de ambiente server-side para secrets. Nunca hardcode credenciais no codigo.".to_string()),
             };
         }
@@ -769,7 +769,7 @@ fn check_storage_in_hooks(normalized_path: &str, new_string: &str) -> CodeValida
             return CodeValidationResult {
                 valid: false,
                 reason: Some("Uso de storage direto detectado em hook. Violacao da arquitetura BFF.".to_string()),
-                rule: Some(".windsurf/rules/API-convention.md - Secao 3 (Layer Architecture)".to_string()),
+                rule: Some(".devin/rules/API-convention.md - Secao 3 (Layer Architecture)".to_string()),
                 suggestion: Some("Use context providers ou hooks de mais alto nivel para gerenciamento de storage.".to_string()),
             };
         }
@@ -811,7 +811,7 @@ fn check_http_in_hooks(normalized_path: &str, new_string: &str) -> CodeValidatio
             return CodeValidationResult {
                 valid: false,
                 reason: Some("Chamada HTTP direta detectada em hook. Violacao do padrao BFF.".to_string()),
-                rule: Some(".windsurf/rules/API-convention.md - Secao 2 (BFF Pattern)".to_string()),
+                rule: Some(".devin/rules/API-convention.md - Secao 2 (BFF Pattern)".to_string()),
                 suggestion: Some("Use route handlers em src/app/api/ para chamadas HTTP. Hooks devem consumir apenas o BFF.".to_string()),
             };
         }
@@ -844,7 +844,7 @@ fn check_styled_jsx(new_string: &str) -> CodeValidationResult {
             return CodeValidationResult {
                 valid: false,
                 reason: Some("styled-jsx detectado. Proibido por design-system-convention.md.".to_string()),
-                rule: Some(".windsurf/rules/design-system-convention.md - Secao 5".to_string()),
+                rule: Some(".devin/rules/design-system-convention.md - Secao 5".to_string()),
                 suggestion: Some("Use classes Tailwind definidas no tailwind.config.ts. styled-jsx e CSS manual sao proibidos.".to_string()),
             };
         }
@@ -861,7 +861,7 @@ fn check_styled_jsx(new_string: &str) -> CodeValidationResult {
             return CodeValidationResult {
                 valid: false,
                 reason: Some("CSS manual detectado. Proibido por design-system-convention.md.".to_string()),
-                rule: Some(".windsurf/rules/design-system-convention.md - Secao 5".to_string()),
+                rule: Some(".devin/rules/design-system-convention.md - Secao 5".to_string()),
                 suggestion: Some("Use classes Tailwind definidas no tailwind.config.ts. CSS manual e proibido.".to_string()),
             };
         }
@@ -902,7 +902,7 @@ fn check_bypass_insertion(new_string: &str) -> CodeValidationResult {
                 return CodeValidationResult {
                     valid: false,
                     reason: Some(format!("Tentativa de inserir bypass manual detectada: \"{}\". Modelos IA nao tem autorizacao para adicionar bypass de regras.", name)),
-                    rule: Some(".windsurf/rules/origin-rules.md - Secao 7 (Autorizacao de Bypass)".to_string()),
+                    rule: Some(".devin/rules/origin-rules.md - Secao 7 (Autorizacao de Bypass)".to_string()),
                     suggestion: Some("Apenas usuarios podem adicionar bypass quando nao ha solucao tecnica. Remova o bypass ou encontre solucao alternativa.".to_string()),
                 };
             }
@@ -936,7 +936,7 @@ fn check_smart_component_insertion(new_string: &str) -> CodeValidationResult {
                 return CodeValidationResult {
                     valid: false,
                     reason: Some("Designacao de smart component nao pode ser feita manualmente. Apenas o sistema Nemesis pode marcar componentes como smart via smart-components.json.".to_string()),
-                    rule: Some(".windsurf/rules/ui-separation-convention.md - Secao 9 (Designacao de Smart Components)".to_string()),
+                    rule: Some(".devin/rules/ui-separation-convention.md - Secao 9 (Designacao de Smart Components)".to_string()),
                     suggestion: Some("Para designar um smart component: (1) Leia .nemesis/smart-components.json para ver os ja designados. (2) Solicite ao usuario que execute: bun nemesis:smart add NomeDoComponente. (3) Nunca insira comentarios de designacao manualmente no codigo.".to_string()),
                 };
             }
@@ -982,7 +982,7 @@ fn check_unused_vars(new_string: &str) -> CodeValidationResult {
             return CodeValidationResult {
                 valid: false,
                 reason: Some(format!("Variavel possivelmente nao utilizada: \"{}\". Possivel violacao ESLint no-unused-vars.", var_name)),
-                rule: Some(".windsurf/rules/typescript-typing-convention.md - Secao 7".to_string()),
+                rule: Some(".devin/rules/typescript-typing-convention.md - Secao 7".to_string()),
                 suggestion: Some("Remova variaveis nao utilizadas ou use prefixo underscore (_varName) para indicar uso intencional.".to_string()),
             };
         }
@@ -1022,7 +1022,7 @@ fn check_consistent_type_imports(new_string: &str) -> CodeValidationResult {
                 return CodeValidationResult {
                     valid: false,
                     reason: Some(format!("Import de tipo sem 'type' keyword: {}. Violacao ESLint consistent-type-imports.", type_items.join(", "))),
-                    rule: Some(".windsurf/rules/typescript-typing-convention.md - Secao 4".to_string()),
+                    rule: Some(".devin/rules/typescript-typing-convention.md - Secao 4".to_string()),
                     suggestion: Some(format!("Use: import type {{ {} }} from '{}';", type_items.join(", "), &caps[2])),
                 };
             }
@@ -1050,7 +1050,7 @@ fn check_no_var_requires(new_string: &str) -> CodeValidationResult {
         return CodeValidationResult {
             valid: false,
             reason: Some(format!(r#"require() detectado em arquivo TypeScript: \"{}\". Violacao ESLint no-var-requires."#, context_short)),
-            rule: Some(".windsurf/rules/typescript-typing-convention.md - Secao 7".to_string()),
+            rule: Some(".devin/rules/typescript-typing-convention.md - Secao 7".to_string()),
             suggestion: Some("Use import ES6: import module from 'module'; ou import { named } from 'module';".to_string()),
         };
     }
@@ -1080,7 +1080,7 @@ fn check_no_head_import_in_document(normalized_path: &str, new_string: &str) -> 
         return CodeValidationResult {
             valid: false,
             reason: Some("Import de Head from 'next/head' detectado em arquivo _document. Violacao ESLint no-head-import-in-document.".to_string()),
-            rule: Some(".windsurf/rules/Conformidade.md - Secao 3 (Next.js Security)".to_string()),
+            rule: Some(".devin/rules/Conformidade.md - Secao 3 (Next.js Security)".to_string()),
             suggestion: Some("Em _document, importe de 'next/document', nao de 'next/head'.".to_string()),
         };
     }
@@ -1106,7 +1106,7 @@ fn check_no_assign_module_variable(new_string: &str) -> CodeValidationResult {
         return CodeValidationResult {
             valid: false,
             reason: Some(format!("Reatribuicao de module detectada: \"{}\". Violacao ESLint no-assign-module-variable.", context_short)),
-            rule: Some(".windsurf/rules/Conformidade.md - Secao 3 (Module Security)".to_string()),
+            rule: Some(".devin/rules/Conformidade.md - Secao 3 (Module Security)".to_string()),
             suggestion: Some("Use export statements ES6: export default ou export const.".to_string()),
         };
     }
@@ -1148,7 +1148,7 @@ fn check_adjacent_overload_signatures(new_string: &str) -> CodeValidationResult 
                 return CodeValidationResult {
                     valid: false,
                     reason: Some(format!("Overloads da funcao \"{}\" nao sao adjacentes. Violacao ESLint adjacent-overload-signatures.", fn_name)),
-                    rule: Some(".windsurf/rules/typescript-typing-convention.md - Secao 7".to_string()),
+                    rule: Some(".devin/rules/typescript-typing-convention.md - Secao 7".to_string()),
                     suggestion: Some(format!("Agrupe todas as assinaturas de overload de \"{}\" juntas, antes da implementacao.", fn_name)),
                 };
             }
@@ -1185,7 +1185,7 @@ fn check_exhaustive_deps_basic(new_string: &str) -> CodeValidationResult {
                         return CodeValidationResult {
                             valid: false,
                             reason: Some("useEffect com array de dependencias vazio [] e corpo nao-trivial detectado. Possivel violacao ESLint exhaustive-deps.".to_string()),
-                            rule: Some(".windsurf/rules/react-hooks-patterns-rules.md - Secao 3.2".to_string()),
+                            rule: Some(".devin/rules/react-hooks-patterns-rules.md - Secao 3.2".to_string()),
                             suggestion: Some("Adicione todas as variaveis usadas no useEffect ao array de dependencias.".to_string()),
                         };
                     }

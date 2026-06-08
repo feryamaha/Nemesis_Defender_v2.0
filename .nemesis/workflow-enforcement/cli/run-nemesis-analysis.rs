@@ -32,7 +32,7 @@ fn main() {
     // Etapa 2: Leitura das Regras de Governança
     println!("\n📋 Etapa 2: Leitura das regras de governança...");
     match Command::new("find")
-        .args(&[".windsurf/rules", "-name", "*.md"])
+        .args(&[".devin/rules", "-name", "*.md"])
         .current_dir(&project_root)
         .output()
     {

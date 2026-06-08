@@ -42,7 +42,7 @@ Nemesis_Rust_v2.0/
     agents/nemesis-implementer.md   ← Agente para tarefas Rust
     skills/                         ← Skills Nemesis SDD Pipeline
   
-  .windsurf/                        ← Configuracao Windsurf
+  .devin/                        ← Configuracao Devin
     skills/                         ← Replica de skills
     workflows/                      ← Workflows orchestracao
   

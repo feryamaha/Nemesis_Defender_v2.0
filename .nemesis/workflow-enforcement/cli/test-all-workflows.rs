@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let workflows_path = PathBuf::from(".windsurf/workflows");
+    let workflows_path = PathBuf::from(".devin/workflows");
 
     println!("\n𓍝 Nemesis Test All Workflows");
     println!("   Diretorio: {}\n", workflows_path.display());

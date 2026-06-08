@@ -17,7 +17,7 @@ fn visit_node(cursor: &mut tree_sitter::TreeCursor, source: &str, violations: &m
             violations.push(Violation::new(
                 "Template placeholder ${} em string regular. Use template literal com backtick.",
                 line, RuleCategory::Suspicious,
-            ).with_suggestion("[STOP] Leia .windsurf/rules/typescript-typing-convention.md antes de reescrever. Use template literal: `valor ${var}`.").with_severity(Severity::Warning));
+            ).with_suggestion("[STOP] Leia .devin/rules/typescript-typing-convention.md antes de reescrever. Use template literal: `valor ${var}`.").with_severity(Severity::Warning));
         }
     }
     if cursor.goto_first_child() {

@@ -1,6 +1,6 @@
 // src/templates.rs
 pub const CLAUDE_SETTINGS: &str = include_str!("templates/claude-settings.json");
-pub const WINDSURF_HOOKS: &str = include_str!("templates/windsurf-hooks.json");
+pub const WINDSURF_HOOKS: &str = include_str!("templates/devin-hooks.json");
 pub const CURSOR_HOOKS: &str = include_str!("templates/cursor-hooks.json");
 pub const CODEX_HOOKS: &str = include_str!("templates/codex-hooks.json");
 pub const CODEX_CONFIG: &str = include_str!("templates/codex-config.toml");
@@ -15,7 +15,7 @@ pub fn substitute_hook_path(template: &str, hook_path: &str) -> String {
 pub fn validate_templates() -> anyhow::Result<()> {
     let templates = vec![
         ("claude", CLAUDE_SETTINGS),
-        ("windsurf", WINDSURF_HOOKS),
+        ("devin", WINDSURF_HOOKS),
         ("cursor", CURSOR_HOOKS),
         ("codex-hooks", CODEX_HOOKS),
         ("codex-config", CODEX_CONFIG),

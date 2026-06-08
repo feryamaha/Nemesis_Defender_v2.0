@@ -139,7 +139,7 @@ fn check_hook_deps(
                 line,
                 RuleCategory::Correctness,
             )
-            .with_suggestion("[STOP] Leia .windsurf/rules/react-hooks-patterns-rules.md antes de reescrever. Adicione as variáveis reativas usadas no corpo ao array de dependências."),
+            .with_suggestion("[STOP] Leia .devin/rules/react-hooks-patterns-rules.md antes de reescrever. Adicione as variáveis reativas usadas no corpo ao array de dependências."),
         );
     }
 }

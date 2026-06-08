@@ -15,7 +15,7 @@ fn visit_node(cursor: &mut tree_sitter::TreeCursor, source: &str, violations: &m
         violations.push(Violation::new(
             "Debugger statement detectado. Remova antes de commit.",
             line, RuleCategory::Suspicious,
-        ).with_suggestion("[STOP] Leia .windsurf/rules/origin-rules.md antes de reescrever. Remova o debugger antes de commit. Consulte: https://eslint.org/docs/rules/no-debugger"));
+        ).with_suggestion("[STOP] Leia .devin/rules/origin-rules.md antes de reescrever. Remova o debugger antes de commit. Consulte: https://eslint.org/docs/rules/no-debugger"));
     }
     if cursor.goto_first_child() {
         loop {

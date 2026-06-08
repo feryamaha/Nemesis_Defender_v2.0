@@ -10,9 +10,9 @@ pub fn generate_hooks(target_dir: &Path, ide: &str, hook_path: &str) -> anyhow::
             let content = templates::substitute_hook_path(templates::CLAUDE_SETTINGS, hook_path);
             (target_dir.join(".claude/settings.json"), content)
         },
-        "Windsurf" => {
+        "Devin" => {
             let content = templates::substitute_hook_path(templates::WINDSURF_HOOKS, hook_path);
-            (target_dir.join(".windsurf/hooks.json"), content)
+            (target_dir.join(".devin/hooks.json"), content)
         },
         "Cursor" => {
             let content = templates::substitute_hook_path(templates::CURSOR_HOOKS, hook_path);

@@ -11,8 +11,8 @@ Uso:
   cargo run --bin nemesis-validate -- <caminho-do-workflow>
 
 Exemplos:
-  nemesis-validate .windsurf/workflows/generate-prompt-rag.md
-  nemesis-validate .windsurf/workflows/audit-create-pr.md
+  nemesis-validate .devin/workflows/generate-prompt-rag.md
+  nemesis-validate .devin/workflows/audit-create-pr.md
 
 Retorna:
   Exit code 0 - Workflow valido

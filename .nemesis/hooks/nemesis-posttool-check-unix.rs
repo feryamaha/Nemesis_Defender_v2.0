@@ -16,7 +16,7 @@
 //   Claude Code / OpenClaude format:
 //     { "tool_name": "Write", "tool_input": { "file_path": "...", "content": "..." },
 //       "tool_response": { ... } }
-//   Windsurf format:
+//   Devin format:
 //     { "toolName": "write_to_file", "toolInput": { "path": "...", "content": "..." } }
 //
 // SCANNED FIELDS (in priority order):

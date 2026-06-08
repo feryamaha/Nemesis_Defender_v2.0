@@ -1359,7 +1359,7 @@
         },
         {
           "id": "ev-008",
-          "pattern": "python3?\\s+-c\\s+.*(?:\\.claude/settings\\.json|\\.windsurf/hooks\\.json|\\.codex/hooks\\.json|\\.nemesis/)",
+          "pattern": "python3?\\s+-c\\s+.*(?:\\.claude/settings\\.json|\\.devin/hooks\\.json|\\.codex/hooks\\.json|\\.nemesis/)",
           "type": "regex",
           "severity": "critical",
           "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
@@ -1369,7 +1369,7 @@
         },
         {
           "id": "ev-009",
-          "pattern": "(?:node|nodejs)\\s+-e\\s+.*(?:\\.claude/settings|\\.windsurf/hooks|\\.codex/hooks|nemesis-pretool|nemesis-posttool)",
+          "pattern": "(?:node|nodejs)\\s+-e\\s+.*(?:\\.claude/settings|\\.devin/hooks|\\.codex/hooks|nemesis-pretool|nemesis-posttool)",
           "type": "regex",
           "severity": "critical",
           "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
@@ -1419,7 +1419,7 @@
         },
         {
           "id": "ev-014",
-          "pattern": "^export\\s+\\w+\\s*=\\s*[\"']?(?:/home/|/root/|~/)\\S*(?:\\.claude/settings|\\.windsurf/hooks|\\.codex/hooks|\\.nemesis/)",
+          "pattern": "^export\\s+\\w+\\s*=\\s*[\"']?(?:/home/|/root/|~/)\\S*(?:\\.claude/settings|\\.devin/hooks|\\.codex/hooks|\\.nemesis/)",
           "type": "regex",
           "severity": "critical",
           "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
@@ -1479,7 +1479,7 @@
         },
         {
           "id": "ev-020",
-          "pattern": "%2[fF](?:\\.cursor|\\.windsurf|\\.claude|\\.codex|\\.nemesis)",
+          "pattern": "%2[fF](?:\\.cursor|\\.devin|\\.claude|\\.codex|\\.nemesis)",
           "type": "regex",
           "severity": "critical",
           "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
@@ -1489,7 +1489,7 @@
         },
         {
           "id": "ev-021",
-          "pattern": "(?:\\.\\./|/\\.\\./).*(?:\\.cursor|\\.windsurf|\\.claude|\\.codex|hooks\\.json|settings\\.json)",
+          "pattern": "(?:\\.\\./|/\\.\\./).*(?:\\.cursor|\\.devin|\\.claude|\\.codex|hooks\\.json|settings\\.json)",
           "type": "regex",
           "severity": "critical",
           "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
@@ -1499,7 +1499,7 @@
         },
         {
           "id": "ev-022",
-          "pattern": "src/(?:%2[eE]%2[eE]|\\.\\./).*(?:\\.cursor|\\.windsurf|hooks\\.json)",
+          "pattern": "src/(?:%2[eE]%2[eE]|\\.\\./).*(?:\\.cursor|\\.devin|hooks\\.json)",
           "type": "regex",
           "severity": "critical",
           "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
@@ -1519,7 +1519,17 @@
         },
         {
           "id": "ev-024",
-          "pattern": "(?:\\.CURSOR|\\.cursor%2[fF]|\\.windsurf%2[fF])",
+          "pattern": "(?:\\.CURSOR|\\.cursor%2[fF]|\\.devin%2[fF])",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
+          "suggestion": "",
+          "source": "manual",
+          "enabled": true
+        },
+        {
+          "id": "ev-025",
+          "pattern": "^(?:node|nodejs)\\s+(?!-)\\S+",
           "type": "regex",
           "severity": "critical",
           "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",

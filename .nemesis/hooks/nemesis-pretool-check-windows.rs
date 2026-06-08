@@ -2,13 +2,13 @@
 // Nemesis PreToolUse Hook - PowerShell/Windows Version
 // =============================================================================
 //
-// Este script e chamado automaticamente pelo Windsurf IDE via PreToolUse hook
+// Este script e chamado automaticamente pelo Devin IDE via PreToolUse hook
 // antes de executar qualquer ferramenta (Edit, Write, Bash, etc.)
 //
-// Recebe JSON via stdin no formato oficial Windsurf e passa para pretool-hook.ts
+// Recebe JSON via stdin no formato oficial Devin e passa para pretool-hook.ts
 // Retorna exit code 2 para bloquear tecnicamente a ferramenta se violacao detectada
 //
-// Uso: Configurado no frontmatter dos workflows em .windsurf/workflows/
+// Uso: Configurado no frontmatter dos workflows em .devin/workflows/
 //
 // Exemplo de configuracao no workflow:
 //   hooks:
@@ -72,7 +72,7 @@ fn main() {
         std::process::exit(1);
     };
 
-    // Ler input do stdin (JSON do Windsurf)
+    // Ler input do stdin (JSON do Devin)
     let mut input_data = String::new();
     if let Err(e) = io::stdin().read_to_string(&mut input_data) {
         eprintln!("NEMESIS WARNING: Erro ao ler stdin: {}", e);

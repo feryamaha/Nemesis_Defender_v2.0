@@ -5,7 +5,7 @@
 //! permission-gate.state.json e workflow-state.json.
 //!
 //! FIX SEQUENCE ENFORCEMENT (write_to_file + bash):
-//! Lê todos os .windsurf/workflows/work-*.md e extrai gate artifacts
+//! Lê todos os .devin/workflows/work-*.md e extrai gate artifacts
 //! em ordem de aparição. Constrói cadeia sequencial completa.
 //! Mantido para compatibilidade com work-03, work-04, work-05.
 //!
@@ -226,7 +226,7 @@ fn get_workflow_enforcement_dir() -> PathBuf {
 }
 
 fn get_workflows_dir() -> PathBuf {
-    get_cwd().join(".windsurf").join("workflows")
+    get_cwd().join(".devin").join("workflows")
 }
 
 fn get_config_path() -> PathBuf {
@@ -388,8 +388,8 @@ fn validate_file_scope(file_path: &str) -> ValidationResult {
                 return ValidationResult {
                     valid: false,
                     reason: Some(format!("NEMESIS SEC - ESCRITA FORA DO ESCOPO PERMITIDO · {}", normalized_relative)),
-                    rule: Some(".windsurf/rules/README.md".to_string()),
-                    suggestion: Some(".windsurf/rules/README.md".to_string()),
+                    rule: Some(".devin/rules/README.md".to_string()),
+                    suggestion: Some(".devin/rules/README.md".to_string()),
                 };
             }
         }
@@ -443,8 +443,8 @@ fn validate_file_scope(file_path: &str) -> ValidationResult {
     ValidationResult {
         valid: false,
         reason: Some(format!("NEMESIS SEC - ESCRITA FORA DO ESCOPO PERMITIDO · {}", normalized_relative)),
-        rule: Some(".windsurf/rules/README.md".to_string()),
-        suggestion: Some(format!(".windsurf/rules/README.md: {}", allowed_list)),
+        rule: Some(".devin/rules/README.md".to_string()),
+        suggestion: Some(format!(".devin/rules/README.md: {}", allowed_list)),
     }
 }
 
@@ -668,7 +668,7 @@ fn validate_code_content(file_path: &str, new_string: &str) -> ValidationResult 
         return ValidationResult {
             valid: false,
             reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-            rule: Some(".windsurf/rules/README.md".to_string()),
+            rule: Some(".devin/rules/README.md".to_string()),
             suggestion: Some("Violação semântica crítica detectada por análise de AST.".to_string()),
         };
     }
@@ -677,7 +677,7 @@ fn validate_code_content(file_path: &str, new_string: &str) -> ValidationResult 
     if !ast_violations.is_empty() && !should_block_ast {
         for violation in &ast_violations {
             if violation.severity.as_str() == "warn" {
-                log_violation("ast-warning", &violation.message, Some(&format!(".windsurf/rules/README.md (line {})", violation.line)), None);
+                log_violation("ast-warning", &violation.message, Some(&format!(".devin/rules/README.md (line {})", violation.line)), None);
             }
         }
     }
@@ -769,7 +769,7 @@ fn check_any_usage(new_string: &str) -> ValidationResult {
                 return ValidationResult {
                     valid: false,
                     reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-                    rule: Some(".windsurf/rules/typescript-typing-convention.md".to_string()),
+                    rule: Some(".devin/rules/typescript-typing-convention.md".to_string()),
                     suggestion: Some("Use tipos explicitos, unknown, generics ou tipos existentes em src/types/".to_string()),
                 };
             }
@@ -811,7 +811,7 @@ fn check_ui_hooks(normalized_path: &str, file_name: &str, new_string: &str) -> V
                 return ValidationResult {
                     valid: false,
                     reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-                    rule: Some(".windsurf/rules/ui-separation-convention.md - Secao 4.1".to_string()),
+                    rule: Some(".devin/rules/ui-separation-convention.md - Secao 4.1".to_string()),
                     suggestion: Some(format!("Mova logica de estado para src/hooks/. {}", ui_exceptions.join(", "))),
                 };
             }
@@ -855,7 +855,7 @@ fn check_inline_types(normalized_path: &str, file_name: &str, new_string: &str) 
                         return ValidationResult {
                             valid: false,
                             reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-                            rule: Some(".windsurf/rules/typescript-typing-convention.md - Secao 4".to_string()),
+                            rule: Some(".devin/rules/typescript-typing-convention.md - Secao 4".to_string()),
                             suggestion: Some("Mova tipos para src/types/. Use import type bo barrel (index) { ... } no componente.".to_string()),
                         };
                     }
@@ -885,7 +885,7 @@ fn check_css_inline(new_string: &str) -> ValidationResult {
                 return ValidationResult {
                     valid: false,
                     reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-                    rule: Some(".windsurf/rules/design-system-convention.md - Secao 5".to_string()),
+                    rule: Some(".devin/rules/design-system-convention.md - Secao 5".to_string()),
                     suggestion: Some("Use classes Tailwind definidas no tailwind.config.ts. CSS manual e proibido.".to_string()),
                 };
             }
@@ -944,7 +944,7 @@ fn check_conditional_hooks(new_string: &str) -> ValidationResult {
                     return ValidationResult {
                         valid: false,
                         reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-                        rule: Some(".windsurf/rules/react-hooks-patterns-rules.md - Secao 3.1".to_string()),
+                        rule: Some(".devin/rules/react-hooks-patterns-rules.md - Secao 3.1".to_string()),
                         suggestion: Some("Mova todos os hooks para o topo do componente, antes de qualquer condicional. Hooks nunca podem ser chamados dentro de if/else/ternary/early-return.".to_string()),
                     };
                 }
@@ -974,7 +974,7 @@ fn set_llm_model(model: &str) {
 
 fn get_current_llm_model() -> String {
     unsafe {
-        CURRENT_LLM_MODEL.clone().unwrap_or_else(|| detect_windsurf_llm_model())
+        CURRENT_LLM_MODEL.clone().unwrap_or_else(|| detect_devin_llm_model())
     }
 }
 
@@ -1015,7 +1015,7 @@ fn log_violation(violation_type: &str, message: &str, rule: Option<&str>, comman
 // DETECÇÃO DE MODELO LLM
 // =============================================================================
 
-fn detect_windsurf_llm_model() -> String {
+fn detect_devin_llm_model() -> String {
     // Tenta ler current-model.json
     let current_model_path = get_runtime_dir().join("current-model.json");
     if current_model_path.exists() {
@@ -1131,7 +1131,7 @@ fn build_approval_artifacts() -> Vec<String> {
     let mut artifacts = Vec::new();
     let workflows_dir = env::current_dir()
         .unwrap_or_else(|_| PathBuf::from("."))
-        .join(".windsurf")
+        .join(".devin")
         .join("workflows");
 
     if workflows_dir.exists() {
@@ -1172,7 +1172,7 @@ fn check_src_lock(file_path: &str) -> Option<ValidationResult> {
                 "NEMESIS SEC - ESCRITA FORA DO ESCOPO PERMITIDO · {}",
                 file_path
             )),
-            rule: Some(".windsurf/workflows — tracker start obrigatório antes de escrever em src/, app/, Feature-Documentation/".to_string()),
+            rule: Some(".devin/workflows — tracker start obrigatório antes de escrever em src/, app/, Feature-Documentation/".to_string()),
             suggestion: Some(
                 "Execute: npx tsx .nemesis/workflow-enforcement/cli/workflow-step-tracker.ts start [workflow-name] [total-steps]".to_string()
             ),
@@ -1188,7 +1188,7 @@ fn check_src_lock(file_path: &str) -> Option<ValidationResult> {
                 "NEMESIS SEC - ESCRITA FORA DO ESCOPO PERMITIDO · {}",
                 file_path
             )),
-            rule: Some(".windsurf/workflows — src/ requer workflow aprovado".to_string()),
+            rule: Some(".devin/workflows — src/ requer workflow aprovado".to_string()),
             suggestion: Some("Execute o workflow work-02-main e complete todas as fases até a aprovação do MegaPlan.".to_string()),
         });
     }
@@ -1242,7 +1242,7 @@ fn check_src_lock(file_path: &str) -> Option<ValidationResult> {
                 "NEMESIS SEC - ESCRITA FORA DO ESCOPO PERMITIDO · {}",
                 file_path
             )),
-            rule: Some(".windsurf/workflows — aprovação específica por path protegido".to_string()),
+            rule: Some(".devin/workflows — aprovação específica por path protegido".to_string()),
             suggestion: Some(format!("Execute o workflow correspondente. Artifact necessário: {}", required_artifacts.get(0).cloned().unwrap_or_else(|| "work-*-approved.txt".to_string()))),
         });
     }
@@ -1259,7 +1259,7 @@ fn check_src_lock(file_path: &str) -> Option<ValidationResult> {
             "NEMESIS SEC - ESCRITA FORA DO ESCOPO PERMITIDO · {}",
             file_path
         )),
-        rule: Some(".windsurf/workflows — src/ e app/ requerem workflow aprovado".to_string()),
+        rule: Some(".devin/workflows — src/ e app/ requerem workflow aprovado".to_string()),
         suggestion: Some(format!(
             "Execute o workflow correspondente (ex: work-02-main), complete todas as fases de planejamento, aguarde aprovação explícita do usuário. Artifact necessário: {}.",
             approval_needed
@@ -1424,7 +1424,7 @@ fn check_workflow_sequence(file_path: &str) -> Option<ValidationResult> {
                 "NEMESIS SEC - ESCRITA FORA DO ESCOPO PERMITIDO · {}",
                 artifact_name
             )),
-            rule: Some(".windsurf/workflows — sequência obrigatória de gates".to_string()),
+            rule: Some(".devin/workflows — sequência obrigatória de gates".to_string()),
             suggestion: Some(format!("Crie primeiro: {}. A sequência é definida pelo workflow e não pode ser alterada.", required)),
         });
     }
@@ -1699,7 +1699,7 @@ fn check_artifact_write(file_path: &str, content: &str) -> Option<ValidationResu
         return Some(ValidationResult {
             valid: false,
             reason: Some(block_msg),
-            rule: Some(".windsurf/workflows — tracker start obrigatório antes de escrever artefato".to_string()),
+            rule: Some(".devin/workflows — tracker start obrigatório antes de escrever artefato".to_string()),
             suggestion: Some(format!("Execute: workflow-step-tracker start {} [total-steps]", expected_workflow)),
         });
     }
@@ -1711,7 +1711,7 @@ fn check_artifact_write(file_path: &str, content: &str) -> Option<ValidationResu
                 "Artefato \"{}\" bloqueado: workflow-state.json corrompido. Execute tracker start para reiniciar o estado.",
                 PathBuf::from(file_path).file_name()?.to_str()?
             )),
-            rule: Some(".windsurf/workflows — workflow-state.json deve ser legível".to_string()),
+            rule: Some(".devin/workflows — workflow-state.json deve ser legível".to_string()),
             suggestion: Some(format!("Execute: workflow-step-tracker start {} [total-steps]", expected_workflow)),
         });
     };
@@ -1723,7 +1723,7 @@ fn check_artifact_write(file_path: &str, content: &str) -> Option<ValidationResu
                 "Artefato \"{}\" bloqueado: workflow-state.json corrompido. Execute tracker start para reiniciar o estado.",
                 PathBuf::from(file_path).file_name()?.to_str()?
             )),
-            rule: Some(".windsurf/workflows — workflow-state.json deve ser legível".to_string()),
+            rule: Some(".devin/workflows — workflow-state.json deve ser legível".to_string()),
             suggestion: Some(format!("Execute: workflow-step-tracker start {} [total-steps]", expected_workflow)),
         });
     };
@@ -1738,7 +1738,7 @@ fn check_artifact_write(file_path: &str, content: &str) -> Option<ValidationResu
         return Some(ValidationResult {
             valid: false,
             reason: Some(block_msg),
-            rule: Some(".windsurf/workflows — artefato deve corresponder ao workflow ativo em workflow-state.json".to_string()),
+            rule: Some(".devin/workflows — artefato deve corresponder ao workflow ativo em workflow-state.json".to_string()),
             suggestion: Some(format!("Execute: workflow-step-tracker start {} [total-steps]", expected_workflow)),
         });
     }
@@ -1776,7 +1776,7 @@ fn check_artifact_write(file_path: &str, content: &str) -> Option<ValidationResu
                                                         ),
                                                         phase, required_step, required_step, tracker_state.active_workflow, tracker_state.completed_steps
                                                     )),
-                                                    rule: Some(".windsurf/workflows — tracker complete obrigatório antes de avançar fase".to_string()),
+                                                    rule: Some(".devin/workflows — tracker complete obrigatório antes de avançar fase".to_string()),
                                                     suggestion: None,
                                                 });
                                             }
@@ -1793,7 +1793,7 @@ fn check_artifact_write(file_path: &str, content: &str) -> Option<ValidationResu
                     return Some(ValidationResult {
                         valid: false,
                         reason: phase_check.reason.or_else(|| Some("Skip de fase bloqueado pelo Nemesis".to_string())),
-                        rule: Some(".windsurf/workflows — intra-workflow phase sequence enforcement".to_string()),
+                        rule: Some(".devin/workflows — intra-workflow phase sequence enforcement".to_string()),
                         suggestion: Some("Execute as fases em ordem sequencial conforme definido no workflow.".to_string()),
                     });
                 }
@@ -1841,7 +1841,7 @@ fn check_artifact_write(file_path: &str, content: &str) -> Option<ValidationResu
             return Some(ValidationResult {
                 valid: false,
                 reason: Some(block_msg),
-                rule: Some(".windsurf/workflows — auto-auditoria: convergencia: NÃO bloqueia execução".to_string()),
+                rule: Some(".devin/workflows — auto-auditoria: convergencia: NÃO bloqueia execução".to_string()),
                 suggestion: Some(format!("Revise o conteúdo de {}, corrija o que divergiu, reescreva AUDIT-{} com convergencia: SIM.", fase, fase)),
             });
         }
@@ -1867,7 +1867,7 @@ fn check_artifact_write(file_path: &str, content: &str) -> Option<ValidationResu
             return Some(ValidationResult {
                 valid: false,
                 reason: Some(block_msg),
-                rule: Some(".windsurf/workflows — AUDIT obrigatório antes de avançar para próxima fase".to_string()),
+                rule: Some(".devin/workflows — AUDIT obrigatório antes de avançar para próxima fase".to_string()),
                 suggestion: Some(format!("Adicione:\n## AUDIT-{}\nsolicitado: [pedido]\nproduzido: [gerado]\nconvergencia: SIM\n---", fase)),
             });
         }
@@ -1917,17 +1917,17 @@ fn check_artifact_write(file_path: &str, content: &str) -> Option<ValidationResu
 // =============================================================================
 fn check_bash_sequence(command: &str) -> Option<ValidationResult> {
     // Guard 1: Bash redirect para artefato progressivo é proibido.
-    // O artefato DEVE ser escrito via Windsurf native write tool.
+    // O artefato DEVE ser escrito via Devin native write tool.
     let artefato_redirect = Regex::new(r"[>]{1,2}\s*[\w./\-]*\.nemesis/runtime/artefato-[\w-]+\.txt").unwrap();
     if artefato_redirect.is_match(command) {
         return Some(ValidationResult {
             valid: false,
             reason: Some(
-                "Bash redirect para artefato progressivo bloqueado. O artefato deve ser escrito exclusivamente via Windsurf native write tool (não via terminal).".to_string()
+                "Bash redirect para artefato progressivo bloqueado. O artefato deve ser escrito exclusivamente via Devin native write tool (não via terminal).".to_string()
             ),
-            rule: Some(".windsurf/workflows — artefato progressivo requer escrita via ferramenta nativa".to_string()),
+            rule: Some(".devin/workflows — artefato progressivo requer escrita via ferramenta nativa".to_string()),
             suggestion: Some(
-                "Use a ferramenta nativa de escrita do Windsurf para escrever/atualizar o artefato. O terminal não pode criar ou modificar artefato-*.txt.".to_string()
+                "Use a ferramenta nativa de escrita do Devin para escrever/atualizar o artefato. O terminal não pode criar ou modificar artefato-*.txt.".to_string()
             ),
         });
     }
@@ -1977,7 +1977,7 @@ fn check_bash_sequence(command: &str) -> Option<ValidationResult> {
                 "Execução em massa bloqueada: o comando tenta criar {} gate artifacts em uma única execução ({}). O workflow exige UM gate por vez, com confirmação do usuário entre cada execução.",
                 collected.len(), names_joined
             )),
-            rule: Some(".windsurf/workflows — execução sequencial obrigatória, um gate por vez".to_string()),
+            rule: Some(".devin/workflows — execução sequencial obrigatória, um gate por vez".to_string()),
             suggestion: Some(format!(
                 "Execute apenas o próximo gate pendente: {}. Aguarde confirmação do usuário antes de executar o gate seguinte.",
                 first
@@ -2125,7 +2125,7 @@ fn trim_leading_dot_slash(path: &str) -> String {
     }
 }
 
-/// Fallback: extrai sufixo .cursor/, .windsurf/, etc. de paths absolutos residuais.
+/// Fallback: extrai sufixo .cursor/, .devin/, etc. de paths absolutos residuais.
 fn extract_dotdir_suffix(path: &str) -> String {
     let trimmed = trim_leading_dot_slash(path);
     for marker in [
@@ -2133,7 +2133,7 @@ fn extract_dotdir_suffix(path: &str) -> String {
         "/.github/",
         "/.vscode/",
         "/.claude/",
-        "/.windsurf/",
+        "/.devin/",
         "/.cursor/",
         "/.codex/",
         "/.openclaude/",
@@ -2209,7 +2209,7 @@ fn validate_file_operation(file_path: &str, action: &str, content: Option<&str>)
         return ValidationResult {
             valid: false,
             reason: Some("Caminho do arquivo não fornecido".to_string()),
-            rule: Some(".windsurf/rules/README.md".to_string()),
+            rule: Some(".devin/rules/README.md".to_string()),
             suggestion: Some("Especifique o caminho completo do arquivo".to_string()),
         };
     }
@@ -2245,7 +2245,7 @@ fn validate_file_operation(file_path: &str, action: &str, content: Option<&str>)
                 "NEMESIS SEC - ACESSO NEGADO - ARQUIVO PROTEGIDO · {}",
                 cfg_file_name
             )),
-            rule: Some(".windsurf/rules/README.md".to_string()),
+            rule: Some(".devin/rules/README.md".to_string()),
             suggestion: Some("Arquivos de configuracao do projeto sao gerenciados exclusivamente pelo usuario.".to_string()),
         };
     }
@@ -2260,7 +2260,7 @@ fn validate_file_operation(file_path: &str, action: &str, content: Option<&str>)
                 "NEMESIS SEC - ACESSO NEGADO - ARQUIVO PROTEGIDO · {}",
                 file_name
             )),
-            rule: Some(".windsurf/rules/README.md".to_string()),
+            rule: Some(".devin/rules/README.md".to_string()),
             suggestion: Some(format!("LEITURA & EDIÇÃO PROIBIDA: {}", file_name)),
         };
     }
@@ -2281,8 +2281,8 @@ fn validate_file_operation(file_path: &str, action: &str, content: Option<&str>)
             return ValidationResult {
                 valid: false,
                 reason: Some(format!("NEMESIS SEC - ESCRITA FORA DO ESCOPO PERMITIDO · {}", file_path)),
-                rule: Some(".windsurf/rules/README.md".to_string()),
-                suggestion: Some("IDENTIFIQUE QUAL REGRA VOCE ESTA VIOLANDO .windsurf/rules/README.md".to_string()),
+                rule: Some(".devin/rules/README.md".to_string()),
+                suggestion: Some("IDENTIFIQUE QUAL REGRA VOCE ESTA VIOLANDO .devin/rules/README.md".to_string()),
             };
         }
     }
@@ -2321,7 +2321,7 @@ fn validate_file_operation(file_path: &str, action: &str, content: Option<&str>)
             return ValidationResult {
                 valid: false,
                 reason: Some("NEMESIS SEC - ACESSO NEGADO - ARQUIVO PROTEGIDO".to_string()),
-                rule: Some(".windsurf/rules/Conformidade.md - Secao 3 (Protecao de Dados)".to_string()),
+                rule: Some(".devin/rules/Conformidade.md - Secao 3 (Protecao de Dados)".to_string()),
                 suggestion: Some("Arquivos de configuracao requerem autorizacao explicita do Step 7.".to_string()),
             };
         }
@@ -2601,11 +2601,11 @@ async fn async_main() -> anyhow::Result<i32> {
         }
     };
 
-    let llm_model = detect_windsurf_llm_model();
+    let llm_model = detect_devin_llm_model();
 
     let result: ValidationResult = match data.agent_action_name {
         AgentActionName::PreReadCode | AgentActionName::PostReadCode => {
-            // NEMESIS INFRASTRUCTURE PROTECTION — bloquear leitura de .nemesis/ e .windsurf/hooks.json
+            // NEMESIS INFRASTRUCTURE PROTECTION — bloquear leitura de .nemesis/ e .devin/hooks.json
             let read_path = data.tool_info.file_path.as_deref().unwrap_or("");
             if let Some(blocked) = check_nemesis_protected_path(read_path, false) {
                 blocked
@@ -2674,7 +2674,7 @@ async fn async_main() -> anyhow::Result<i32> {
                 ValidationResult {
                     valid: false,
                     reason: Some("MCP server name nao fornecido".to_string()),
-                    rule: Some(".windsurf/rules/rule-main-rules.md".to_string()),
+                    rule: Some(".devin/rules/rule-main-rules.md".to_string()),
                     suggestion: Some("Especifique o nome do servidor MCP".to_string()),
                 }
             } else {

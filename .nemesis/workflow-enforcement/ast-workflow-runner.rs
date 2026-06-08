@@ -478,7 +478,7 @@ pub async fn test_ast_execution() {
     println!("Testing AST Workflow Execution...");
 
     let mut runner = ASTWorkflowRunner::new();
-    let workflow_path = Path::new(".windsurf/workflows/work-01-rag.md");
+    let workflow_path = Path::new(".devin/workflows/work-01-rag.md");
 
     // Execute workflow using AST
     let result = runner.run_workflow_ast(&workflow_path.to_string_lossy()).await;
