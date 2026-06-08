@@ -102,6 +102,33 @@ const EXFIL_SOURCES: &[(&str, &str)] = &[
     (r"169\.254\.169\.254", "IMDS access"),
     (r"metadata\.google\.internal", "GCP metadata access"),
     (r"fd00:ec2::254", "AWS IMDSv2 access"),
+    // Auth header access in JS/TS — captured and sent = exfil chain
+    (
+        r#"(?:headers|req\.headers|request\.headers)\s*(?:\[['"]|\.)\s*['\"]?[Aa]uthorization"#,
+        "auth header access",
+    ),
+    (
+        r#"(?:headers|req\.headers|request\.headers)\s*(?:\[['"]|\.)\s*['\"]?[Bb]earer"#,
+        "bearer token access",
+    ),
+    (
+        r#"getHeader\s*\(\s*['\"](?:[Aa]uthorization|[Bb]earer)['\"]"#,
+        "getHeader auth access",
+    ),
+    // Node.js native HTTP module assignment — const https = require('https'/'http')
+    (
+        r#"require\s*\(\s*['\"]https?['\"]\s*\)"#,
+        "Node.js native HTTP module loaded",
+    ),
+    // localStorage credential access (browser storage)
+    (
+        r#"localStorage\.getItem\s*\(\s*['\"][^'\"]*(?:token|auth|key|secret|password|credential)[^'\"]*['\"]\s*\)"#,
+        "localStorage credential read",
+    ),
+    (
+        r#"sessionStorage\.getItem\s*\(\s*['\"][^'\"]*(?:token|auth|key|secret|password|credential)[^'\"]*['\"]\s*\)"#,
+        "sessionStorage credential read",
+    ),
 ];
 
 /// Exfiltration sinks — network channels used to send data out.
@@ -116,6 +143,8 @@ const EXFIL_SINKS: &[(&str, &str)] = &[
     (r"\bfetch\s*\(", "fetch() network call"),
     (r"\baxios\.", "axios network call"),
     (r"\bhttps?\.request\s*\(", "https.request network call"),
+    (r"\bhttps?\.get\s*\(", "https.get network call"),
+    (r"\bhttps?\.post\s*\(", "https.post network call"),
     (r"\bnew\s+WebSocket\s*\(", "WebSocket exfil channel"),
     (
         r"\brequests\.(?:post|get|put|patch|delete)\s*\(",

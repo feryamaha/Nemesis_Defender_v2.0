@@ -495,6 +495,25 @@ fn load_deny_list() -> Option<DenyList> {
     }
 }
 
+/// Carrega TODOS os arquivos .json da pasta config como deny-lists.
+fn load_all_deny_lists() -> Vec<DenyList> {
+    let mut all = Vec::new();
+    let config_dir = get_workflow_enforcement_dir().join("config");
+    if let Ok(entries) = fs::read_dir(&config_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().map_or(false, |e| e == "json") {
+                if let Ok(content) = fs::read_to_string(&path) {
+                    if let Ok(deny_list) = serde_json::from_str::<DenyList>(&content) {
+                        all.push(deny_list);
+                    }
+                }
+            }
+        }
+    }
+    all
+}
+
 fn get_command_patterns() -> Vec<DenyPattern> {
     let mut all_patterns: Vec<DenyPattern> = Vec::new();
 
@@ -608,36 +627,6 @@ fn validate_code_content(file_path: &str, new_string: &str) -> ValidationResult 
         };
     }
 
-    // REGRA 1: Proibir "any"
-    let any_result = check_any_usage(new_string);
-    if !any_result.valid {
-        return any_result;
-    }
-
-    // REGRA 2: useState/useEffect em componentes UI puros
-    let ui_hooks_result = check_ui_hooks(&normalized_path, &file_name, new_string);
-    if !ui_hooks_result.valid {
-        return ui_hooks_result;
-    }
-
-    // REGRA 3: type/interface inline
-    let inline_type_result = check_inline_types(&normalized_path, &file_name, new_string);
-    if !inline_type_result.valid {
-        return inline_type_result;
-    }
-
-    // REGRA 4: CSS inline
-    let css_inline_result = check_css_inline(new_string);
-    if !css_inline_result.valid {
-        return css_inline_result;
-    }
-
-    // REGRA 5: Hooks condicionais
-    let conditional_hooks_result = check_conditional_hooks(new_string);
-    if !conditional_hooks_result.valid {
-        return conditional_hooks_result;
-    }
-
     // REGRA 6: AST semantic validation (NÃO-BLOQUEANTE por padrão — só avisa)
     // Config: .nemesis/ast-linters-config.json define se bloqueia ou apenas avisa
     let ast_violations = validate_semantic(new_string, file_path);
@@ -663,7 +652,7 @@ fn validate_code_content(file_path: &str, new_string: &str) -> ValidationResult 
         ast_violations.iter().collect()
     };
 
-    if !critical_violations.is_empty() {
+    if !critical_violations.is_empty() && should_block_ast {
         let _first = critical_violations[0];
         return ValidationResult {
             valid: false,
@@ -691,25 +680,22 @@ fn validate_code_content(file_path: &str, new_string: &str) -> ValidationResult 
 }
 
 fn get_all_code_patterns() -> Vec<DenyPattern> {
-    let deny_list = load_deny_list();
+    let deny_lists = load_all_deny_lists();
     let code_layers = vec!["typescript", "react", "css", "nextjs", "api", "security", "bypass"];
 
-    match deny_list {
-        Some(dl) => {
-            let mut patterns = Vec::new();
-            for layer_name in code_layers {
-                if let Some(layer) = dl.layers.get(layer_name) {
-                    for pattern in &layer.patterns {
-                        if pattern.pattern_type == "regex" {
-                            patterns.push(pattern.clone());
-                        }
+    let mut patterns = Vec::new();
+    for deny_list in deny_lists {
+        for layer_name in &code_layers {
+            if let Some(layer) = deny_list.layers.get(*layer_name) {
+                for pattern in &layer.patterns {
+                    if pattern.pattern_type == "regex" {
+                        patterns.push(pattern.clone());
                     }
                 }
             }
-            patterns
         }
-        None => Vec::new(),
     }
+    patterns
 }
 
 fn get_patterns_for_file(file_path: &str) -> Vec<DenyPattern> {
@@ -744,220 +730,6 @@ fn check_content_deny_list(file_path: &str, content: &str) -> Option<DenyPattern
         }
     }
     None
-}
-
-fn check_any_usage(new_string: &str) -> ValidationResult {
-    let any_patterns = [
-        r":\s*any\s*[;,)\]}>|&]",
-        r":\s*any\s*$",
-        r"\bas\s+any\b",
-        r"<any\s*>",
-        r":\s*any\s*\[",
-        r"\bany\s*\|",
-        r"\|\s*any\b",
-        r"Record<[^,]*,\s*any\s*>",
-        r":\s*any\b(?!\w)",
-    ];
-
-    for pattern in &any_patterns {
-        if let Ok(re) = Regex::new(pattern) {
-            if re.is_match(new_string) {
-                let lines: Vec<&str> = new_string.lines().collect();
-                let matching_line = lines.iter().find(|line| re.is_match(line)).map(|l| l.trim());
-                let context = matching_line.map(|l| &l[..l.len().min(80)]).unwrap_or("");
-
-                return ValidationResult {
-                    valid: false,
-                    reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-                    rule: Some(".devin/rules/typescript-typing-convention.md".to_string()),
-                    suggestion: Some("Use tipos explicitos, unknown, generics ou tipos existentes em src/types/".to_string()),
-                };
-            }
-        }
-    }
-
-    ValidationResult {
-        valid: true,
-        reason: None,
-        rule: None,
-        suggestion: None,
-    }
-}
-
-fn check_ui_hooks(normalized_path: &str, file_name: &str, new_string: &str) -> ValidationResult {
-    let ui_exceptions = ["Button.tsx", "Container.tsx", "InputPesquisaAjuda.tsx"];
-    let is_ui_component = normalized_path.contains("/components/ui/");
-    let is_exception = ui_exceptions.contains(&file_name);
-
-    if !is_ui_component || is_exception {
-        return ValidationResult {
-            valid: true,
-            reason: None,
-            rule: None,
-            suggestion: None,
-        };
-    }
-
-    let hook_patterns = [
-        (r"\buseState\b", "useState"),
-        (r"\buseEffect\b", "useEffect"),
-        (r"\buseReducer\b", "useReducer"),
-        (r"\buseContext\b", "useContext"),
-    ];
-
-    for (pattern, name) in &hook_patterns {
-        if let Ok(re) = Regex::new(pattern) {
-            if re.is_match(new_string) {
-                return ValidationResult {
-                    valid: false,
-                    reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-                    rule: Some(".devin/rules/ui-separation-convention.md - Secao 4.1".to_string()),
-                    suggestion: Some(format!("Mova logica de estado para src/hooks/. {}", ui_exceptions.join(", "))),
-                };
-            }
-        }
-    }
-
-    ValidationResult {
-        valid: true,
-        reason: None,
-        rule: None,
-        suggestion: None,
-    }
-}
-
-fn check_inline_types(normalized_path: &str, file_name: &str, new_string: &str) -> ValidationResult {
-    let is_reusable = normalized_path.contains("/components/ui/") || normalized_path.contains("/components/shared/");
-    let is_entrypoint = Regex::new(r"^(layout|page)\.tsx$").map(|re| re.is_match(file_name)).unwrap_or(false);
-    let ui_exceptions = ["Button.tsx", "Container.tsx", "InputPesquisaAjuda.tsx"];
-    let is_exception = ui_exceptions.contains(&file_name);
-
-    if !is_reusable || is_entrypoint || is_exception {
-        return ValidationResult {
-            valid: true,
-            reason: None,
-            rule: None,
-            suggestion: None,
-        };
-    }
-
-    let type_def_patterns = [
-        r"^export\s+(interface|type)\s+\w+",
-        r"^(interface|type)\s+\w+",
-    ];
-
-    for pattern in &type_def_patterns {
-        if let Ok(re) = Regex::new(pattern) {
-            if re.is_match(new_string) {
-                let lines: Vec<&str> = new_string.lines().collect();
-                for line in &lines {
-                    if re.is_match(line) && !line.trim().starts_with("import") {
-                        return ValidationResult {
-                            valid: false,
-                            reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-                            rule: Some(".devin/rules/typescript-typing-convention.md - Secao 4".to_string()),
-                            suggestion: Some("Mova tipos para src/types/. Use import type bo barrel (index) { ... } no componente.".to_string()),
-                        };
-                    }
-                }
-            }
-        }
-    }
-
-    ValidationResult {
-        valid: true,
-        reason: None,
-        rule: None,
-        suggestion: None,
-    }
-}
-
-fn check_css_inline(new_string: &str) -> ValidationResult {
-    let css_patterns = [
-        (r"\bstyle\s*=\s*\{\{", "CSS inline (style={{...}})"),
-        (r"<style[\s>]", "Tag <style>"),
-        (r"<style\s+jsx", "styled-jsx"),
-    ];
-
-    for (pattern, name) in &css_patterns {
-        if let Ok(re) = Regex::new(pattern) {
-            if re.is_match(new_string) {
-                return ValidationResult {
-                    valid: false,
-                    reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-                    rule: Some(".devin/rules/design-system-convention.md - Secao 5".to_string()),
-                    suggestion: Some("Use classes Tailwind definidas no tailwind.config.ts. CSS manual e proibido.".to_string()),
-                };
-            }
-        }
-    }
-
-    ValidationResult {
-        valid: true,
-        reason: None,
-        rule: None,
-        suggestion: None,
-    }
-}
-
-fn check_conditional_hooks(new_string: &str) -> ValidationResult {
-    let lines: Vec<&str> = new_string.lines().collect();
-
-    let hook_patterns = [
-        r"\buseState\s*\(",
-        r"\buseEffect\s*\(",
-        r"\buseReducer\s*\(",
-        r"\buseContext\s*\(",
-        r"\buseMemo\s*\(",
-        r"\buseCallback\s*\(",
-        r"\buseRef\s*\(",
-    ];
-
-    for (i, line) in lines.iter().enumerate() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with("//") || trimmed.starts_with('*') {
-            continue;
-        }
-
-        let has_hook = hook_patterns.iter().any(|p| {
-            Regex::new(p).map(|re| re.is_match(line)).unwrap_or(false)
-        });
-
-        if !has_hook {
-            continue;
-        }
-
-        let context_start = if i > 10 { i - 10 } else { 0 };
-        let context_lines = &lines[context_start..=i];
-        let context_text = context_lines.join("\n");
-
-        let conditional_patterns = [
-            r"\bif\s*\([^)]+\)\s*\{[^}]*useState",
-            r"\bif\s*\([^)]+\)\s*\{[^}]*useEffect",
-            r"\belse\s*\{[^}]*useState",
-            r"\belse\s*\{[^}]*useEffect",
-        ];
-
-        for pattern in &conditional_patterns {
-            if let Ok(re) = Regex::new(pattern) {
-                if re.is_match(&context_text) {
-                    return ValidationResult {
-                        valid: false,
-                        reason: Some("NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!".to_string()),
-                        rule: Some(".devin/rules/react-hooks-patterns-rules.md - Secao 3.1".to_string()),
-                        suggestion: Some("Mova todos os hooks para o topo do componente, antes de qualquer condicional. Hooks nunca podem ser chamados dentro de if/else/ternary/early-return.".to_string()),
-                    };
-                }
-            }
-        }
-    }
-
-    ValidationResult {
-        valid: true,
-        reason: None,
-        rule: None,
-        suggestion: None,
-    }
 }
 
 // =============================================================================

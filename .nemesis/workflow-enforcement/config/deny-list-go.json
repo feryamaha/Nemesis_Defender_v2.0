@@ -1,9 +1,0 @@
-{
-  "version": "1.0.0",
-  "last_updated": "2026-05-10T00:00:00Z",
-  "project_stack": [
-    "go"
-  ],
-  "layers": {
-  }
-}

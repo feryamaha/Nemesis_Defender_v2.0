@@ -60,10 +60,9 @@ A premissa técnica: instrução em texto (`"não rode comandos destrutivos"`) �
 |--------|-----------|-----------|-----|
 | **Pretool / Posttool Hook** | Antes do `Bash.run()` / file-write | Deny-list JSON + exit code 2 | Windows, macOS, Linux |
 | **Nemesis Defender** (scanner) | Em file-write e em comandos | 6 layers: AST, byte, regex, denylist, entropia, decoder | Windows, macOS, Linux |
-| **ast-linters** (qualidade) | Em file-write de código | Visitors tree-sitter + modelo semântico próprio + `rules.toml` | Windows, macOS, Linux |
 | **eBPF Kernel LSM** | Syscalls no kernel | BPF LSM (`bprm_check_security`), retorna `-EPERM` | **Linux apenas** |
 
-**Tudo parte do Pretool.** Sem o pretool configurado, o Nemesis não roda - as trilhas de segurança (Defender) e de qualidade (ast-linters) são acionadas por ele. A camada **eBPF** é a única independente: opera no kernel como rede de contenção adicional, segurando comandos destrutivos caso o pretool seja desligado ou contornado. Em macOS e Windows, sem eBPF, a defesa se concentra nas trilhas do pretool.
+**Tudo parte do Pretool.** Sem o pretool configurado, o Nemesis não roda - a trilha de segurança (Defender) é acionada por ele. A camada **eBPF** é a única independente: opera no kernel como rede de contenção adicional, segurando comandos destrutivos caso o pretool seja desligado ou contornado. Em macOS e Windows, sem eBPF, a defesa se concentra nas trilhas do pretool.
 
 > A camada eBPF é uma **contenção mínima de comandos destrutivos**, não a defesa principal. Ela existe para o cenário em que o pretool é desativado. Sua expansão (cobrir escrita não-execve, rename/symlink) é um ponto aberto para a comunidade.
 
@@ -419,7 +418,7 @@ Todas as regras são configuráveis por **edição humana** das deny-lists - nã
 
 > **Aviso de responsabilidade.** Relaxar a severidade do Nemesis é legítimo para manutenção, mas tem um custo: ao remover restrições, você **devolve ao modelo o poder de decidir o que excluir ou sobrescrever**. Esse é exatamente o risco que o Nemesis existe para eliminar. Se você relaxa as regras e um agente destrói algo, a responsabilidade é sua. O autor não se responsabiliza por perdas decorrentes de configuração relaxada.
 
-Duas exceções exigem conhecimento mais profundo: a camada **eBPF** tem sua lista de comandos atrelada à arquitetura (no `commands.toml` do módulo), e os **visitors do Defender** são código Rust de análise. As deny-lists JSON, por outro lado, são simples de ajustar.
+Uma exceção exige conhecimento mais profundo: a camada **eBPF** tem sua lista de comandos atrelada à arquitetura (no `commands.toml` do módulo), e os **visitors do Defender** são código Rust de análise. As deny-lists JSON, por outro lado, são simples de ajustar.
 
 ---
 
@@ -431,6 +430,14 @@ Duas exceções exigem conhecimento mais profundo: a camada **eBPF** tem sua lis
 | `enforcement_level` é `landlock` | BPF LSM não ativo ou sem capabilities | Refaça os passos 1-2 da [config eBPF](#configuração-da-camada-ebpf-linux) |
 | eBPF não bloqueia comando destrutivo | Processo do agente não está no cgroup | Mova o PID para `/sys/fs/cgroup/nemesis-agent/cgroup.procs` |
 | Build falha por falta de memória | Menos de ~4 GB de RAM livres | Libere memória ou compile com menos paralelismo |
+
+---
+
+## Módulos pausados
+
+O Nemesis possui funcionalidades presentes no código mas atualmente inativas:
+
+**ast-linters** (`ast-linters/`). Camada de qualidade de código com visitors tree-sitter focados na stack frontend Next/React/TypeScript. Detecta anti-padrões como `any` explícito, hooks condicionais, CSS inline, promises não tratadas e segredos hardcoded. O módulo está **silenciado** — presente no código mas sem enforcement ativo.
 
 ---
 

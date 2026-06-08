@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
   "description": "Configuração de severidade para ast-linters (qualidade). Regras não bloqueam; apenas alertam.",
-  "blocking_mode": true,
-  "blocking_severity_threshold": "critical",
+  "blocking_mode": false,
+  "blocking_severity_threshold": "warning",
   "rules": {
     "any_via_alias": "warn",
     "conditional_hooks": "warn",

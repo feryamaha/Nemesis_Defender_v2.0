@@ -48,6 +48,24 @@ pub fn visit_js_node(node: &Node, source: &str) -> Vec<DefenderViolation> {
             });
         }
 
+        if node_text.contains("require")
+            && (node_text.contains("'https'") || node_text.contains("\"https\"")
+                || node_text.contains("'http'") || node_text.contains("\"http\""))
+            && (node_text.contains(".request") || node_text.contains(".get(")
+                || node_text.contains(".post("))
+        {
+            violations.push(DefenderViolation {
+                visitor: "url_in_exec".to_string(),
+                line: (node.start_position().row + 1) as u32,
+                col: (node.start_position().column + 1) as u32,
+                evidence: node_text.to_string(),
+                decoded: None,
+                message: "require('https'/'http') with .request()/.get()/.post(). \
+                         Native Node.js HTTP module used for network exfiltration.".to_string(),
+                suggestion: Some(SUGGESTION_URL_EXEC.to_string()),
+            });
+        }
+
         if node_text.contains("import(")
             && (node_text.contains("http://") || node_text.contains("https://"))
         {

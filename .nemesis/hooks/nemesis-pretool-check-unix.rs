@@ -208,7 +208,7 @@ struct DenyLayer {
     patterns: Vec<DenyPattern>,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 struct DenyPattern {
     enabled: Option<bool>,
     #[serde(rename = "type")]
@@ -440,6 +440,64 @@ fn check_deny_list(deny_list_path: &Path, command: &str) -> Option<(String, Stri
     None
 }
 
+/// Retorna todos os arquivos .json em um diretório (ordenados por nome para determinismo).
+fn get_all_json_files(dir: &Path) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().map_or(false, |e| e == "json") {
+                paths.push(path);
+            }
+        }
+    }
+    paths.sort();
+    paths
+}
+
+/// Valida o conteúdo de código contra TODAS as deny-lists da pasta config.
+/// Itera TODAS as layers (exceto "commands" que é para bash) e todos os patterns regex.
+/// Retorna o primeiro hit encontrado.
+fn check_content_all_deny_lists(file_path: &str, content: &str, config_dir: &Path) -> Option<DenyPattern> {
+    let deny_list_paths = get_all_json_files(config_dir);
+
+    for path in deny_list_paths {
+        let file_content = match fs::read_to_string(&path) {
+            Ok(c) => c,
+            Err(_) => continue,
+        };
+
+        let deny_list: DenyList = match serde_json::from_str(&file_content) {
+            Ok(d) => d,
+            Err(_) => continue,
+        };
+
+        if let Some(layers) = deny_list.layers {
+            for (layer_name, layer) in layers {
+                // Layer "commands" é exclusiva para validação de comandos bash
+                if layer_name == "commands" {
+                    continue;
+                }
+                for pattern in &layer.patterns {
+                    if pattern.enabled == Some(false) {
+                        continue;
+                    }
+                    if pattern.pattern_type != "regex" {
+                        continue;
+                    }
+                    if let Ok(re) = Regex::new(&pattern.pattern) {
+                        if re.is_match(content) {
+                            return Some(pattern.clone());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
+
 /// Carrega a lista canônica de comandos bloqueados do eBPF (commands.toml).
 /// Usa regex simples para evitar dependência extra de crate toml.
 /// Isto garante auto-sync: qualquer comando adicionado ao commands.toml
@@ -645,36 +703,9 @@ fn validate_redirect_content(command: &str) -> Option<String> {
         None => return None,
     };
 
-    let any_regex = Regex::new(r":\s*any[\s;,)>:\]]|:\s*any$| as any[^a-z]|<any>").unwrap();
-    if any_regex.is_match(&content) {
-        return Some("any".to_string());
-    }
-
-    let hook_conditional_regex = Regex::new(r"if.*useState|if.*useEffect|if.*useReducer").unwrap();
-    if hook_conditional_regex.is_match(&content) {
-        return Some("hook-condicional".to_string());
-    }
-
-    let require_regex = Regex::new(r#"require\s*\(\s*['"][^'"]+['"]\s*\)"#).unwrap();
-    if require_regex.is_match(&content) {
-        return Some("require".to_string());
-    }
-
     let module_exports_regex = Regex::new(r"module\.(exports|[a-zA-Z_][a-zA-Z0-9_]*)\s*=").unwrap();
     if module_exports_regex.is_match(&content) {
         return Some("module-exports".to_string());
-    }
-
-    let css_inline_regex = Regex::new(r"style\s*=\s*\{\{").unwrap();
-    if css_inline_regex.is_match(&content) {
-        return Some("css-inline".to_string());
-    }
-
-    if target_file.contains("/components/ui/") {
-        let hook_state_regex = Regex::new(r"\buseState\b|\buseEffect\b|\buseReducer\b").unwrap();
-        if hook_state_regex.is_match(&content) {
-            return Some("hook-estado-ui-puro".to_string());
-        }
     }
 
     None
@@ -699,16 +730,6 @@ fn validate_critical_files(command: &str) -> Option<String> {
         return Some("Desabilitacao de TypeScript strict mode bloqueada".to_string());
     }
 
-    None
-}
-
-fn validate_document_head(command: &str) -> Option<String> {
-    let document_regex = Regex::new(r"_document\.(tsx?|jsx?)").unwrap();
-    let head_import_regex = Regex::new(r"import.*Head.*from.*next/head").unwrap();
-
-    if document_regex.is_match(command) && head_import_regex.is_match(command) {
-        return Some("import Head em _document".to_string());
-    }
     None
 }
 
@@ -1452,11 +1473,6 @@ fn run_pretool() {
                 nemesis_block(&msg, Some("Arquivos de configuracao sao protegidos — nao modifique via bash"));
             }
 
-            // _document + next/head (logica composta — duas condicoes)
-            if let Some(msg) = validate_document_head(segment) {
-                nemesis_block(&msg, Some("Em _document use next/document, nao next/head"));
-            }
-
             // NOTA: validate_require, validate_module_exports, validate_import_type,
             // validate_eslint_bypass, validate_mass_update, validate_smart_component,
             // validate_system_level, validate_package_install foram movidos para
@@ -1494,6 +1510,21 @@ fn run_pretool() {
                 .map(|v| format!("[{}] {}", v.visitor, v.message))
                 .collect();
             eprintln!("[NEMESIS WARNING] Conteudo suspeito em {}: {}", file_path_str, evidence.join("; "));
+        }
+
+        // ============================================================
+        // DENY-LIST QUALITY SCANNING — valida conteudo contra regex de
+        // todas as deny-lists em .nemesis/workflow-enforcement/config/
+        // ============================================================
+        let config_dir = project_dir.join(".nemesis").join("workflow-enforcement").join("config");
+        if let Some(quality_hit) = check_content_all_deny_lists(file_path_str, content_str, &config_dir) {
+            let rule_msg = quality_hit.rule.as_deref().unwrap_or(".devin/rules/README.md");
+            let suggestion = quality_hit.suggestion.as_deref().unwrap_or("Revise o padrao de codigo conforme as convencoes do projeto.");
+            write_session_event("Write", file_path_str, true, 1);
+            nemesis_block(
+                &quality_hit.message,
+                Some(suggestion),
+            );
         }
     }
 

@@ -1270,8 +1270,7 @@
           data-en="Fully configurable">Tudo configurável</span></a>
       <a class="nav-link" href="#paths"><span class="num">08</span> <span data-pt="Controle de paths"
           data-en="Path control">Controle de paths</span></a>
-      <a class="nav-link" href="#qualidade"><span class="num">09</span> <span data-pt="Camada de qualidade"
-          data-en="Quality layer">Camada de qualidade</span></a>
+
     </div>
     <div class="nav-group">
       <div class="gtitle" data-pt="Garantias" data-en="Guarantees">Garantias</div>
@@ -1288,8 +1287,7 @@
           data-en="Dangers & onboarding">Perigos & onboarding</span></a>
       <a class="nav-link" href="#instalacao"><span class="num">13</span> <span data-pt="Instalação & requisitos"
           data-en="Install & requirements">Instalação & requisitos</span></a>
-      <a class="nav-link" href="#legado"><span class="num">14</span> <span data-pt="Componentes legados"
-          data-en="Legacy components">Componentes legados</span></a>
+
       <a class="nav-link" href="#workflow"><span class="num">15</span> <span data-pt="Workflow"
           data-en="Workflow">Workflow</span></a>
       <a class="nav-link" href="#contribuir"><span class="num">★</span> <span data-pt="Contribuir & apoiar"
@@ -1615,7 +1613,7 @@
           Read/Edit nem um pacote envenenado; as rules não pegam nada porque são advisory; e o eBPF de kernel mora na
           nuvem, não na sua máquina. Cada peça resolve um pedaço — no máximo alguns comandos destrutivos, e não todos.
           <strong>O Nemesis Defender junta todas as peças num único framework</strong>, com deny-list + scanner de
-          conteúdo (destrutivo <em>e</em> malicioso) + AST + eBPF no kernel como última camada para usuários Linux,
+          conteúdo (destrutivo <em>e</em> malicioso) + eBPF no kernel como última camada para usuários Linux,
           igual em Devin, Cursor, Codex, Claude Code e VS Code. Construi esse framework que resolveu o meu problema e
           abri sob AGPL-3.0 para quem quiser usar.
         </p>
@@ -1740,25 +1738,24 @@
       <section id="camadas">
         <div class="eyebrow" data-pt="05 — Arquitetura" data-en="05 — Architecture">05 — Arquitetura</div>
         <h2 data-pt="Tudo parte do Pretool" data-en="Everything starts at the Pretool">Tudo parte do Pretool</h2>
-        <p data-pt="O <strong>Pretool Hook é o ponto de entrada de todo o sistema</strong> — sem ele, o Nemesis não funciona. As trilhas de <strong>segurança (Defender)</strong> e de <strong>qualidade (ast-linters)</strong> rodam <strong>acopladas ao pretool</strong>: são acionadas porque o pretool as invoca na mesma interceptação. A camada <strong>eBPF</strong> é a única que opera fora dessa linha — no kernel, como reforço adicional para Linux."
-          data-en="The <strong>Pretool Hook is the entry point of the whole system</strong> — without it, Nemesis does not work. The <strong>security (Defender)</strong> and <strong>quality (ast-linters)</strong> tracks run <strong>coupled to the pretool</strong>: they fire because the pretool invokes them in the same interception. The <strong>eBPF</strong> layer is the only one operating outside that line — in the kernel, as an additional reinforcement for Linux.">
-          O <strong>Pretool Hook é o ponto de entrada de todo o sistema</strong> — sem ele, o Nemesis não funciona. As
-          trilhas de <strong>segurança (Defender)</strong> e de <strong>qualidade (ast-linters)</strong> rodam
-          <strong>acopladas ao pretool</strong>: são acionadas porque o pretool as invoca na mesma interceptação. A
-          camada <strong>eBPF</strong> é a única que opera fora dessa linha — no kernel, como reforço adicional para
-          Linux.
+        <p data-pt="O <strong>Pretool Hook é o ponto de entrada de todo o sistema</strong> — sem ele, o Nemesis não funciona. A trilha de <strong>segurança (Defender)</strong> roda <strong>acoplada ao pretool</strong>: é acionada porque o pretool a invoca na mesma interceptação. A camada <strong>eBPF</strong> é a única que opera fora dessa linha — no kernel, como reforço adicional para Linux."
+          data-en="The <strong>Pretool Hook is the entry point of the whole system</strong> — without it, Nemesis does not work. The <strong>security (Defender)</strong> track runs <strong>coupled to the pretool</strong>: it fires because the pretool invokes it in the same interception. The <strong>eBPF</strong> layer is the only one operating outside that line — in the kernel, as an additional reinforcement for Linux.">
+          O <strong>Pretool Hook é o ponto de entrada de todo o sistema</strong> — sem ele, o Nemesis não funciona. A
+          trilha de <strong>segurança (Defender)</strong> roda <strong>acoplada ao pretool</strong>: é acionada porque o
+          pretool a invoca na mesma interceptação. A camada <strong>eBPF</strong> é a única que opera fora dessa linha —
+          no kernel, como reforço adicional para Linux.
         </p>
         <div class="layers">
           <div class="layer">
             <div class="top"><span class="n">01</span>
               <h4>Pretool / Posttool Hook — base</h4><span class="os">Win · macOS · Linux</span>
             </div>
-            <p data-pt="<strong>Origem de tudo: sem pretool, o Nemesis não funciona.</strong> Intercepta comandos <strong>antes</strong> de <code>Bash.run()</code> (PreToolUse), valida contra <code>deny-list.json</code> e escopo — hard-gate: sem aprovação humana, exit code <code>2</code>. É ele que aciona as trilhas de Defender e de qualidade. Um hook <strong>PostToolUse</strong> roda depois (nunca bloqueia) e audita o output em <code>output-audit.log</code>. E um <code>fallback</code> <strong>fail-closed</strong>: se o binário não existe, bloqueia tudo em vez de liberar."
-              data-en="<strong>The origin of everything: without the pretool, Nemesis does not work.</strong> Intercepts commands <strong>before</strong> <code>Bash.run()</code> (PreToolUse), validates against <code>deny-list.json</code> and scope — hard-gate: without human approval, exit code <code>2</code>. It is what triggers the Defender and quality tracks. A <strong>PostToolUse</strong> hook runs after (never blocks) and audits output in <code>output-audit.log</code>. And a <strong>fail-closed</strong> <code>fallback</code>: if the binary is missing, it blocks everything instead of allowing.">
+            <p data-pt="<strong>Origem de tudo: sem pretool, o Nemesis não funciona.</strong> Intercepta comandos <strong>antes</strong> de <code>Bash.run()</code> (PreToolUse), valida contra <code>deny-list.json</code> e escopo — hard-gate: sem aprovação humana, exit code <code>2</code>. É ele que aciona a trilha do Defender. Um hook <strong>PostToolUse</strong> roda depois (nunca bloqueia) e audita o output em <code>output-audit.log</code>. E um <code>fallback</code> <strong>fail-closed</strong>: se o binário não existe, bloqueia tudo em vez de liberar."
+              data-en="<strong>The origin of everything: without the pretool, Nemesis does not work.</strong> Intercepts commands <strong>before</strong> <code>Bash.run()</code> (PreToolUse), validates against <code>deny-list.json</code> and scope — hard-gate: without human approval, exit code <code>2</code>. It is what triggers the Defender track. A <strong>PostToolUse</strong> hook runs after (never blocks) and audits output in <code>output-audit.log</code>. And a <strong>fail-closed</strong> <code>fallback</code>: if the binary is missing, it blocks everything instead of allowing.">
               ​<strong>Origem de tudo: sem pretool, o Nemesis não funciona.</strong> Intercepta comandos
               <strong>antes</strong> de <code>Bash.run()</code> (PreToolUse), valida contra <code>deny-list.json</code>
               e escopo — hard-gate: sem aprovação humana, exit code <code>2</code>. É ele que aciona as trilhas de
-              Defender e de qualidade. Um hook <strong>PostToolUse</strong> roda depois (nunca bloqueia) e audita o
+              Defender. Um hook <strong>PostToolUse</strong> roda depois (nunca bloqueia) e audita o
               output em <code>output-audit.log</code>. E um <code>fallback</code> <strong>fail-closed</strong>: se o
               binário não existe, bloqueia tudo em vez de liberar.
             </p>
@@ -1773,23 +1770,8 @@
               regex → denylist → entropia → decoder recursivo (máx. 3 níveis) — e visitors cobrindo os vetores
               catalogados, incluindo taint-tracking de fonte→sink, exfil chains e poisoning de configs de IDE.</p>
           </div>
-          <div class="layer">
-            <div class="top"><span class="n">03</span>
-              <h4>ast-linters (qualidade) — junto com o pretool</h4><span class="os">Win · macOS · Linux</span>
-            </div>
-            <p data-pt="Também acionada pelo pretool, na escrita de código. <strong>Operante</strong>, com foco na stack <strong>frontend Next/React/TypeScript</strong>. Motor declarativo (<code>rules.toml</code>) + visitors tree-sitter com <strong>modelo semântico próprio</strong> barram anti-patterns que quebram build/deploy <strong>no momento da escrita</strong>: <code>any</code> (explícito, alias, parâmetro, assertion), hooks condicionais/fora do topo, <code>setState</code> síncrono em <code>useEffect</code>, chamadas impuras no render, deps incompletas em 6 hooks (<code>useEffect</code>/<code>useCallback</code>/<code>useMemo</code> e afins), promises não tratadas, JSX sem <code>key</code>. Complementa ESLint — não o substitui."
-              data-en="Also triggered by the pretool, on code writes. <strong>Operational</strong>, focused on the <strong>frontend Next/React/TypeScript</strong> stack. A declarative engine (<code>rules.toml</code>) + tree-sitter visitors with their <strong>own semantic model</strong> block build/deploy-breaking anti-patterns <strong>at write time</strong>: <code>any</code> (explicit, alias, parameter, assertion), conditional/non-top-level hooks, synchronous <code>setState</code> in <code>useEffect</code>, impure calls in render, incomplete deps across 6 hooks (<code>useEffect</code>/<code>useCallback</code>/<code>useMemo</code> and similar), untreated promises, JSX without <code>key</code>. It complements ESLint — it doesn't replace it.">
-              Também acionada pelo pretool, na escrita de código. <strong>Operante</strong>, com foco na stack
-              <strong>frontend Next/React/TypeScript</strong>. Motor declarativo (<code>rules.toml</code>) + visitors
-              tree-sitter com <strong>modelo semântico próprio</strong> barram anti-patterns que quebram build/deploy
-              <strong>no momento da escrita</strong>: <code>any</code> (explícito, alias, parâmetro, assertion), hooks
-              condicionais/fora do topo, <code>setState</code> síncrono em <code>useEffect</code>, chamadas impuras no
-              render, deps incompletas em 6 hooks (<code>useEffect</code>/<code>useCallback</code>/<code>useMemo</code>
-              e afins), promises não tratadas, JSX sem <code>key</code>. Complementa ESLint — não o substitui.
-            </p>
-          </div>
           <div class="layer kernel">
-            <div class="top"><span class="n">04</span>
+            <div class="top"><span class="n">03</span>
               <h4>eBPF Kernel LSM — adicional</h4><span class="os" data-pt="Linux apenas" data-en="Linux only">Linux
                 apenas</span>
             </div>
@@ -2014,76 +1996,6 @@
         </div>
       </section>
 
-      <section id="qualidade">
-        <div class="eyebrow" data-pt="09 — Qualidade" data-en="09 — Quality">09 — Qualidade</div>
-        <h2 data-pt="Camada AST-linters" data-en="AST-linters layer">Camada AST-linters</h2>
-        <p data-pt="A primeira versão do Nemesis nasceu como controle de qualidade. Na evolução de Node/TS para Rust, o foco virou <strong>100% segurança</strong> — e a qualidade foi reduzida ao que <strong>afeta ou pode afetar segurança e estabilidade</strong>: exposição de API/credenciais, aninhamento de tags que quebra build/deploy, falhas graves que derrubam a aplicação. Após uma reformulação recente, essa camada está <strong>operante</strong> e acionada pelo pretool na escrita de código, com foco na stack <strong>frontend Next/React/TypeScript</strong>."
-          data-en="The first version of Nemesis was born as quality control. In the evolution from Node/TS to Rust, the focus shifted to <strong>100% security</strong> — and quality was narrowed to what <strong>affects or may affect security and stability</strong>: API/credential exposure, tag nesting that breaks build/deploy, severe failures that take the app down. After a recent overhaul, this layer is <strong>operational</strong> and triggered by the pretool on code writes, focused on the <strong>frontend Next/React/TypeScript</strong> stack.">
-          A primeira versão do Nemesis nasceu como controle de qualidade. Na evolução de Node/TS para Rust, o foco virou
-          <strong>100% segurança</strong> — e a qualidade foi reduzida ao que <strong>afeta ou pode afetar segurança e
-            estabilidade</strong>: exposição de API/credenciais, aninhamento de tags que quebra build/deploy, falhas
-          graves que derrubam a aplicação. Após uma reformulação recente, essa camada está <strong>operante</strong> e
-          acionada pelo pretool na escrita de código, com foco na stack <strong>frontend Next/React/TypeScript</strong>.
-        </p>
-        <p data-pt="Após uma reformulação recente, a camada foi <strong>focada 100% na stack frontend Next/React/TypeScript</strong> — o suporte multi-linguagem (Python, Java, Go) foi removido para concentrar a manutenção onde o autor de fato a usa e valida. A camada ganhou um <strong>modelo semântico próprio</strong> (binding/scope/reference), independente de qualquer runtime externo. O campo <code>rule</code> vem <strong>em branco</strong> nas listas distribuídas — cada usuário aponta para a própria documentação, sem herdar caminhos do ambiente do autor. Categorias cobertas:"
-          data-en="After a recent overhaul, the layer was <strong>focused 100% on the frontend Next/React/TypeScript stack</strong> — multi-language support (Python, Java, Go) was removed to concentrate maintenance where the author actually uses and validates it. The layer gained its <strong>own semantic model</strong> (binding/scope/reference), independent of any external runtime. The <code>rule</code> field ships <strong>blank</strong> in the distributed lists — each user points to their own docs, without inheriting paths from the author's environment. Covered categories:">
-          Após uma reformulação recente, a camada foi <strong>focada 100% na stack frontend
-            Next/React/TypeScript</strong> — o suporte multi-linguagem (Python, Java, Go) foi removido para concentrar a
-          manutenção onde o autor de fato a usa e valida. A camada ganhou um <strong>modelo semântico próprio</strong>
-          (binding/scope/reference), independente de qualquer runtime externo. O campo <code>rule</code> vem <strong>em
-            branco</strong> nas listas distribuídas — cada usuário aponta para a própria documentação, sem herdar
-          caminhos do ambiente do autor. Categorias cobertas:</p>
-        <ul>
-          <li
-            data-pt="<strong>React Hooks</strong> — hooks condicionais ou fora do topo, <code>setState</code> síncrono dentro de <code>useEffect</code>, e dependências incompletas em <strong>6 hooks</strong> (<code>useEffect</code>, <code>useLayoutEffect</code>, <code>useInsertionEffect</code>, <code>useCallback</code>, <code>useMemo</code>, <code>useImperativeHandle</code>), com filtragem de valores estáveis (setters de <code>useState</code> não são exigidos como dependência)."
-            data-en="<strong>React Hooks</strong> — conditional or non-top-level hooks, synchronous <code>setState</code> inside <code>useEffect</code>, and incomplete dependencies across <strong>6 hooks</strong> (<code>useEffect</code>, <code>useLayoutEffect</code>, <code>useInsertionEffect</code>, <code>useCallback</code>, <code>useMemo</code>, <code>useImperativeHandle</code>), with stable-value filtering (<code>useState</code> setters are not required as dependencies).">
-            <strong>React Hooks</strong> — hooks condicionais ou fora do topo, <code>setState</code> síncrono dentro de
-            <code>useEffect</code>, e dependências incompletas em <strong>6 hooks</strong> (<code>useEffect</code>,
-            <code>useLayoutEffect</code>, <code>useInsertionEffect</code>, <code>useCallback</code>,
-            <code>useMemo</code>, <code>useImperativeHandle</code>), com filtragem de valores estáveis (setters de
-            <code>useState</code> não são exigidos como dependência).
-          </li>
-          <li
-            data-pt="<strong>Pureza de render</strong> — chamadas impuras no corpo do componente (<code>Math.random()</code>, <code>Date.now()</code>) que quebram a renderização determinística do React."
-            data-en="<strong>Render purity</strong> — impure calls in the component body (<code>Math.random()</code>, <code>Date.now()</code>) that break React's deterministic rendering.">
-            <strong>Pureza de render</strong> — chamadas impuras no corpo do componente (<code>Math.random()</code>,
-            <code>Date.now()</code>) que quebram a renderização determinística do React.
-          </li>
-          <li
-            data-pt="<strong>TypeScript</strong> — <code>any</code> em todas as formas (explícito, via alias, parâmetro, assertion), <code>==</code> em vez de <code>===</code>, <code>var</code>, variáveis não usadas, optional chaining inseguro."
-            data-en="<strong>TypeScript</strong> — <code>any</code> in all forms (explicit, via alias, parameter, assertion), <code>==</code> instead of <code>===</code>, <code>var</code>, unused variables, unsafe optional chaining.">
-            <strong>TypeScript</strong> — <code>any</code> em todas as formas (explícito, via alias, parâmetro,
-            assertion), <code>==</code> em vez de <code>===</code>, <code>var</code>, variáveis não usadas, optional
-            chaining inseguro.
-          </li>
-          <li
-            data-pt="<strong>JSX / segurança</strong> — JSX sem <code>key</code>, props duplicadas, <code>dangerouslySetInnerHTML</code>, <code>target=&quot;_blank&quot;</code> sem <code>rel</code>, <code>eval</code> global, segredos hardcoded."
-            data-en="<strong>JSX / security</strong> — JSX without <code>key</code>, duplicated props, <code>dangerouslySetInnerHTML</code>, <code>target=&quot;_blank&quot;</code> without <code>rel</code>, global <code>eval</code>, hardcoded secrets.">
-            <strong>JSX / segurança</strong> — JSX sem <code>key</code>, props duplicadas,
-            <code>dangerouslySetInnerHTML</code>, <code>target=&quot;_blank&quot;</code> sem <code>rel</code>,
-            <code>eval</code> global, segredos hardcoded.
-          </li>
-          <li
-            data-pt="<strong>Promises / async</strong> — promises não tratadas (floating), <code>await</code> em loops, executor de Promise assíncrono, data-fetch direto em componente."
-            data-en="<strong>Promises / async</strong> — untreated (floating) promises, <code>await</code> in loops, async Promise executor, direct data-fetch in component.">
-            <strong>Promises / async</strong> — promises não tratadas (floating), <code>await</code> em loops, executor
-            de Promise assíncrono, data-fetch direto em componente.
-          </li>
-        </ul>
-        <div class="callout">
-          <div class="h" data-pt="Honestidade sobre esta camada" data-en="Honesty about this layer">Honestidade sobre
-            esta camada</div>
-          <p data-pt="A camada <code>ast-linters</code> está <strong>operante</strong> e validada contra pentests (estáticos e por agente real), com foco na stack <strong>frontend Next/React/TypeScript</strong> — mas <strong>continua evoluindo</strong>: gaps conhecidos ficam como pontos de melhoria. E <strong>não substitui ESLint</strong>: é um complemento de bloqueio em runtime, no momento da escrita, para o subconjunto que toca build/deploy, segurança e estabilidade — não um linter completo. Use suas ferramentas de lint normalmente; o Nemesis apenas adiciona a barreira de bloqueio."
-            data-en="The <code>ast-linters</code> layer is <strong>operational</strong> and validated against pentests (static and real-agent), focused on the <strong>frontend Next/React/TypeScript</strong> stack — but it <strong>keeps evolving</strong>: known gaps remain as improvement points. And it <strong>does not replace ESLint</strong>: it's a runtime blocking complement, at write time, for the subset that touches build/deploy, security and stability — not a full linter. Use your normal lint tools; Nemesis just adds the blocking barrier.">
-            A camada <code>ast-linters</code> está <strong>operante</strong> e validada contra pentests (estáticos e por
-            agente real), com foco na stack <strong>frontend Next/React/TypeScript</strong> — mas <strong>continua
-              evoluindo</strong>: gaps conhecidos ficam como pontos de melhoria. E <strong>não substitui
-              ESLint</strong>: é um complemento de bloqueio em runtime, no momento da escrita, para o subconjunto que
-            toca build/deploy, segurança e estabilidade — não um linter completo. Use suas ferramentas de lint
-            normalmente; o Nemesis apenas adiciona a barreira de bloqueio.</p>
-        </div>
-      </section>
-
       <section id="validacao">
         <div class="eyebrow" data-pt="10 — Validação" data-en="10 — Validation">10 — Validação</div>
         <h2 data-pt="Três tipos de evidência" data-en="Three kinds of evidence">Três tipos de evidência</h2>
@@ -2118,11 +2030,11 @@
         <div class="callout">
           <div class="h" data-pt="Mensagens de bloqueio padronizadas" data-en="Standardized block messages">Mensagens de
             bloqueio padronizadas</div>
-          <p data-pt="Toda interceptação emite uma de seis mensagens fixas e categorizadas — o agente (e o humano) sabe exatamente <em>por que</em> foi bloqueado. Cinco são da trilha de <strong>segurança</strong> (pretool/posttool/Defender/eBPF); a última é de <strong>qualidade</strong> (ast-linters). Quando útil, a mensagem traz o alvo no fim (<code>· arquivo</code> ou <code>· comando</code>)."
-            data-en="Every interception emits one of six fixed, categorized messages — the agent (and the human) knows exactly <em>why</em> it was blocked. Five belong to the <strong>security</strong> track (pretool/posttool/Defender/eBPF); the last is <strong>quality</strong> (ast-linters). When useful, the message carries the target at the end (<code>· file</code> or <code>· command</code>).">
+          <p data-pt="Toda interceptação emite uma de seis mensagens fixas e categorizadas — o agente (e o humano) sabe exatamente <em>por que</em> foi bloqueado. Cinco são da trilha de <strong>segurança</strong> (pretool/posttool/Defender/eBPF); a última é de <strong>qualidade</strong> (deny-list). Quando útil, a mensagem traz o alvo no fim (<code>· arquivo</code> ou <code>· comando</code>)."
+            data-en="Every interception emits one of six fixed, categorized messages — the agent (and the human) knows exactly <em>why</em> it was blocked. Five belong to the <strong>security</strong> track (pretool/posttool/Defender/eBPF); the last is <strong>quality</strong> (deny-list). When useful, the message carries the target at the end (<code>· file</code> or <code>· command</code>).">
             Toda interceptação emite uma de seis mensagens fixas e categorizadas — o agente (e o humano) sabe exatamente
             <em>por que</em> foi bloqueado. Cinco são da trilha de <strong>segurança</strong>
-            (pretool/posttool/Defender/eBPF); a última é de <strong>qualidade</strong> (ast-linters). Quando útil, a
+            (pretool/posttool/Defender/eBPF); a última é de <strong>qualidade</strong> (deny-list). Quando útil, a
             mensagem traz o alvo no fim (<code>· arquivo</code> ou <code>· comando</code>).
           </p>
           <ul>
@@ -2415,12 +2327,11 @@
             </tbody>
           </table>
         </div>
-        <p data-pt="No Linux você tem todas as camadas, incluindo a proteção de kernel (eBPF) que vale <strong>inclusive contra você mesmo</strong> no terminal. Em macOS/Windows, sem eBPF, você opera com as trilhas do pretool (Defender + ast-linters) e o humano mantém liberdade total no terminal (a proteção ali se aplica às ações da IA via hooks da IDE)."
-          data-en="On Linux you get all layers, including the kernel protection (eBPF) that applies <strong>even against yourself</strong> in the terminal. On macOS/Windows, without eBPF, you run the pretool tracks (Defender + ast-linters) and the human keeps full terminal freedom (protection there applies to the AI's actions via IDE hooks).">
+        <p data-pt="No Linux você tem todas as camadas, incluindo a proteção de kernel (eBPF) que vale <strong>inclusive contra você mesmo</strong> no terminal. Em macOS/Windows, sem eBPF, você opera com a trilha do pretool (Defender) e o humano mantém liberdade total no terminal (a proteção ali se aplica às ações da IA via hooks da IDE)."
+          data-en="On Linux you get all layers, including the kernel protection (eBPF) that applies <strong>even against yourself</strong> in the terminal. On macOS/Windows, without eBPF, you run the pretool track (Defender) and the human keeps full terminal freedom (protection there applies to the AI's actions via IDE hooks).">
           No Linux você tem todas as camadas, incluindo a proteção de kernel (eBPF) que vale <strong>inclusive contra
             você mesmo</strong> no terminal. Em macOS/Windows, sem eBPF, você opera com as trilhas do pretool (Defender
-          + ast-linters) e o humano mantém liberdade total no terminal (a proteção ali se aplica às ações da IA via
-          hooks da IDE).</p>
+          Em macOS/Windows, sem eBPF, você opera com a trilha do pretool (Defender) e o humano mantém liberdade total no terminal (a proteção ali se aplica às ações da IA via hooks da IDE).</p>
         <h3 data-pt="Build" data-en="Build">Build</h3>
         <pre><code><span class="c" data-pt="# Build do workspace completo" data-en="# Build the full workspace"># Build do workspace completo</span>
 cd .nemesis
@@ -2452,37 +2363,7 @@ nemesis-defender <span class="k">--stop</span></code></pre>
           (<code>nemesis-defender</code>) é agnóstica de IDE.</p>
       </section>
 
-      <section id="legado">
-        <div class="eyebrow" data-pt="14 — Componentes legados" data-en="14 — Legacy components">14 — Componentes
-          legados</div>
-        <h2 data-pt="Funcionam, mas precisam de melhorias" data-en="They work, but need improvement">Funcionam, mas
-          precisam de melhorias</h2>
-        <p data-pt="Por honestidade técnica, dois componentes históricos seguem no código, funcionais, mas obsoletos e fora do foco atual:"
-          data-en="For technical honesty, two historical components remain in the code, functional but obsolete and out of current focus:">
-          Por honestidade técnica, dois componentes históricos seguem no código, funcionais, mas obsoletos e fora do
-          foco atual:</p>
-        <ul>
-          <li
-            data-pt="<strong>Auto-harvest</strong> (<code>nemesis-harvest</code>). Foi um salto na evolução: lia o <code>node_modules</code>, detectava a stack e as regras de ESLint/Biome instaladas, e <strong>se auto-municiava</strong> — convertia essas regras em patterns, gerando deny-lists automaticamente (primeiro markdown, depois JSON). Hoje está <strong>desatualizado e precisa de melhorias</strong>, mas ainda funciona."
-            data-en="<strong>Auto-harvest</strong> (<code>nemesis-harvest</code>). It was a leap in the evolution: it read <code>node_modules</code>, detected the stack and installed ESLint/Biome rules, and <strong>self-armed</strong> — converting those rules into patterns, generating deny-lists automatically (markdown first, then JSON). Today it's <strong>outdated and needs improvement</strong>, but still works.">
-            <strong>Auto-harvest</strong> (<code>nemesis-harvest</code>). Foi um salto na evolução: lia o
-            <code>node_modules</code>, detectava a stack e as regras de ESLint/Biome instaladas, e <strong>se
-              auto-municiava</strong> — convertia essas regras em patterns, gerando deny-lists automaticamente (primeiro
-            markdown, depois JSON). Hoje está <strong>desatualizado e precisa de melhorias</strong>, mas ainda funciona.
-          </li>
-          <li
-            data-pt="<strong><code>nemesis-install</code> (CLI).</strong> Criado para instalar via linha de comando, detectando a IDE e gerando configs de hooks. <strong>Funciona, mas ficou desorganizado e não teve continuidade</strong> — a instalação hoje é mais confiável feita manualmente (build + configuração de caminho)."
-            data-en="<strong><code>nemesis-install</code> (CLI).</strong> Built to install via command line, detecting the IDE and generating hook configs. <strong>It works, but became disorganized and wasn't continued</strong> — installation today is more reliable done manually (build + path configuration).">
-            <strong><code>nemesis-install</code> (CLI).</strong> Criado para instalar via linha de comando, detectando a
-            IDE e gerando configs de hooks. <strong>Funciona, mas ficou desorganizado e não teve continuidade</strong> —
-            a instalação hoje é mais confiável feita manualmente (build + configuração de caminho).
-          </li>
-        </ul>
-        <p data-pt="Documentá-los como legados é proposital: um projeto de segurança honesto declara o que está maduro e o que não está."
-          data-en="Documenting them as legacy is intentional: an honest security project declares what's mature and what isn't.">
-          Documentá-los como legados é proposital: um projeto de segurança honesto declara o que está maduro e o que não
-          está.</p>
-      </section>
+
 
       <section id="workflow">
         <div class="eyebrow" data-pt="15 — Workflow" data-en="15 — Workflow">15 — Workflow</div>
@@ -2501,11 +2382,11 @@ nemesis-defender <span class="k">--stop</span></code></pre>
           tarefa quando fizer sentido.</p>
         <div class="callout">
           <div class="h" data-pt="Importante" data-en="Important">Importante</div>
-          <p data-pt="Processo de desenvolvimento é de cada equipe — <strong>não é uma regra do Nemesis</strong>. O que o Nemesis impõe é o enforcement de segurança e qualidade (AST + deny-list + eBPF + pretool/posttool), que permanece ativo independentemente do fluxo de trabalho adotado."
-            data-en="The development process belongs to each team — <strong>it is not a Nemesis rule</strong>. What Nemesis enforces is security and quality (AST + deny-list + eBPF + pretool/posttool), which stays active regardless of the chosen workflow.">
+          <p data-pt="Processo de desenvolvimento é de cada equipe — <strong>não é uma regra do Nemesis</strong>. O que o Nemesis impõe é o enforcement de segurança (deny-list + eBPF + pretool/posttool), que permanece ativo independentemente do fluxo de trabalho adotado."
+            data-en="The development process belongs to each team — <strong>it is not a Nemesis rule</strong>. What Nemesis enforces is security enforcement (deny-list + eBPF + pretool/posttool), which stays active regardless of the chosen workflow.">
             Processo de desenvolvimento é de cada equipe — <strong>não é uma regra do Nemesis</strong>. O que o Nemesis
-            impõe é o enforcement de segurança e qualidade (AST + deny-list + eBPF + pretool/posttool), que permanece
-            ativo independentemente do fluxo de trabalho adotado.</p>
+            impõe é o enforcement de segurança (deny-list + eBPF + pretool/posttool), que permanece ativo
+            independentemente do fluxo de trabalho adotado.</p>
         </div>
       </section>
 

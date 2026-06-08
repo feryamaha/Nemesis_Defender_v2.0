@@ -30,6 +30,8 @@
       ".nemesis/",
       "var/tmp/",
       "/tmp/",
+      "/var/tmp/",
+      "tmp/",
       "/dev/null"
     ],
     "allowed_exceptions": ["/src/"]

@@ -18,7 +18,7 @@
       "source": "harvest + rules",
       "patterns": [
         {
-          "id": "typescript-005",
+          "id": "typescript-001",
           "pattern": "@ts-(?:ignore|nocheck|expect-error)",
           "type": "regex",
           "severity": "critical",
@@ -27,6 +27,19 @@
           "rule": "",
           "source": "manual",
           "enabled": true
+        },
+        {
+          "id": "typescript-002",
+          "pattern": ":\\s*any[\\s;,)\\]}>|&]|:\\s*any$|\\bas\\s+any\\b|<<any\\s*>|Record<<[^,]*,\\s*any\\s*>",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
+          "suggestion": "Use tipos explícitos, ou tipos existentes em src/types/",
+          "rule": "",
+          "source": "harvest",
+          "enabled": true,
+          "eslintRule": "@typescript-eslint/no-explicit-any",
+          "stackOrigin": "@typescript-eslint/no-explicit-any@unknown"
         }
       ]
     },
@@ -54,50 +67,6 @@
           "suggestion": "",
           "rule": "",
           "source": "harvest",
-          "enabled": true
-        },
-        {
-          "id": "react-005",
-          "pattern": "\\.map\\(.*=>\\s*<[A-Z][^>]*(?!key=)",
-          "type": "regex",
-          "severity": "high",
-          "message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
-          "suggestion": "",
-          "rule": "",
-          "source": "manual",
-          "enabled": true
-        },
-        {
-          "id": "react-007",
-          "pattern": "key=\\{.*\\bindex\\b.*\\}",
-          "type": "regex",
-          "severity": "medium",
-          "message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
-          "suggestion": "",
-          "rule": "",
-          "source": "manual",
-          "enabled": true
-        },
-        {
-          "id": "react-009",
-          "pattern": "<button(?![^>]*(?:type=|disabled))",
-          "type": "regex",
-          "severity": "medium",
-          "message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
-          "suggestion": "",
-          "rule": "",
-          "source": "manual",
-          "enabled": true
-        },
-        {
-          "id": "react-010",
-          "pattern": "<iframe(?![^>]*sandbox=)",
-          "type": "regex",
-          "severity": "high",
-          "message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
-          "suggestion": "",
-          "rule": "",
-          "source": "manual",
           "enabled": true
         }
       ]

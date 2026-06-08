@@ -17,32 +17,7 @@
 			"description": "Violações de tipagem TypeScript",
 			"source": "harvest + rules",
 			"patterns": [
-				{
-					"id": "typescript-000",
-					"pattern": ":\\s*any[\\s;,)\\]}>|&]|:\\s*any$|\\bas\\s+any\\b|<<any\\s*>|Record<<[^,]*,\\s*any\\s*>",
-					"type": "regex",
-					"severity": "critical",
-					"message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
-					"suggestion": "Use tipos explícitos, ou tipos existentes em src/types/",
-					"rule": "",
-					"source": "harvest",
-					"enabled": true,
-					"eslintRule": "@typescript-eslint/no-explicit-any",
-					"stackOrigin": "@typescript-eslint/no-explicit-any@unknown"
-				},
-				{
-					"id": "typescript-001",
-					"pattern": "^import\\s+\\{[^}]*(Props|Type|Config|Interface|Options|Enum)[^}]*\\}\\s+from",
-					"type": "regex",
-					"severity": "high",
-					"message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
-					"suggestion": "",
-					"rule": "",
-					"source": "harvest",
-					"enabled": true,
-					"eslintRule": "@typescript-eslint/consistent-type-imports",
-					"stackOrigin": "@typescript-eslint/consistent-type-imports@unknown"
-				},
+
 				{
 					"id": "typescript-002",
 					"pattern": "\\brequire\\s*\\(\\s*['\"][^'\"]+['\"]\\s*\\)",

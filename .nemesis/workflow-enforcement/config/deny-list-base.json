@@ -1280,6 +1280,61 @@
           "suggestion": "",
           "source": "manual",
           "enabled": true
+        },
+        {
+          "id": "byp-002",
+          "pattern": "eslint-disable-next-line|eslint-disable-line|@ts-expect-error",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!",
+          "suggestion": "Resolva o erro técnico. Não use bypass.",
+          "rule": "",
+          "source": "rules",
+          "enabled": true
+        },
+        {
+          "id": "byp-003",
+          "pattern": "\\b(?:export\\s+)?[Nn][Ee][Mm][Ee][Ss][Ii][Ss][_-]?[A-Za-z0-9_]*\\s*=",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
+          "suggestion": "Nao tente manipular variaveis de ambiente falsas do Nemesis.",
+          "rule": "",
+          "source": "manual",
+          "enabled": true
+        },
+        {
+          "id": "byp-004",
+          "pattern": "\\b(?:export\\s+)?[Pp][Aa][Tt][Hh]\\s*=",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
+          "suggestion": "Nao modifique PATH via comandos externos.",
+          "rule": "",
+          "source": "manual",
+          "enabled": true
+        },
+        {
+          "id": "byp-005",
+          "pattern": "/proc/\\S*/environ",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
+          "suggestion": "Acesso a /proc/*/environ nao permitido.",
+          "rule": "",
+          "source": "manual",
+          "enabled": true
+        },
+        {
+          "id": "byp-006",
+          "pattern": "\\b(?:env|printenv)\\s*\\|\\s*\\b(?:grep|awk|sed|cut|tr)",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
+          "suggestion": "Sondagem de variaveis de ambiente nao permitida.",
+          "rule": "",
+          "source": "manual",
+          "enabled": true
         }
       ]
     },
@@ -1593,6 +1648,50 @@
           "suggestion": "Resolva o erro técnico. Não use bypass.",
           "rule": "",
           "source": "rules",
+          "enabled": true
+        },
+        {
+          "id": "byp-003",
+          "pattern": "\\b(?:export\\s+)?[Nn][Ee][Mm][Ee][Ss][Ii][Ss][_-]?[A-Za-z0-9_]*\\s*=",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
+          "suggestion": "Nao tente manipular variaveis de ambiente falsas do Nemesis.",
+          "rule": "",
+          "source": "manual",
+          "enabled": true
+        },
+        {
+          "id": "byp-004",
+          "pattern": "\\b(?:export\\s+)?[Pp][Aa][Tt][Hh]\\s*=",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
+          "suggestion": "Nao modifique PATH via comandos externos.",
+          "rule": "",
+          "source": "manual",
+          "enabled": true
+        },
+        {
+          "id": "byp-005",
+          "pattern": "/proc/\\S*/environ",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
+          "suggestion": "Acesso a /proc/*/environ nao permitido.",
+          "rule": "",
+          "source": "manual",
+          "enabled": true
+        },
+        {
+          "id": "byp-006",
+          "pattern": "\\b(?:env|printenv)\\s*\\|\\s*\\b(?:grep|awk|sed|cut|tr)",
+          "type": "regex",
+          "severity": "critical",
+          "message": "NEMESIS SEC - COMANDO NAO PERMITIDO",
+          "suggestion": "Sondagem de variaveis de ambiente nao permitida.",
+          "rule": "",
+          "source": "manual",
           "enabled": true
         }
       ]
