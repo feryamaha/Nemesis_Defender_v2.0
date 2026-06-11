@@ -453,10 +453,18 @@ pub fn run() {
 }
 
 fn handle_event(event: Event, cwd: &Path) {
-    // Only react to file creation and modification (not deletions or metadata)
+    // Reage a criação, modificação de DADOS e RENAME-para-dentro (MovedTo).
+    // O `Modify(Name)` é essencial: editores (vim/VS Code) salvam por escrita-em-temp +
+    // rename atômico, e `git checkout`/`npm` extraem por rename — todos geram MOVED_TO,
+    // NÃO Create/Modify(Data). Sem isto, arquivo malicioso plantado por essas vias escapava
+    // do Iron Dome. Ignora apenas deleção e metadata (chmod/touch).
+    use notify::event::ModifyKind;
     let is_write_event = matches!(
         event.kind,
-        EventKind::Create(_) | EventKind::Modify(notify::event::ModifyKind::Data(_))
+        EventKind::Create(_)
+            | EventKind::Modify(ModifyKind::Data(_))
+            | EventKind::Modify(ModifyKind::Name(_))
+            | EventKind::Modify(ModifyKind::Any)
     );
 
     if !is_write_event {
@@ -488,6 +496,13 @@ fn handle_event(event: Event, cwd: &Path) {
 
         // /tmp/ filter: only scan suspicious files
         if path.starts_with("/tmp") && !should_scan_tmp_file(&path) {
+            continue;
+        }
+
+        // NUNCA re-escanear a própria quarentena: o malware retido lá dispararia um loop
+        // infinito de detecção. Os itens em .nemesis/quarantine/ são inertes e aguardam
+        // decisão humana (restore/purge).
+        if path.to_string_lossy().contains("/.nemesis/quarantine/") {
             continue;
         }
 
@@ -676,19 +691,30 @@ fn scan_file(path: &Path, cwd: &Path) {
                         );
                         (false, "[DRY-RUN] ")
                     } else {
-                        // Normal mode: delete the file
-                        let removed = std::fs::remove_file(path).is_ok();
-                        eprintln!(
-                            "[nemesis-defender] ██ BLOCKED{}: {} — {} violation(s)",
-                            if removed {
-                                " + REMOVED"
-                            } else {
-                                " (removal failed — manual action required)"
-                            },
-                            path.display(),
-                            result.violations.len()
-                        );
-                        (removed, "")
+                        // Normal mode: QUARENTENA — move para .nemesis/quarantine/ em vez de
+                        // deletar. Retém o conteúdo para revisão humana (restore/purge).
+                        match crate::quarantine::quarantine_file(path, &result) {
+                            Ok(id) => {
+                                eprintln!(
+                                    "[nemesis-defender] ██ BLOCKED + QUARANTINED: {} — {} violation(s) → .nemesis/quarantine/{}",
+                                    path.display(),
+                                    result.violations.len(),
+                                    id
+                                );
+                                eprintln!("  ⚠️  PARE. Arquivo malicioso retido para revisão humana.");
+                                eprintln!("  ⚠️  Revise:  nemesis-defender --quarantine show {}", id);
+                                eprintln!("  ⚠️  Decida:  --quarantine restore <id> (falso-positivo) | purge <id> (expurgar)");
+                                (true, "")
+                            }
+                            Err(e) => {
+                                eprintln!(
+                                    "[nemesis-defender] ██ MALICIOUS: {} — falha ao quarentenar ({}). Acao manual necessaria.",
+                                    path.display(),
+                                    e
+                                );
+                                (false, "")
+                            }
+                        }
                     };
                 }
             } else {
@@ -723,6 +749,15 @@ fn should_skip_extension(path: &Path) -> bool {
         "png", "jpg", "jpeg", "gif", "webp", "ico", "svg", "woff", "woff2", "ttf", "eot", "zip",
         "tar", "gz", "br", "lock", // bun.lockb, package-lock.json
         "map",  // source maps
+        // Documentos/markup NÃO são código executável — o Iron Dome (daemon) visa malware
+        // que executa. Docs (README, landing page, manuais) legitimamente CONTÊM strings de
+        // ataque como exemplo/documentação; escaneá-los geraria falso-positivo (quarentenar
+        // o próprio index.html/README). O scan de conteúdo no write-time (pretool) continua.
+        "md", "markdown", "html", "htm", "txt", "rst", "csv",
+        // Logs/telemetria do próprio Nemesis NÃO são código — e contêm nomes de comando e
+        // strings de evidência das detecções, que casariam padrões e gerariam auto-scan FP
+        // (o daemon quarentenando o próprio defender.log/violations.log). Pular sempre.
+        "log", "jsonl",
     ];
 
     path.extension()

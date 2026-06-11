@@ -220,7 +220,52 @@ Requer `bash` + `node`. Gera `pentest-results.csv` e `pentest-results.md`.
 
 ---
 
-## 7. Checklist de instalação (nova máquina)
+## 7. Logs e telemetria — registro 100% local
+
+> **Privacidade:** todo o registro do Nemesis é **local** — gravado apenas dentro de
+> `.nemesis/` no próprio projeto. **Nada é exfiltrado, enviado nem telemetrado para fora**
+> da máquina de quem instala. Não há servidor, coleta remota ou "phone home". Os dados
+> existem só para o próprio dev auditar e validar a proteção.
+
+As camadas (pretool, posttool, nemesis-defender, eBPF) registram cada bloqueio numa linha
+padronizada num **ledger único**:
+
+```
+.nemesis/logs/nemesis-violations.log     # JSONL — UM evento de bloqueio por linha
+```
+
+Schema:
+```json
+{"ts":"2026-06-11T09:25:34-03:00","date":"2026-06-11","time":"09:25:34","layer":"pretool","message":"NEMESIS SEC - LEITURA NEGADA - ARQUIVO PROTEGIDO · .env"}
+```
+- `layer` ∈ `pretool` | `posttool` | `nemesis-defender` | `ebpf-kernel`
+- `message` = mensagem padrão (vocabulário das 6 mensagens), já com o alvo (`· <alvo>`)
+
+### Telemetria local
+
+```bash
+.nemesis/target/release/nemesis-defender --log-stats
+```
+
+Imprime total de bloqueios, **por camada** (ordem de prioridade — eBPF, a última camada,
+deve ter o MENOR volume), **por tipo** (mais incidente primeiro) e **por dia**. Serve para
+validar a proteção, ver os vetores mais frequentes e auditar falso-positivo.
+
+### Arquivos em `.nemesis/`
+
+| Arquivo | Função |
+|---|---|
+| `.nemesis/logs/nemesis-violations.log` | **Único** ledger de bloqueios (todas as camadas) |
+| `.nemesis/logs/log-legado/` | Histórico arquivado de logs antigos |
+| `.nemesis/runtime/session-events.jsonl` | Estado de runtime (não-log): o pretool grava cada tool-call; o daemon lê para a **correlação comportamental** (multi-turn / escalação). Também 100% local. |
+
+> Após recompilar ou realocar caminhos, reinicie o daemon
+> (`pkill -9 -f nemesis-defender` + `--ensure-daemon`) para ele reler o `session-events.jsonl`
+> no caminho atual (`runtime/`).
+
+---
+
+## 8. Checklist de instalação (nova máquina)
 
 - [ ] Rust + dependências do sistema instalados (`build-essential`, `libbpf-dev`, `clang`, `bpftool`).
 - [ ] `cd .nemesis && cargo build --release --workspace` sem erros.

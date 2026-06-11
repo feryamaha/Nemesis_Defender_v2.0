@@ -1,96 +1,29 @@
-//! DefenderReport — structured log writer
+//! DefenderReport — logging consolidado no ledger único.
 //!
-//! Writes to: .nemesis/logs/defender.log (same directory as violations.log)
+//! O antigo `defender.log` (verboso, write-only, gravado em `logs/` RELATIVO ao CWD) foi
+//! DESCONTINUADO. Problemas que ele causava:
+//!   - poluía a raiz do projeto com `logs/defender.log` (CWD-relativo);
+//!   - sendo escrito na raiz observada pelo daemon, era RE-ESCANEADO — e como contém as
+//!     strings de evidência das detecções (nomes de visitor, trechos de payload), casava
+//!     padrões e era quarentenado/deletado pelo próprio daemon (falso-positivo + loop).
+//!
+//! Hoje todo bloqueio vai para o ledger único `.nemesis/logs/nemesis-violations.log`
+//! (ver `violations_log`). Estas funções permanecem por compatibilidade com os call-sites
+//! (daemon, `--scan`), sem reintroduzir o arquivo legado.
 
 use crate::DefenderResult;
 
-/// Log path relative to .nemesis directory (where binary is executed)
-pub const LOG_PATH: &str = "logs/defender.log";
-
-/// Write a DefenderResult to defender.log in append mode.
-/// Called after every scan that finds Suspicious or Malicious content.
-pub fn log_result(result: &DefenderResult) -> std::io::Result<()> {
-    use std::fs::OpenOptions;
-    use std::io::Write;
-
-    let timestamp = chrono_or_fallback();
-
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(LOG_PATH)?;
-
-    let severity_tag = match result.severity {
-        crate::Severity::Clean => return Ok(()), // Don't log clean results
-        crate::Severity::Suspicious => "[SUSPICIOUS]",
-        crate::Severity::Malicious => "[MALICIOUS]",
-    };
-
-    writeln!(
-        file,
-        "\n{} {} {}",
-        timestamp,
-        severity_tag,
-        result.path.display()
-    )?;
-    writeln!(
-        file,
-        "  Language: {:?} | Depth: {}",
-        result.language, result.scan_depth
-    )?;
-
-    for v in &result.violations {
-        writeln!(
-            file,
-            "  ├─ [{}] Line {}:{} — {}",
-            v.visitor, v.line, v.col, v.message
-        )?;
-        writeln!(file, "  │   Evidence: {}", v.evidence)?;
-        if let Some(decoded) = &v.decoded {
-            let preview = if decoded.len() > 80 {
-                &decoded[..80]
-            } else {
-                decoded
-            };
-            writeln!(file, "  │   Decoded: {}...", preview)?;
-        }
-        if let Some(ref suggestion) = v.suggestion {
-            writeln!(file, "  │   → FIX: {}", suggestion)?;
-        }
-    }
-
+/// No-op: o registro real do bloqueio é feito no ledger unificado (pelo daemon, no ponto
+/// da quarentena). `--scan` é uma checagem manual e não deve poluir a telemetria.
+pub fn log_result(_result: &DefenderResult) -> std::io::Result<()> {
     Ok(())
 }
 
-/// Write an escalation message to defender.log in append mode.
-/// Called when multi-turn attack escalation is detected.
+/// Escalação comportamental (correlação multi-turn) — registrada no ledger unificado.
 pub fn log_escalation(message: &str) -> std::io::Result<()> {
-    use std::fs::OpenOptions;
-    use std::io::Write;
-    use std::time::{SystemTime, UNIX_EPOCH};
-
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    let timestamp_str = format!("[{}]", timestamp);
-
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(LOG_PATH)?;
-
-    writeln!(file, "\n{} [ESCALATION] {}", timestamp_str, message)?;
-
+    crate::violations_log::append(
+        "nemesis-defender",
+        &format!("NEMESIS SEC - ESCALACAO COMPORTAMENTAL · {}", message),
+    );
     Ok(())
-}
-
-fn chrono_or_fallback() -> String {
-    // Use std::time for timestamp without adding chrono dependency
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let secs = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    format!("[{}]", secs)
 }

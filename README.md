@@ -430,9 +430,14 @@ nemesis-defender --scan /caminho/arquivo.rs
 nemesis-defender --ensure-daemon
 nemesis-defender --stop
 
-# Ver violações recentes
-tail -20 .nemesis/logs/violations.log | jq .
+# Ver bloqueios recentes (ledger único de TODAS as camadas, JSONL)
+tail -20 .nemesis/logs/nemesis-violations.log | jq .
+
+# Telemetria local: total + por camada + por tipo + por dia
+nemesis-defender --log-stats
 ```
+
+> **Registro 100% local.** Todo log e telemetria do Nemesis fica em `.nemesis/` dentro do seu próprio projeto. **Nada é enviado, exfiltrado ou telemetrado para fora** da sua máquina — não há servidor, coleta remota nem "phone home". Os bloqueios das camadas (pretool, posttool, nemesis-defender, eBPF) vão todos para um **ledger único** `.nemesis/logs/nemesis-violations.log`; o histórico antigo fica arquivado em `.nemesis/logs/log-legado/`. O estado de correlação comportamental (que o daemon usa para detecção multi-turn) fica em `.nemesis/runtime/session-events.jsonl` — também local.
 
 ### Mensagens de bloqueio
 
@@ -447,7 +452,7 @@ Quando algo é barrado, o Nemesis emite uma de seis mensagens categorizadas, par
 | Escrita fora do escopo | `NEMESIS SEC - ESCRITA FORA DO ESCOPO PERMITIDO` |
 | Violação de padrão de código | `NEMESIS QUALITY - PADRAO DE CODIGO NAO PERMITIDO ANALISAR REGRAS!` |
 
-No terminal sob eBPF, o kernel emite a mensagem padrão do sistema (`Operação não permitida`) com exit code 126 - o registro detalhado fica no `violations.log`.
+No terminal sob eBPF, o kernel emite a mensagem padrão do sistema (`Operação não permitida`) com exit code 126 - o registro padronizado fica no ledger `.nemesis/logs/nemesis-violations.log` (camada `ebpf-kernel`).
 
 ---
 
@@ -461,8 +466,8 @@ No terminal sob eBPF, o kernel emite a mensagem padrão do sistema (`Operação 
 .nemesis/target/release/nemesis-ebpf-daemon --doctor
 .nemesis/target/release/nemesis-ebpf-daemon --print-status
 
-# Logs de violação do kernel (eBPF)
-grep '"layer":"ebpf"' .nemesis/logs/violations.log
+# Bloqueios da camada de kernel (eBPF) no ledger único
+grep '"layer":"ebpf-kernel"' .nemesis/logs/nemesis-violations.log
 ```
 
 **Nota:** O binário `nemesis-ebpf-daemon` precisa ser compilado com `cargo build -p nemesis-ebpf-kernel`. Se o BPF LSM estiver ativo e bloqueando o build, pare o daemon eBPF antes de compilar.

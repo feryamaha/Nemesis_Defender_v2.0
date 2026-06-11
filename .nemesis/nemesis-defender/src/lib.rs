@@ -11,6 +11,7 @@
 //! - Vetor 8: self-cleaning malware
 
 pub mod language;
+pub mod quarantine;
 pub mod reporter;
 pub mod scanner;
 pub mod stats;

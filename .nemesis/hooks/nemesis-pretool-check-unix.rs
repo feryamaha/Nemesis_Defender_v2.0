@@ -880,6 +880,25 @@ fn run_pretool() {
         }
     }
 
+    // ── Quarentena pendente: se o daemon reteve arquivo(s) malicioso(s), a sessão PARA
+    //    até revisão humana. É a ponte síncrona de um evento assíncrono do daemon.
+    //    Bloqueio inline (não usa nemesis_block) para NÃO re-logar no ledger a cada call —
+    //    a detecção original já foi registrada quando o arquivo foi quarentenado. ──
+    {
+        let pending = nemesis_defender::quarantine::load_pending();
+        if !pending.is_empty() {
+            eprintln!(
+                "NEMESIS SEC - QUARENTENA PENDENTE · {} arquivo(s) malicioso(s) retido(s)",
+                pending.len()
+            );
+            eprintln!("→ PARE. O Nemesis quarentenou arquivo(s) malicioso(s); revisão humana é obrigatória.");
+            eprintln!("→ Revise:  nemesis-defender --quarantine list");
+            eprintln!("→ Decida:  --quarantine restore <id> (falso-positivo)  |  --quarantine purge <id> (expurgar)");
+            eprintln!("→ A sessão segue bloqueada até a quarentena ser resolvida.");
+            std::process::exit(2);
+        }
+    }
+
     let path_export = "/Users/fernandomoreira/.nvm/versions/node/v25.6.1/bin:/Users/fernandomoreira/.bun/bin";
     let current_path = env::var("PATH").unwrap_or_default();
     env::set_var("PATH", format!("{}:{}", path_export, current_path));

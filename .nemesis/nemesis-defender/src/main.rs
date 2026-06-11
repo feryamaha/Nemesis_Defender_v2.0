@@ -186,6 +186,28 @@ fn main() {
             nemesis_defender::stats::print_stats();
         }
 
+        Some("--quarantine") => {
+            use nemesis_defender::quarantine;
+            match args.get(2).map(|s| s.as_str()) {
+                Some("list") | None => quarantine::cli_list(),
+                Some("show") => match args.get(3) {
+                    Some(id) => quarantine::cli_show(id),
+                    None => eprintln!("Uso: --quarantine show <id>"),
+                },
+                Some("restore") => match args.get(3) {
+                    Some(id) => quarantine::cli_restore(id),
+                    None => eprintln!("Uso: --quarantine restore <id>"),
+                },
+                Some("purge") => match args.get(3) {
+                    Some(id) => quarantine::cli_purge(id),
+                    None => eprintln!("Uso: --quarantine purge <id>"),
+                },
+                Some(other) => {
+                    eprintln!("Subcomando desconhecido: {}. Use list|show|restore|purge", other)
+                }
+            }
+        }
+
         _ => {
             eprintln!("[nemesis-defender] Nemesis Iron Dome");
             eprintln!("Usage:");
@@ -197,6 +219,7 @@ fn main() {
                 "  nemesis-defender --install-shell-hook  Install terminal hook (once per machine)"
             );
             eprintln!("  nemesis-defender --log-stats           Telemetria do ledger unificado de bloqueios");
+            eprintln!("  nemesis-defender --quarantine <cmd>    Quarentena: list | show <id> | restore <id> | purge <id>");
             eprintln!();
             eprintln!("Environment variables:");
             eprintln!("  NEMESIS_DEFENDER_DRY_RUN=1             Same as --dry-run flag");
