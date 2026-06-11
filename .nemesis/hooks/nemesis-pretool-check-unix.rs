@@ -1574,6 +1574,9 @@ fn run_pretool() {
     // Resolver path do binario Rust nemesis-pretool-hook
     // ============================================================
     let candidate_bins = [
+        // Distribuição por binários (npx/install.sh): .nemesis/bin/
+        project_dir.join(".nemesis").join("bin").join("nemesis-pretool-hook"),
+        // Build local (cargo): target/release | target/debug
         project_dir.join(".nemesis").join("target").join("release").join("nemesis-pretool-hook"),
         project_dir.join(".nemesis").join("target").join("debug").join("nemesis-pretool-hook"),
     ];

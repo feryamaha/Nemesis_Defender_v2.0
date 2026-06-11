@@ -1,7 +1,8 @@
 use crate::checks::nemesis_dir;
 use crate::report::{CheckResult, CheckStatus};
 
-const EXPECTED_BINARIES: &[&str] = &[
+// Build da fonte (cargo): todos os binários, incluindo windows e eBPF.
+const SOURCE_BINARIES: &[&str] = &[
     "nemesis-pretool-check",
     "nemesis-pretool-check-unix",
     "nemesis-pretool-check-windows",
@@ -15,25 +16,47 @@ const EXPECTED_BINARIES: &[&str] = &[
     "nemesis-cgroup-watcher",
 ];
 
+// Distribuição por binários (install.sh → .nemesis/bin/): CORE cross-platform.
+// Sem windows e sem eBPF (Linux-only, opt-in, construído da fonte).
+const DISTRO_BINARIES: &[&str] = &[
+    "nemesis-pretool-check",
+    "nemesis-pretool-check-unix",
+    "nemesis-pretool-hook",
+    "nemesis-posttool-check-unix",
+    "pre-edit-hook",
+    "debug-hook-env",
+    "nemesis-lsp",
+    "nemesis-defender",
+    "nemesis-doctor",
+];
+
 pub fn run() -> CheckResult {
-    let mut res = CheckResult::new("G3 - Inventario target/release");
+    let mut res = CheckResult::new("G3 - Inventario de binarios");
+
+    let bin = nemesis_dir().join("bin");
     let release = nemesis_dir().join("target").join("release");
 
-    if !release.is_dir() {
-        res.push(format!("Diretorio nao encontrado: {}", release.display()));
-        res.push("Acao: 'cd .nemesis && cargo build --release --workspace'.");
+    // Detecta o layout: distribuição (.nemesis/bin/) tem precedência sobre build da fonte.
+    let (dir, expected, layout) = if bin.is_dir() {
+        (bin, DISTRO_BINARIES, "distribuicao (.nemesis/bin/)")
+    } else if release.is_dir() {
+        (release, SOURCE_BINARIES, "build da fonte (target/release/)")
+    } else {
+        res.push("Nenhum layout de binarios encontrado (.nemesis/bin/ nem target/release/).");
+        res.push("Acao: instale via install.sh, OU 'cd .nemesis && cargo build --release --workspace'.");
         return res.status(CheckStatus::Fail);
-    }
+    };
+
+    res.push(format!("Layout detectado: {}", layout));
 
     let mut missing = Vec::new();
-    for bin in EXPECTED_BINARIES {
-        let exists =
-            release.join(bin).exists() || release.join(format!("{}.exe", bin)).exists();
+    for b in expected {
+        let exists = dir.join(b).exists() || dir.join(format!("{}.exe", b)).exists();
         if exists {
-            res.push(format!("OK    {}", bin));
+            res.push(format!("OK    {}", b));
         } else {
-            res.push(format!("FALTA {}", bin));
-            missing.push(*bin);
+            res.push(format!("FALTA {}", b));
+            missing.push(*b);
         }
     }
 
@@ -42,8 +65,9 @@ pub fn run() -> CheckResult {
         res.status(CheckStatus::Ok)
     } else {
         res.push(format!(
-            "Faltando {} binario(s). Acao: 'cargo build --release --workspace'.",
-            missing.len()
+            "Faltando {} binario(s) no layout '{}'.",
+            missing.len(),
+            layout
         ));
         res.status(CheckStatus::Fail)
     }

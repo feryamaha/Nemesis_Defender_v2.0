@@ -32,6 +32,20 @@ fn resolve_config_path() -> Option<PathBuf> {
         .iter()
         .collect::<PathBuf>();
 
+    // Try 0: resolver via ancestral `.nemesis` (robusto p/ QUALQUER layout — target/release/
+    // no dev, .nemesis/bin/ na distribuição por binários). De `.nemesis/` desce para
+    // nemesis-defender/config/denylist-defender.json.
+    if let Ok(exe) = std::env::current_exe() {
+        for anc in exe.ancestors() {
+            if anc.file_name().map(|n| n == ".nemesis").unwrap_or(false) {
+                let p = anc.join("nemesis-defender").join(&config_rel);
+                if p.exists() {
+                    return Some(p);
+                }
+            }
+        }
+    }
+
     // Try 1: relative to the binary location (works regardless of CWD)
     // Binary at: .nemesis/target/release/nemesis-pretool-check-unix
     // Config at: .nemesis/nemesis-defender/config/denylist-defender.json

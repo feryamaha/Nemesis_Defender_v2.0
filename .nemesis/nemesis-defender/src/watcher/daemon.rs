@@ -655,6 +655,18 @@ fn scan_file(path: &Path, cwd: &Path) {
             }
         }
         Severity::Malicious => {
+            // Isenção CONFIGURÁVEL (denylist-folder-files.json → daemon_quarantine_exempt):
+            // infraestrutura do projeto que legitimamente contém os padrões detectados —
+            // ex.: o próprio `install.sh`, que precisa de curl + escrever hooks + referenciar
+            // binários (idêntico a um ataque de desativação). NÃO quarentena. O pretool segue
+            // bloqueando escrita maliciosa no write-time e o eBPF a execução.
+            if is_quarantine_exempt(path, cwd) {
+                eprintln!(
+                    "[nemesis-defender] (isento de quarentena — infraestrutura do projeto): {}",
+                    path.display()
+                );
+                return;
+            }
             let _ = reporter::log_result(&result);
             // Ledger unificado de bloqueios (vocabulário padrão das 6 mensagens).
             crate::violations_log::append(
@@ -744,7 +756,77 @@ fn scan_file(path: &Path, cwd: &Path) {
     }
 }
 
+/// Isenção de quarentena por path (infra do projeto). Lê `daemon_quarantine_exempt.paths`
+/// de `denylist-folder-files.json` (controlado por humano). Entrada sem `/` = arquivo na
+/// raiz do projeto; com `/` = path relativo. Ex.: `install.sh`.
+fn is_quarantine_exempt(path: &Path, cwd: &Path) -> bool {
+    let fname = path
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_default();
+    let at_root = path
+        .parent()
+        .map(|p| p == cwd || p.canonicalize().ok() == cwd.canonicalize().ok())
+        .unwrap_or(false);
+
+    // HARDCODED — exceção CRÍTICA: o instalador do próprio Nemesis (`install.sh` na raiz do
+    // projeto) NUNCA é quarentenado, mesmo que a config esteja ausente/corrompida. Ele
+    // legitimamente contém os padrões que o Nemesis detecta (curl, escrever hooks, referenciar
+    // binários) — não há como instalar sem eles. O pretool (write-time) e o eBPF (execução)
+    // seguem ativos sobre ele.
+    if at_root && fname == "install.sh" {
+        return true;
+    }
+
+    // Config controlada por humano: denylist-folder-files.json → daemon_quarantine_exempt.paths
+    let cfg = cwd.join(".nemesis/denylist/denylist-folder-files.json");
+    let Ok(content) = std::fs::read_to_string(&cfg) else {
+        return false;
+    };
+    let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) else {
+        return false;
+    };
+    let Some(arr) = json
+        .get("daemon_quarantine_exempt")
+        .and_then(|v| v.get("paths"))
+        .and_then(|v| v.as_array())
+    else {
+        return false;
+    };
+    let path_str = path.to_string_lossy();
+    arr.iter().filter_map(|v| v.as_str()).any(|p| {
+        if p.contains('/') {
+            path_str.contains(p)
+        } else {
+            at_root && fname == p
+        }
+    })
+}
+
 fn should_skip_extension(path: &Path) -> bool {
+    // Arquivos TRANSIENTES de editor/ferramenta (save atômico = escreve-em-temp + rename).
+    // Ex.: o Edit tool cria `arquivo.tmp.<pid>.<hash>` (extensão aleatória) e renomeia para
+    // o final. O temp contém o conteúdo (e pode casar padrões), mas é efêmero — pular evita
+    // quarentenar o temp. O arquivo FINAL (após o rename) é escaneado normalmente.
+    let name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_default();
+    if name.contains(".tmp.")
+        || name.ends_with(".tmp")
+        || name.ends_with(".swp")
+        || name.ends_with(".swo")
+        || name.ends_with(".swx")
+        || name.ends_with('~')
+        || name.ends_with(".orig")
+        || name.ends_with(".rej")
+        || name.ends_with(".crswap")
+        || name.ends_with(".crdownload")
+        || name.starts_with(".#")
+    {
+        return true;
+    }
+
     let skip_exts = &[
         "png", "jpg", "jpeg", "gif", "webp", "ico", "svg", "woff", "woff2", "ttf", "eot", "zip",
         "tar", "gz", "br", "lock", // bun.lockb, package-lock.json

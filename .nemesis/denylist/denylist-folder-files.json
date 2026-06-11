@@ -32,7 +32,8 @@
       "/var/tmp/",
       "tmp/",
       "/dev/null",
-      ".nemesis/"
+      ".nemesis/",
+      "install.sh"
     ],
     "allowed_exceptions": ["/src/"]
   },
@@ -67,6 +68,12 @@
       "AGENTS.md.orig",
       "AGENTS.md~",
       ".cursorrules"
+    ]
+  },
+  "daemon_quarantine_exempt": {
+    "description": "Arquivos de INFRAESTRUTURA do projeto que o daemon NÃO quarentena, mesmo que pareçam maliciosos. O instalador do próprio Nemesis (install.sh) legitimamente contém os padrões que o Nemesis detecta (curl, escrever hooks, referenciar binários) — não há como instalar sem eles. Lista controlada por HUMANO; o pretool continua bloqueando escrita maliciosa no write-time e o eBPF a execução. Paths relativos à raiz do projeto.",
+    "paths": [
+      "install.sh"
     ]
   }
 }

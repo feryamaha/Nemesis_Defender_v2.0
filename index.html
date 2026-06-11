@@ -1938,17 +1938,16 @@
           de config de IDE, typosquatting). <strong>Patterns são, por natureza, uma lista do que já foi
             antecipado</strong> aumentam o custo de um ataque conhecido, mas não cobrem o desconhecido.</p>
         <div class="callout">
-          <div class="h" data-pt="Severidade por corroboração deletar só quando confirmado"
-            data-en="Severity by corroboration delete only when confirmed">Severidade por corroboração deletar só
+          <div class="h" data-pt="Severidade por corroboração: quarentena só quando confirmado"
+            data-en="Severity by corroboration delete only when confirmed">Severidade por corroboração: quarentena só
             quando confirmado</div>
-          <p data-pt="O endurecimento mais importante da v2.x: o Iron Dome <strong>só deleta quando a hostilidade é confirmada</strong>. Sinais de alta confiança (denylist curada, decode→exec, cadeia de exfil, reverse shell socket+exec, bypass do próprio Nemesis) bloqueiam sozinhos; sinais heurísticos (substring/padrão) <strong>exigem 2 métodos de detecção independentes concordando</strong> antes de deletar caso contrário ficam em <em>Suspicious</em> (registrado, mantido). Isso elimina a classe de falso-positivo que apagava código legítimo (ex.: a palavra &quot;danger&quot; do Tailwind colidindo com o jailbreak &quot;DAN&quot;). A detecção de execução foi ainda estendida a <strong>múltiplos runtimes</strong> (reverse shell e exec ofuscado em Ruby/PHP/Go/Perl/Java/Lua, não só JS/Python/Bash), e a proteção de paths foi endurecida contra ofuscação (glob em diretório, <code>cd</code> para dir protegido, indireção por variável/<code>$(&lt;file)</code>)."
-            data-en="The most important v2.x hardening: the Iron Dome <strong>only deletes when hostility is confirmed</strong>. High-confidence signals (curated denylist, decode→exec, exfil chain, socket+exec reverse shell, Nemesis self-bypass) block on their own; heuristic signals (substring/pattern) <strong>require 2 independent detection methods agreeing</strong> before deletion otherwise they stay <em>Suspicious</em> (logged, kept). This eliminates the false-positive class that deleted legitimate code (e.g., Tailwind's &quot;danger&quot; colliding with the &quot;DAN&quot; jailbreak). Execution detection was further extended to <strong>multiple runtimes</strong> (reverse shell and obfuscated exec in Ruby/PHP/Go/Perl/Java/Lua, not just JS/Python/Bash), and path protection was hardened against obfuscation (glob in a directory, <code>cd</code> into a protected dir, indirection via variable/<code>$(&lt;file)</code>).">
-            O endurecimento mais importante da v2.x: o Iron Dome <strong>só deleta quando a hostilidade é
+          <p data-pt="O endurecimento mais importante da v2.x: o Iron Dome <strong>só age (movendo para quarentena, não deletando) quando a hostilidade é confirmada</strong>. Sinais de alta confiança (denylist curada, decode→exec, cadeia de exfil, reverse shell socket+exec, bypass do próprio Nemesis) bloqueiam sozinhos; sinais heurísticos (substring/padrão) <strong>exigem 2 métodos de detecção independentes concordando</strong> antes de deletar caso contrário ficam em <em>Suspicious</em> (registrado, mantido). A detecção de execução foi ainda estendida a <strong>múltiplos runtimes</strong> (reverse shell e exec ofuscado em Ruby/PHP/Go/Perl/Java/Lua, não só JS/Python/Bash), e a proteção de paths foi endurecida contra ofuscação (glob em diretório, <code>cd</code> para dir protegido, indireção por variável/<code>$(&lt;file)</code>)."
+            data-en="The most important v2.x hardening: the Iron Dome <strong>only deletes when hostility is confirmed</strong>. High-confidence signals (curated denylist, decode→exec, exfil chain, socket+exec reverse shell, Nemesis self-bypass) block on their own; heuristic signals (substring/pattern) <strong>require 2 independent detection methods agreeing</strong> before deletion otherwise they stay <em>Suspicious</em> (logged, kept). Execution detection was further extended to <strong>multiple runtimes</strong> (reverse shell and obfuscated exec in Ruby/PHP/Go/Perl/Java/Lua, not just JS/Python/Bash), and path protection was hardened against obfuscation (glob in a directory, <code>cd</code> into a protected dir, indirection via variable/<code>$(&lt;file)</code>).">
+            O endurecimento mais importante da v2.x: o Iron Dome <strong>só age (move para quarentena, não deleta) quando a hostilidade é
               confirmada</strong>. Sinais de alta confiança (denylist curada, decode→exec, cadeia de exfil, reverse
             shell socket+exec, bypass do próprio Nemesis) bloqueiam sozinhos; sinais heurísticos (substring/padrão)
             <strong>exigem 2 métodos de detecção independentes concordando</strong> antes de deletar caso contrário
-            ficam em <em>Suspicious</em> (registrado, mantido). Isso elimina a classe de falso-positivo que apagava
-            código legítimo (ex.: a palavra "danger" do Tailwind colidindo com o jailbreak "DAN"). A detecção de execução
+            ficam em <em>Suspicious</em> (registrado, mantido). A detecção de execução
             foi ainda estendida a <strong>múltiplos runtimes</strong> (reverse shell e exec ofuscado em
             Ruby/PHP/Go/Perl/Java/Lua, não só JS/Python/Bash), e a proteção de paths foi endurecida contra ofuscação
             (glob em diretório, <code>cd</code> para dir protegido, indireção por variável/<code>$(&lt;file)</code>).</p>
@@ -2264,27 +2263,26 @@
         </div>
         <h2 data-pt="Como o Defender age e por que é perigoso"
           data-en="How the Defender acts and why it's dangerous">Como o Defender age e por que é perigoso</h2>
-        <p data-pt="O <strong>Nemesis Defender</strong> não apenas avisa: ele <strong>age</strong>. Ao detectar um arquivo com violação grave credencial exposta, script com comando destrutivo, anti-padrão de segurança sério ele pode <strong>remover o arquivo infrator</strong> (<code>rm -rf</code>). Isso intercepta tanto a IA quanto, no Linux com eBPF, o próprio humano."
-          data-en="The <strong>Nemesis Defender</strong> doesn't just warn: it <strong>acts</strong>. On detecting a file with a serious violation exposed credential, script with a destructive command, severe security anti-pattern it may <strong>remove the offending file</strong> (<code>rm -rf</code>). This intercepts both the AI and, on Linux with eBPF, the human too.">
-          O <strong>Nemesis Defender</strong> não apenas avisa: ele <strong>age</strong>. Ao detectar um arquivo com
-          violação grave credencial exposta, script com comando destrutivo, anti-padrão de segurança sério ele pode
-          <strong>remover o arquivo infrator</strong> (<code>rm -rf</code>). Isso intercepta tanto a IA quanto, no Linux
-          com eBPF, o próprio humano.
+        <p data-pt="O <strong>Nemesis Defender</strong> não apenas avisa: ele <strong>age</strong>. Ao confirmar um arquivo malicioso (credencial exposta, comando destrutivo, malware), ele <strong>NÃO deleta — move para quarentena</strong> (<code>.nemesis/quarantine/</code>), <strong>bloqueia a sessão</strong> e exige revisão humana. O conteúdo é preservado; você decide: <code>restore</code> (falso-positivo) ou <code>purge</code> (expurgar). Intercepta tanto a IA quanto, no Linux com eBPF, o próprio humano."
+          data-en="The <strong>Nemesis Defender</strong> doesn't just warn: it <strong>acts</strong>. On confirming a malicious file (exposed credential, destructive command, malware), it <strong>does NOT delete — it moves to quarantine</strong> (<code>.nemesis/quarantine/</code>), <strong>blocks the session</strong> and requires human review. The content is preserved; you decide: <code>restore</code> (false-positive) or <code>purge</code>. Intercepts both the AI and, on Linux with eBPF, the human.">
+          O <strong>Nemesis Defender</strong> não apenas avisa: ele <strong>age</strong>. Ao confirmar um arquivo
+          malicioso (credencial exposta, comando destrutivo, malware), ele <strong>NÃO deleta — move para
+          quarentena</strong> (<code>.nemesis/quarantine/</code>), <strong>bloqueia a sessão</strong> e exige revisão
+          humana. O conteúdo é preservado; você decide: <code>restore</code> (falso-positivo) ou <code>purge</code>
+          (expurgar). Intercepta tanto a IA quanto, no Linux com eBPF, o próprio humano.
         </p>
         <div class="danger">
-          <div class="lbl" data-pt="Deleção só com hostilidade confirmada" data-en="Deletion only on confirmed hostility">Deleção
-            só com hostilidade confirmada</div>
-          <p data-pt="A remoção não é por palpite. Sinais de <b>alta confiança</b> (denylist curada, decode→exec, cadeia de exfil, reverse shell, bypass do próprio Nemesis) bloqueiam sozinhos; sinais heurísticos exigem <b>dois métodos de detecção independentes concordando</b> antes de deletar caso contrário o arquivo fica marcado como <b>suspeito</b>, registrado e <b>mantido</b>. É esse modelo de corroboração que separa um iron dome de fogo amigo: código legítimo não é apagado por engano."
-            data-en="Removal is not a guess. <b>High-confidence</b> signals (curated denylist, decode→exec, exfil chain, reverse shell, Nemesis self-bypass) block on their own; heuristic signals require <b>two independent detection methods agreeing</b> before deletion otherwise the file is marked <b>suspicious</b>, logged and <b>kept</b>. This corroboration model is what separates an iron dome from friendly fire: legitimate code is not deleted by mistake.">
-            A remoção não é por palpite. Sinais de <b>alta confiança</b> (denylist curada, decode→exec, cadeia de exfil,
-            reverse shell, bypass do próprio Nemesis) bloqueiam sozinhos; sinais heurísticos exigem <b>dois métodos de
-            detecção independentes concordando</b> antes de deletar caso contrário o arquivo fica marcado como
-            <b>suspeito</b>, registrado e <b>mantido</b>. É esse modelo de corroboração que separa um iron dome de fogo
-            amigo: código legítimo não é apagado por engano.</p>
-          <p data-pt="Sob Git, qualquer remoção é reversível pelo histórico de versão."
-            data-en="Under Git, any removal is reversible from version history.">
-            Sob Git, qualquer remoção é reversível pelo histórico de versão.
-          </p>
+          <div class="lbl" data-pt="Quarentena (não exclusão), só com hostilidade confirmada" data-en="Quarantine (not deletion), only on confirmed hostility">Quarentena
+            (não exclusão), só com hostilidade confirmada</div>
+          <p data-pt="Não é por palpite, e <b>não apaga</b>: ao confirmar, o arquivo é <b>movido para</b> <code>.nemesis/quarantine/</code> (preservado, com o motivo em <code>meta.json</code>) e a sessão é bloqueada até revisão humana (<code>restore</code> ou <code>purge</code>). Sinais de <b>alta confiança</b> (denylist curada, decode→exec, cadeia de exfil, reverse shell, bypass do próprio Nemesis) confirmam sozinhos; sinais heurísticos exigem <b>dois métodos de detecção independentes concordando</b> — caso contrário o arquivo fica <b>suspeito</b>, registrado e <b>mantido</b>. É o que separa um iron dome de fogo amigo: código legítimo não é movido por engano."
+            data-en="Not a guess, and it <b>does not delete</b>: on confirmation the file is <b>moved to</b> <code>.nemesis/quarantine/</code> (preserved, reason in <code>meta.json</code>) and the session is blocked until human review (<code>restore</code> or <code>purge</code>). <b>High-confidence</b> signals (curated denylist, decode→exec, exfil chain, reverse shell, Nemesis self-bypass) confirm on their own; heuristic signals require <b>two independent detection methods agreeing</b> — otherwise the file stays <b>suspicious</b>, logged and <b>kept</b>. That's what separates an iron dome from friendly fire: legitimate code is not moved by mistake.">
+            Não é por palpite, e <b>não apaga</b>: ao confirmar, o arquivo é <b>movido para</b>
+            <code>.nemesis/quarantine/</code> (preservado, com o motivo em <code>meta.json</code>) e a sessão é
+            bloqueada até revisão humana (<code>restore</code> ou <code>purge</code>). Sinais de <b>alta confiança</b>
+            (denylist curada, decode→exec, cadeia de exfil, reverse shell, bypass do próprio Nemesis) confirmam
+            sozinhos; sinais heurísticos exigem <b>dois métodos de detecção independentes concordando</b> — caso
+            contrário o arquivo fica <b>suspeito</b>, registrado e <b>mantido</b>. É o que separa um iron dome de fogo
+            amigo: código legítimo não é movido por engano.</p>
         </div>
         <p data-pt="<strong>Por que não há uma pasta de quarentena?</strong> Mover infratores para <code>quarantine/</code> em vez de remover seria mais suave, e é uma melhoria reconhecida no roadmap. Mas a decisão atual é deliberada: quem desenvolve <strong>sob</strong> o Nemesis desde o início nunca chega a ter esses arquivos o código nasce limpo, porque o Defender bloqueia a violação no momento da escrita. A dureza na instalação é o preço de um sistema que força disciplina, não que administra bagunça pré-existente."
           data-en="<strong>Why no quarantine folder?</strong> Moving offenders to <code>quarantine/</code> instead of removing them would be softer, and it's an acknowledged roadmap improvement. But the current decision is deliberate: those who develop <strong>under</strong> Nemesis from the start never accumulate such files the code is born clean, because the Defender blocks the violation at write time. The harshness at install is the price of a system that forces discipline, not one that manages pre-existing mess.">
@@ -2380,7 +2378,26 @@
           No Linux você tem todas as camadas, incluindo a proteção de kernel (eBPF) que vale <strong>inclusive contra
             você mesmo</strong> no terminal. Em macOS/Windows, sem eBPF, você opera com a trilha do pretool (Defender) e
           o humano mantém liberdade total no terminal (a proteção ali se aplica às ações da IA via hooks da IDE).</p>
-        <h3 data-pt="Build" data-en="Build">Build</h3>
+        <h3 data-pt="Opção A — Binários pré-compilados (recomendado)" data-en="Option A — Prebuilt binaries (recommended)">
+          Opção A — Binários pré-compilados (recomendado)</h3>
+        <p data-pt="Baixa os binários do GitHub Release, <strong>verifica o checksum SHA256</strong> e instala em <code>.nemesis/bin/</code>, já configurando o hook da IDE. macOS (arm64/x64) e Linux (x64). Sem Rust, sem npm, sem git clone. Como o Nemesis bloqueia <code>curl … | sh</code>, o modo recomendado é em <strong>duas etapas</strong> (baixar, inspecionar, executar) — nunca um pipe cego."
+          data-en="Downloads the binaries from the GitHub Release, <strong>verifies the SHA256 checksum</strong> and installs into <code>.nemesis/bin/</code>, wiring the IDE hook. macOS (arm64/x64) and Linux (x64). No Rust, no npm, no git clone. Since Nemesis blocks <code>curl … | sh</code>, the recommended flow is <strong>two steps</strong> (download, inspect, run) — never a blind pipe.">
+          Baixa os binários do GitHub Release, <strong>verifica o checksum SHA256</strong> e instala em
+          <code>.nemesis/bin/</code>, já configurando o hook da IDE. macOS (arm64/x64) e Linux (x64). Sem Rust, sem
+          npm, sem git clone. Como o Nemesis bloqueia <code>curl … | sh</code>, o modo recomendado é em
+          <strong>duas etapas</strong> (baixar, inspecionar, executar) — nunca um pipe cego.</p>
+        <pre><code><span class="c" data-pt="# A partir da raiz do seu projeto:" data-en="# From your project root:"># A partir da raiz do seu projeto:</span>
+curl <span class="k">-fsSLO</span> https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v2.0/main/install.sh
+less install.sh   <span class="c" data-pt="# inspecione" data-en="# inspect"># inspecione</span>
+bash install.sh   <span class="c" data-pt="# baixa + verifica SHA256 + instala + configura o hook" data-en="# download + verify SHA256 + install + wire hook"># baixa + verifica SHA256 + instala</span></code></pre>
+        <p data-pt="A <strong>camada eBPF</strong> (kernel, Linux) não vem nos binários: depende de libbpf/clang e de um objeto BPF compatível com o kernel-alvo. É <strong>opt-in</strong>, construída da fonte (Opção B). O core (pretool + Defender) protege mac e Linux sem ela."
+          data-en="The <strong>eBPF layer</strong> (kernel, Linux) is not shipped in the binaries: it depends on libbpf/clang and a kernel-compatible BPF object. It is <strong>opt-in</strong>, built from source (Option B). The core (pretool + Defender) protects macOS and Linux without it.">
+          A <strong>camada eBPF</strong> (kernel, Linux) não vem nos binários: depende de libbpf/clang e de um objeto BPF
+          compatível com o kernel-alvo. É <strong>opt-in</strong>, construída da fonte (Opção B). O core (pretool +
+          Defender) protege mac e Linux sem ela.</p>
+
+        <h3 data-pt="Opção B — Compilar da fonte (eBPF / contribuir)" data-en="Option B — Build from source (eBPF / contributing)">
+          Opção B — Compilar da fonte (eBPF / contribuir)</h3>
         <pre><code><span class="c" data-pt="# Build do workspace completo" data-en="# Build the full workspace"># Build do workspace completo</span>
 cd .nemesis
 cargo build <span class="k">--release --workspace</span>

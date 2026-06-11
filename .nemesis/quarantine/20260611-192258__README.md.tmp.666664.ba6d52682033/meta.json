@@ -1,0 +1,110 @@
+{
+  "id": "20260611-192258__README.md.tmp.666664.ba6d52682033",
+  "original_path": "/home/fernando/devproj/Nemesis_Defender_v2.0/./README.md.tmp.666664.ba6d52682033",
+  "quarantined_at": "2026-06-11T19:22:58.424117436-03:00",
+  "severity": "Malicious",
+  "violations": [
+    {
+      "visitor": "unicode_zero_width",
+      "line": 16,
+      "message": "Invisible Unicode formatting char U+FE0F (Variation Selector-16) detected. Legitimate in i18n/emoji, but also used in steganography — flagged as corroborating signal (requires a second signal to confirm).",
+      "evidence": "U+FE0F (Variation Selector-16)"
+    },
+    {
+      "visitor": "url_in_exec",
+      "line": 120,
+      "message": "Download-and-execute: curl/wget piped to shell interpreter. Classic one-liner malware delivery.",
+      "evidence": "curl … | sh"
+    },
+    {
+      "visitor": "prompt_injection",
+      "line": 80,
+      "message": "Jailbreak activation phrase detected in file content.",
+      "evidence": "jailbreak"
+    },
+    {
+      "visitor": "decode_exec",
+      "line": 82,
+      "message": "Dynamic global eval/Function access via bracket notation (globalThis[\"eval\"]). Obfuscated code execution.",
+      "evidence": "globalThis[\"eval\"]"
+    },
+    {
+      "visitor": "decode_exec",
+      "line": 82,
+      "message": "Python dynamic import RCE: __import__('os').system/popen. Obfuscated command execution.",
+      "evidence": "__import__('os').system"
+    },
+    {
+      "visitor": "decode_exec",
+      "line": 82,
+      "message": "Python reflective access to __builtins__ (getattr) — used to reach eval/exec while evading literal detection.",
+      "evidence": "getattr(__builtins__"
+    },
+    {
+      "visitor": "decode_exec",
+      "line": 82,
+      "message": "Ruby reflective dispatch to eval/system/exec via .send(:eval). Obfuscated code execution.",
+      "evidence": ".send(:eval"
+    },
+    {
+      "visitor": "denylist_malicious",
+      "line": 124,
+      "message": "Hostile command detected (denylist-defender / data_transfer_exfiltration): Comandos de transferência de dados (potencial exfiltração)",
+      "evidence": "curl -fsSLO https"
+    },
+    {
+      "visitor": "denylist_malicious",
+      "line": 124,
+      "message": "Hostile command detected (denylist-defender / data_transfer_exfiltration): Comandos de transferência de dados (potencial exfiltração)",
+      "evidence": "curl -fsSLO https://"
+    },
+    {
+      "visitor": "denylist_malicious",
+      "line": 120,
+      "message": "Hostile command detected (denylist-defender / data_transfer_exfiltration): Comandos de transferência de dados (potencial exfiltração)",
+      "evidence": "curl … | sh"
+    },
+    {
+      "visitor": "denylist_malicious",
+      "line": 53,
+      "message": "Hostile command detected (denylist-defender / destructive_commands): Comandos destrutivos de arquivo/dados",
+      "evidence": "rm -rf"
+    },
+    {
+      "visitor": "denylist_malicious",
+      "line": 80,
+      "message": "Hostile command detected (denylist-defender / prompt_injection_advanced): Prompt injection patterns — instruction override, role-playing, context manipulation, instruction smuggling",
+      "evidence": "jailbreak"
+    },
+    {
+      "visitor": "denylist_malicious",
+      "line": 432,
+      "message": "Hostile command detected (denylist-defender / shell_config_tampering): Manipulação de arquivos de configuração de shell — persistência e execução arbitrária",
+      "evidence": ".bashrc"
+    },
+    {
+      "visitor": "denylist_malicious",
+      "line": 432,
+      "message": "Hostile command detected (denylist-defender / shell_config_tampering): Manipulação de arquivos de configuração de shell — persistência e execução arbitrária",
+      "evidence": ".zshrc"
+    },
+    {
+      "visitor": "denylist_malicious",
+      "line": 395,
+      "message": "Hostile command detected (denylist-defender / nemesis_evasion): Tentativas de bypass/desativacao do Nemesis — path ofuscado, var concat, payload codificado, hooks vazios",
+      "evidence": "setcap "
+    },
+    {
+      "visitor": "denylist_malicious",
+      "line": 382,
+      "message": "Hostile command detected (denylist-defender / nemesis_evasion): Tentativas de bypass/desativacao do Nemesis — path ofuscado, var concat, payload codificado, hooks vazios",
+      "evidence": "sudo "
+    },
+    {
+      "visitor": "denylist_malicious",
+      "line": 395,
+      "message": "Hostile command detected (denylist-defender / nemesis_evasion): Tentativas de bypass/desativacao do Nemesis — path ofuscado, var concat, payload codificado, hooks vazios",
+      "evidence": "sudo "
+    }
+  ]
+}

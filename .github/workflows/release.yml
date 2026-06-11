@@ -1,13 +1,22 @@
 name: Release Nemesis Binaries
 
+# Dispara em tags v* (ex.: v2.0.0). Gera binários PRÉ-COMPILADOS do CORE cross-platform
+# (mac arm64/x64, linux x64) + checksums, e sobe num GitHub Release (draft para revisão).
+# A camada eBPF (Linux-only) NÃO entra no pacote: depende de libbpf/make e do objeto
+# .bpf.o compatível com o kernel-alvo — é opt-in, construída da fonte por quem quiser.
+
 on:
   push:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-14
@@ -19,9 +28,6 @@ jobs:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             suffix: linux-x64
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            suffix: win32-x64
 
     runs-on: ${{ matrix.os }}
 
@@ -32,46 +38,48 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Build workspace
-        run: cd .nemesis && cargo build --release --workspace --target ${{ matrix.target }}
-
-      - name: Strip binaries (Unix)
-        if: runner.os != 'Windows'
+      # CORE apenas (pacotes nemesis + nemesis-defender + nemesis-doctor). NÃO compila
+      # ebpf-kernel (Linux-only, exige libbpf e o make do .bpf.o).
+      - name: Build core
         run: |
-          strip .nemesis/target/${{ matrix.target }}/release/nemesis-cli || true
-          strip .nemesis/target/${{ matrix.target }}/release/nemesis-pretool-check-unix || true
-          strip .nemesis/target/${{ matrix.target }}/release/nemesis-defender || true
-          strip .nemesis/target/${{ matrix.target }}/release/nemesis || true
+          cd .nemesis
+          cargo build --release --target ${{ matrix.target }} \
+            -p nemesis -p nemesis-defender -p nemesis-doctor
 
-      - name: Create distribution (Unix)
-        if: runner.os != 'Windows'
+      - name: Package
+        shell: bash
         run: |
-          mkdir -p dist/bin dist/config
-          cp .nemesis/target/${{ matrix.target }}/release/nemesis-cli dist/bin/
-          cp .nemesis/target/${{ matrix.target }}/release/nemesis-pretool-check-* dist/bin/ 2>/dev/null || true
-          cp .nemesis/target/${{ matrix.target }}/release/nemesis-defender dist/bin/
-          cp .nemesis/target/${{ matrix.target }}/release/nemesis dist/bin/
-          cp .nemesis/workflow-enforcement/config/deny-list*.json dist/config/
-          cp .nemesis/nemesis-defender/config/denylist-defender.json dist/config/
-          tar -czf nemesis-v2.0-${{ matrix.suffix }}.tar.gz -C dist .
-          cp dist/bin/nemesis-cli nemesis-cli-${{ matrix.suffix }}
+          set -euo pipefail
+          BIN=".nemesis/target/${{ matrix.target }}/release"
+          PKG="nemesis-v2.0-${{ matrix.suffix }}"
+          mkdir -p "$PKG/bin" "$PKG/denylist" "$PKG/nemesis-defender/config"
 
-      - name: Create distribution (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          mkdir dist\bin dist\config
-          copy .nemesis\target\${{ matrix.target }}\release\nemesis-cli.exe dist\bin\
-          copy .nemesis\target\${{ matrix.target }}\release\nemesis-pretool-check-windows.exe dist\bin\
-          copy .nemesis\target\${{ matrix.target }}\release\nemesis-defender.exe dist\bin\
-          copy .nemesis\target\${{ matrix.target }}\release\nemesis.exe dist\bin\
-          copy .nemesis\workflow-enforcement\config\deny-list*.json dist\config\
-          copy .nemesis\nemesis-defender\config\denylist-defender.json dist\config\
-          Compress-Archive -Path dist\* -DestinationPath nemesis-v2.0-${{ matrix.suffix }}.zip
-          copy dist\bin\nemesis-cli.exe nemesis-cli-${{ matrix.suffix }}.exe
+          # Binários do core (sem windows, sem eBPF)
+          for b in nemesis-pretool-check nemesis-pretool-check-unix nemesis-pretool-hook \
+                   nemesis-posttool-check-unix pre-edit-hook debug-hook-env nemesis-lsp \
+                   nemesis-defender nemesis-doctor; do
+            cp "$BIN/$b" "$PKG/bin/"
+            strip "$PKG/bin/$b" 2>/dev/null || true
+          done
+
+          # Denylists + config (o defender/pretool carregam destes paths)
+          cp -r .nemesis/denylist/. "$PKG/denylist/" 2>/dev/null || true
+          cp .nemesis/nemesis-defender/config/denylist-defender.json "$PKG/nemesis-defender/config/"
+
+          # Tarball: conteúdo na raiz (bin/, denylist/, nemesis-defender/config/).
+          # O install.sh extrai isto para dentro de .nemesis/ do projeto-alvo.
+          tar -czf "$PKG.tar.gz" -C "$PKG" .
+
+          # Checksum (portável mac/linux)
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "$PKG.tar.gz" > "$PKG.tar.gz.sha256"
+          else
+            shasum -a 256 "$PKG.tar.gz" > "$PKG.tar.gz.sha256"
+          fi
 
       - uses: softprops/action-gh-release@v1
         with:
           draft: true
           files: |
-            nemesis-v2.0-*
-            nemesis-cli-*
+            nemesis-v2.0-*.tar.gz
+            nemesis-v2.0-*.sha256
