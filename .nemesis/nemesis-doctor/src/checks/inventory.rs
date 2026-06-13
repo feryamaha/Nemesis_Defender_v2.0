@@ -1,4 +1,4 @@
-use crate::checks::nemesis_dir;
+use crate::checks::binaries_dir;
 use crate::report::{CheckResult, CheckStatus};
 
 // Build da fonte (cargo): todos os binários, incluindo windows e eBPF.
@@ -33,18 +33,20 @@ const DISTRO_BINARIES: &[&str] = &[
 pub fn run() -> CheckResult {
     let mut res = CheckResult::new("G3 - Inventario de binarios");
 
-    let bin = nemesis_dir().join("bin");
-    let release = nemesis_dir().join("target").join("release");
-
-    // Detecta o layout: distribuição (.nemesis/bin/) tem precedência sobre build da fonte.
-    let (dir, expected, layout) = if bin.is_dir() {
-        (bin, DISTRO_BINARIES, "distribuicao (.nemesis/bin/)")
-    } else if release.is_dir() {
-        (release, SOURCE_BINARIES, "build da fonte (target/release/)")
+    // Layout resolvido pela fonte única `binaries_dir()` (distro `.nemesis/bin/` tem precedência).
+    let dir = match binaries_dir() {
+        Some(d) => d,
+        None => {
+            res.push("Nenhum layout de binarios encontrado (.nemesis/bin/ nem target/release/).");
+            res.push("Acao: instale via install.sh, OU 'cd .nemesis && cargo build --release --workspace'.");
+            return res.status(CheckStatus::Fail);
+        }
+    };
+    let is_distro = dir.file_name().map(|n| n == "bin").unwrap_or(false);
+    let (expected, layout) = if is_distro {
+        (DISTRO_BINARIES, "distribuicao (.nemesis/bin/)")
     } else {
-        res.push("Nenhum layout de binarios encontrado (.nemesis/bin/ nem target/release/).");
-        res.push("Acao: instale via install.sh, OU 'cd .nemesis && cargo build --release --workspace'.");
-        return res.status(CheckStatus::Fail);
+        (SOURCE_BINARIES, "build da fonte (target/release/)")
     };
 
     res.push(format!("Layout detectado: {}", layout));

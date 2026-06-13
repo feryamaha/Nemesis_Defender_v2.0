@@ -40,6 +40,34 @@ pub fn project_root() -> PathBuf {
         .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")))
 }
 
+/// Diretório onde os binários REALMENTE estão, resolvendo o layout (distro `.nemesis/bin/` tem
+/// precedência sobre build da fonte `.nemesis/target/release/`). `None` se nenhum existe.
+/// Fonte única para G3 (inventário), G4 (scaffold) e G6 (ação do daemon) — evita o laudo errado
+/// em que o doctor procurava o binário só em `target/release` e falhava no layout distro.
+pub fn binaries_dir() -> Option<PathBuf> {
+    let bin = nemesis_dir().join("bin");
+    if bin.is_dir() {
+        return Some(bin);
+    }
+    let release = nemesis_dir().join("target").join("release");
+    if release.is_dir() {
+        return Some(release);
+    }
+    None
+}
+
+/// Caminho COPIÁVEL (relativo a `.nemesis/`) de um binário no layout ativo, para mensagens de
+/// ação. Distro → `.nemesis/bin/<bin>`; fonte → `.nemesis/target/release/<bin>`. Sem layout
+/// detectado, assume o distro (caminho do instalador).
+pub fn binary_action_path(bin: &str) -> String {
+    let sub = if nemesis_dir().join("bin").is_dir() {
+        "bin"
+    } else {
+        "target/release"
+    };
+    format!(".nemesis/{}/{}", sub, bin)
+}
+
 /// Verifica se um comando existe no PATH via `<cmd> --version`.
 pub fn command_exists(cmd: &str) -> bool {
     std::process::Command::new(cmd)

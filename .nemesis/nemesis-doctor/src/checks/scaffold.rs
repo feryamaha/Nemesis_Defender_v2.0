@@ -1,4 +1,4 @@
-use crate::checks::{nemesis_dir, project_root};
+use crate::checks::{binaries_dir, project_root};
 use crate::report::{CheckResult, CheckStatus};
 
 const SCAFFOLD_CONFIGS: &[&str] = &[
@@ -12,7 +12,9 @@ const SCAFFOLD_CONFIGS: &[&str] = &[
 pub fn run() -> CheckResult {
     let mut res = CheckResult::new("G4 - Scaffold da IDE (hooks pretool/posttool)");
     let root = project_root();
-    let release = nemesis_dir().join("target").join("release");
+    // Diretório real dos binários no layout ativo (distro `.nemesis/bin/` ou fonte
+    // `target/release/`) — NÃO assumir target/release, senão o scaffold dá laudo falso no distro.
+    let bin_dir = binaries_dir();
 
     let mut found_any = false;
     let mut any_valid_pretool = false;
@@ -41,14 +43,18 @@ pub fn run() -> CheckResult {
 
         let has_pre = content.contains("pretool");
         let has_post = content.contains("posttool");
-        let pre_bin = release.join("nemesis-pretool-check-unix");
+        let pre_bin_exists = bin_dir
+            .as_ref()
+            .map(|d| d.join("nemesis-pretool-check-unix").exists())
+            .unwrap_or(false);
 
-        if has_pre && pre_bin.exists() {
+        if has_pre && pre_bin_exists {
             any_valid_pretool = true;
             res.push(format!("OK    {} - pretool configurado.", rel));
         } else if has_pre {
             res.push(format!(
-                "ATENCAO {} - referencia pretool mas binario ausente em target/release.",
+                "ATENCAO {} - referencia pretool mas binario nemesis-pretool-check-unix nao \
+                 encontrado em nenhum layout (.nemesis/bin/ nem target/release/).",
                 rel
             ));
         } else {
