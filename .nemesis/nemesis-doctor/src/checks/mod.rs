@@ -11,24 +11,33 @@ pub mod unit_tests;
 use crate::report::CheckResult;
 use std::path::PathBuf;
 
-/// Raiz do projeto (dir que contem `.nemesis/`).
-/// Derivada do binario: .nemesis/target/release/nemesis-doctor
-pub fn project_root() -> PathBuf {
+/// Diretório `.nemesis/`, resolvido subindo do binário até o ancestral chamado `.nemesis` —
+/// robusto para AMBOS os layouts (NÃO assume profundidade fixa):
+///   dev:    .nemesis/target/release/nemesis-doctor → ancestral `.nemesis`
+///   distro: .nemesis/bin/nemesis-doctor            → ancestral `.nemesis`
+/// (Mesma estratégia de `pid::pid_path` / `violations_log::ledger_path`. O antigo parent-walk de
+///  profundidade fixa, calibrado para o layout dev, OVERSHOOTAVA no distro — passava da raiz do
+///  projeto — e o doctor reportava "Nenhum layout de binarios encontrado" mesmo com `.nemesis/bin/`.)
+pub fn nemesis_dir() -> PathBuf {
     if let Ok(exe) = std::env::current_exe() {
-        if let Some(p) = exe
-            .parent()
-            .and_then(|r| r.parent())
-            .and_then(|t| t.parent())
-            .and_then(|n| n.parent())
-        {
-            return p.to_path_buf();
+        for anc in exe.ancestors() {
+            if anc.file_name().map(|n| n == ".nemesis").unwrap_or(false) {
+                return anc.to_path_buf();
+            }
         }
     }
-    std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
+    // Fallback (resolução pelo binário falhou): ancora em `.nemesis` relativo ao CWD.
+    std::env::current_dir()
+        .unwrap_or_else(|_| PathBuf::from("."))
+        .join(".nemesis")
 }
 
-pub fn nemesis_dir() -> PathBuf {
-    project_root().join(".nemesis")
+/// Raiz do projeto = diretório que contém `.nemesis/`.
+pub fn project_root() -> PathBuf {
+    nemesis_dir()
+        .parent()
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")))
 }
 
 /// Verifica se um comando existe no PATH via `<cmd> --version`.

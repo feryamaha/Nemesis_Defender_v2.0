@@ -55,41 +55,62 @@ pub fn read_pid() -> Option<u32> {
         .and_then(|s| s.trim().parse::<u32>().ok())
 }
 
+/// O processo `pid` está vivo E é o nemesis-defender? (liveness + identidade, anti PID-reuse).
+///
+/// A identidade é checada porque o SO pode REUSAR um PID após a morte do daemon: sem confirmar
+/// o nome do processo, um PID reciclado por outro programa seria tratado como "daemon vivo".
+/// A liveness/identidade é resolvida por plataforma — crucial porque `/proc` NÃO existe no macOS
+/// (era a causa-raiz dos 100+ daemons: o check via `/proc` falhava sempre, o PID era tido como
+/// morto e cada `--ensure-daemon` do shell-hook subia um novo).
+fn pid_alive_and_ours(pid: u32) -> bool {
+    // Linux: `/proc/<pid>/comm` é confiável e não exige spawnar processo.
+    #[cfg(target_os = "linux")]
+    {
+        let proc_comm = std::path::PathBuf::from(format!("/proc/{}/comm", pid));
+        proc_comm.exists()
+            && std::fs::read_to_string(&proc_comm)
+                .map(|s| s.trim().starts_with("nemesis-defende"))
+                .unwrap_or(false)
+    }
+
+    // macOS / BSD: NÃO há `/proc`. `ps -p <pid> -o comm=` imprime o caminho/nome do executável
+    // se (e só se) o processo existe — liveness — e o basename confirma a identidade.
+    #[cfg(all(unix, not(target_os = "linux")))]
+    {
+        std::process::Command::new("ps")
+            .args(["-p", &pid.to_string(), "-o", "comm="])
+            .output()
+            .map(|o| {
+                String::from_utf8_lossy(&o.stdout).lines().any(|line| {
+                    std::path::Path::new(line.trim())
+                        .file_name()
+                        .map(|n| n.to_string_lossy().starts_with("nemesis-defende"))
+                        .unwrap_or(false)
+                })
+            })
+            .unwrap_or(false)
+    }
+
+    // Windows: tasklist filtrado pelo PID.
+    #[cfg(not(unix))]
+    {
+        std::process::Command::new("tasklist")
+            .args(["/FI", &format!("PID eq {}", pid)])
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).contains(&pid.to_string()))
+            .unwrap_or(false)
+    }
+}
+
 pub fn is_daemon_running() -> bool {
     let Some(pid) = read_pid() else { return false };
 
-    // Check if process with this PID is actually alive AND is nemesis-defender
-    #[cfg(unix)]
-    {
-        let proc_comm = std::path::PathBuf::from(format!("/proc/{}/comm", pid));
-        let proc_exe = std::path::PathBuf::from(format!("/proc/{}/exe", pid));
+    let alive = pid_alive_and_ours(pid);
 
-        let alive = proc_comm.exists()
-            && proc_exe.exists()
-            && std::fs::read_to_string(&proc_comm)
-                .map(|s| s.trim().starts_with("nemesis-defende"))
-                .unwrap_or(false);
-
-        if !alive {
-            // Stale PID file — clean up so next caller spawns a fresh daemon
-            let _ = std::fs::remove_file(pid_path());
-        }
-
-        alive
+    if !alive {
+        // PID file obsoleto — limpa para o próximo caller subir um daemon fresco.
+        let _ = std::fs::remove_file(pid_path());
     }
 
-    #[cfg(not(unix))]
-    {
-        // Windows: check via tasklist
-        let out = std::process::Command::new("tasklist")
-            .args(["/FI", &format!("PID eq {}", pid)])
-            .output();
-        let alive = out
-            .map(|o| String::from_utf8_lossy(&o.stdout).contains(&pid.to_string()))
-            .unwrap_or(false);
-        if !alive {
-            let _ = std::fs::remove_file(pid_path());
-        }
-        alive
-    }
+    alive
 }

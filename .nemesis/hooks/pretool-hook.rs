@@ -358,7 +358,66 @@ fn match_glob(file_path: &str, pattern: &str) -> bool {
     }
 }
 
+/// Resolve `.`/`..` LEXICAMENTE (sem `canonicalize`, sem exigir que o arquivo exista), a partir
+/// de `base`. Paths absolutos ficam como estão. É o que faltava: `canonicalize()` falha para
+/// arquivos NOVOS e deixava `../../etc/passwd` cru escapar da contenção.
+fn resolve_lexical(file_path: &str, base: &std::path::Path) -> PathBuf {
+    let raw = PathBuf::from(file_path);
+    let start = if raw.is_absolute() { raw } else { base.join(&raw) };
+    let mut root = PathBuf::new();
+    let mut out: Vec<std::ffi::OsString> = Vec::new();
+    for comp in start.components() {
+        match comp {
+            std::path::Component::Prefix(p) => root.push(p.as_os_str()),
+            std::path::Component::RootDir => root.push(std::path::Component::RootDir.as_os_str()),
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                out.pop();
+            }
+            std::path::Component::Normal(c) => out.push(c.to_os_string()),
+        }
+    }
+    let mut result = root;
+    for c in out {
+        result.push(c);
+    }
+    result
+}
+
+/// CONTENÇÃO POSITIVA ao scaffold: a escrita resolvida deve ficar DENTRO da raiz do projeto (cwd).
+/// Bloqueia path traversal (`../../`) e symlink que escape. Vale SEMPRE, mesmo sem scope.json.
+fn is_write_within_project(file_path: &str) -> bool {
+    let cwd = get_cwd();
+    let root = cwd.canonicalize().unwrap_or(cwd);
+    let resolved = resolve_lexical(file_path, &root);
+    if !resolved.starts_with(&root) {
+        return false;
+    }
+    // Anti-symlink: se o diretório-pai existe, seu caminho REAL também deve estar na raiz.
+    if let Some(parent) = resolved.parent() {
+        if let Ok(real_parent) = parent.canonicalize() {
+            if !real_parent.starts_with(&root) {
+                return false;
+            }
+        }
+    }
+    true
+}
+
 fn validate_file_scope(file_path: &str) -> ValidationResult {
+    // Contenção ao scaffold (independente de scope.json): escrita fora da raiz do projeto é
+    // bloqueada. Fecha o vetor de path traversal (`../../etc/passwd`) achado no pentest do Mac.
+    if !is_write_within_project(file_path) {
+        return ValidationResult {
+            valid: false,
+            reason: Some(format!("NEMESIS SEC - ESCRITA FORA DO PROJETO · {}", file_path)),
+            rule: Some(".devin/rules/README.md".to_string()),
+            suggestion: Some(
+                "Escrita permitida apenas dentro da raiz do projeto (sem path traversal).".to_string(),
+            ),
+        };
+    }
+
     let scope = read_scope();
 
     // Sem scope = modo aberto (permite tudo)
@@ -2060,6 +2119,22 @@ fn validate_file_operation(file_path: &str, action: &str, _content: Option<&str>
     let is_critical = critical_patterns.iter().any(|pattern| {
         Regex::new(pattern).map(|re| re.is_match(&path_str)).unwrap_or(false)
     });
+
+    // CONTENCAO DE PATH TRAVERSAL (incondicional, SPEC_005): resolve `.`/`..` lexicamente
+    // (sem exigir que o arquivo exista) e bloqueia toda escrita cujo path resolvido caia FORA
+    // da raiz do projeto. Roda SEMPRE — independente de scope.json ou de o arquivo ser critico —
+    // fechando o vetor em que `canonicalize()` falha para arquivos novos e o `..` cru escapa.
+    if !is_write_within_project(file_path) {
+        return ValidationResult {
+            valid: false,
+            reason: Some(format!("NEMESIS SEC - ESCRITA FORA DO PROJETO · {}", file_path)),
+            rule: Some(".devin/rules/README.md".to_string()),
+            suggestion: Some(
+                "Escrita permitida apenas dentro da raiz do projeto (sem path traversal `../`)."
+                    .to_string(),
+            ),
+        };
+    }
 
     if is_critical {
         // Check scope validator first
