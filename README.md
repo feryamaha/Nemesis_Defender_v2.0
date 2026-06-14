@@ -220,7 +220,7 @@ Modo rápido (pula compilação, testes e pentest):
 
 - **SAUDAVEL** — todos os grupos OK. Sistema pronto.
 - **ATENCAO** — um ou mais grupos com WARN (ex.: capabilities ausentes). Funciona, mas merece atenção.
-- **CRITICO** — erro bloqueante (compilação falhou, daemon morto, pentest < 90%). Não lançar.
+- **CRITICO** — erro bloqueante (compilação falhou, daemon morto, ou pentest **REPROVADO**: algum ataque passou ou houve falso-positivo). Corrija antes de confiar na proteção.
 
 > **Regra:** após qualquer recompilação que afete o `nemesis-ebpf-daemon`, **reaplique as capabilities** (`setcap`) — elas se perdem quando o inode do binário é recriado.
 
