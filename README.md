@@ -119,14 +119,18 @@ Duas formas: **(A) binários pré-compilados** (rápido, sem Rust) ou **(B) comp
 
 Baixa os binários do **GitHub Release**, **verifica o checksum SHA256** e instala em `.nemesis/bin/` no seu projeto, já configurando o hook da IDE detectada. Suporta **macOS (arm64/x64)** e **Linux (x64)**. Sem `git clone`, sem `cargo`, sem `npm`.
 
-> **Coerência de segurança:** o Nemesis bloqueia `curl … | sh` como vetor de ataque — então o modo **recomendado é em duas etapas** (baixe, inspecione, execute), nunca um pipe cego:
+> **Coerência de segurança:** o Nemesis bloqueia `curl … | sh` como vetor de ataque — então o modo **recomendado é em duas etapas** (baixe, inspecione, execute), nunca um pipe cego. Baixe o instalador **e** o leia-me (`info-install.txt`, com o passo a passo) de uma vez:
 
 ```bash
-# A partir da RAIZ do seu projeto:
-curl -fsSLO https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v2.0/main/nemesis-install.sh
-less nemesis-install.sh          # inspecione antes de rodar
+# A partir da RAIZ do seu projeto (o curl -O salva os arquivos pelo nome, no diretório atual):
+curl -fsSLO https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v2.0/main/.nemesis/install/nemesis-install.sh \
+     -O      https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v2.0/main/.nemesis/install/info-install.txt
+less info-install.txt            # leia o passo a passo (instalar → doctor → pentest)
+less nemesis-install.sh          # inspecione o instalador antes de rodar
 bash nemesis-install.sh          # baixa + verifica SHA256 + instala em .nemesis/bin/ + configura o hook
 ```
+
+O instalador faz **só o essencial** (baixar, verificar checksum, extrair, scaffold do hook). **Não roda validação nem sobe o daemon** — isso é manual, no [mapa de instalação](#mapa-de-instalação-resumo) abaixo.
 
 O instalador detecta SO/arch, baixa o tarball da release, **confere o SHA256 antes de extrair** (aborta se não bater), instala os binários e as deny-lists, e **detecta a(s) IDE(s) presente(s) e escreve o hook no formato CORRETO de cada uma** (nome de arquivo + schema próprios), sem sobrescrever config existente:
 
@@ -142,6 +146,21 @@ O instalador detecta SO/arch, baixa o tarball da release, **confere o SHA256 ant
 Caminho absoluto para os binários (relativo no caso do GitHub/VS Code). Versão fixa: `NEMESIS_VERSION=v2.0.0 bash nemesis-install.sh`.
 
 > A **camada eBPF (Linux)** NÃO vem nos binários: depende de `libbpf`/`clang` e de um objeto BPF compatível com o seu kernel. É **opt-in**, construída da fonte (Opção B). O core (pretool + Defender) protege em macOS e Linux sem ela.
+
+#### Mapa de instalação (resumo)
+
+Fluxo completo, **na ordem**, agnóstico de SO (macOS/Linux) — todos os comandos a partir da **raiz do seu projeto**:
+
+| # | Passo | Comando |
+|---|-------|---------|
+| 1 | **Baixar** instalador + leia-me | `curl -fsSLO …/main/.nemesis/install/nemesis-install.sh -O …/main/.nemesis/install/info-install.txt` |
+| 2 | **Inspecionar** e instalar | `less info-install.txt` · `less nemesis-install.sh` · `bash nemesis-install.sh` |
+| 3 | **Reiniciar a IDE** (hooks entram em vigor) | — |
+| 4 | **Diagnóstico** (siga as ações que ele indicar) | `.nemesis/bin/nemesis-doctor --quick` |
+| 5 | **Nível 1 — validação estática** (binário auto-detectado) | `bash .nemesis/pentest-nemesis-control/nemesis-defender/run-pentest.sh` |
+| 6 | **Nível 2 — validação prática** (cole no agente) | conteúdo de `…/pentest-final-amplificado-portal-dental.md` |
+
+O **doctor** (passo 4) imprime, em cada verificação que falha, a **ação exata** já no caminho do seu layout (ex.: se o **G6** indicar daemon parado, rode `.nemesis/bin/nemesis-defender --ensure-daemon` e rode o doctor de novo). O passo a passo detalhado está em **`info-install.txt`** (raiz) e em `.nemesis/pentest-nemesis-control/nemesis-defender/info.md`.
 
 ### Opção B — Compilar da fonte
 

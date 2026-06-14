@@ -207,7 +207,7 @@ Workspace Cargo `nemesis` em `.nemesis/` (crates: `ast-linters`, `ebpf-kernel`, 
 | Diagnóstico | `.nemesis/nemesis-doctor/` |
 | Pentest estático | `.nemesis/pentest-nemesis-control/nemesis-defender/run-pentest.sh` |
 | Ledger único | `.nemesis/logs/nemesis-violations.log` |
-| Instalador | `nemesis-install.sh` (raiz) |
+| Instalador + leia-me | `.nemesis/install/nemesis-install.sh` + `.nemesis/install/info-install.txt` (isentos via marker `.nemesis/install/`) |
 | SDD (specs/plans/PR) | `Feature-Documentation/` + `.devin/workflows/nemesis-sdd-pipeline.md` |
 
 ---

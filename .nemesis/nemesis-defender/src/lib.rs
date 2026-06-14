@@ -108,6 +108,13 @@ const EXCLUDED_DIR_MARKERS: &[&str] = &[
     // e denylist-folder-files.json; por isso isentamos a PASTA inteira (qualquer forma de
     // path: absoluto, relativo da raiz ou de .nemesis/ — todos contêm "denylist/").
     "denylist/",
+    // Pasta dos artefatos de INSTALAÇÃO no repo-fonte (nemesis-install.sh + info-install.txt).
+    // O instalador contém legitimamente comandos `curl` (download da release) e o leia-me os
+    // documenta — disparariam data_transfer_exfiltration. Mesma classe de pentest-nemesis-control
+    // (artefatos controlados, não conteúdo de usuário/agente). Na máquina do usuário esses
+    // arquivos caem na raiz do cwd (não em .nemesis/install/), onde já são isentos por outras
+    // regras (nemesis-install.sh por nome no daemon; info-install.txt em CANONICAL_ROOT_DOCS).
+    ".nemesis/install/",
 ];
 
 /// Documentação canônica do projeto, mantida exclusivamente por humanos.
@@ -121,6 +128,10 @@ const CANONICAL_ROOT_DOCS: &[&str] = &[
     "CHANGELOG.md",
     "CODE_OF_CONDUCT.md",
     "index.html",
+    // Leia-me de instalação baixado junto com nemesis-install.sh: necessariamente contém os
+    // comandos `curl` de download (mesma classe do README, que também os tem). É doc HUMANO, NÃO
+    // é lido como instrução por agente (≠ AGENTS.md/CLAUDE.md, que por isso seguem escaneados).
+    "info-install.txt",
 ];
 
 /// Estado INTERNO do `.git/` (mensagens de commit, reflogs, refs, objects, index, HEAD…) contém

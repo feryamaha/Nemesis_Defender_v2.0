@@ -3,16 +3,20 @@
 # Nemesis Defender — instalador por BINÁRIOS (sem git clone, sem cargo, sem npm)
 # =============================================================================
 # Baixa os binários pré-compilados do GitHub Release, VERIFICA o checksum SHA256
-# ANTES de extrair, instala em .nemesis/bin/, faz o scaffold do hook da sua IDE e,
-# ao final, VALIDA a instalação (pentest estático nos binários + doctor --quick).
+# ANTES de extrair, instala em .nemesis/bin/ e faz o scaffold do hook da sua IDE.
+# Faz SÓ o essencial: NÃO roda validação nem sobe o daemon — a validação (doctor +
+# pentest) é um passo MANUAL pós-install, descrito em info-install.txt.
 #
 # Suporta: macOS (arm64/x64) e Linux (x64). Windows fora de escopo por enquanto.
 #
 # ⚠️  NEMESIS É SEGURANÇA: o próprio Nemesis BLOQUEIA `curl … | sh`. Por coerência,
-#     o modo RECOMENDADO é em DUAS ETAPAS (baixe, inspecione, execute):
+#     o modo RECOMENDADO é em DUAS ETAPAS (baixe, inspecione, execute). Baixe o
+#     instalador E o leia-me (info-install.txt) de uma vez:
 #
-#         curl -fsSLO https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v2.0/main/nemesis-install.sh
-#         less nemesis-install.sh        # inspecione
+#         curl -fsSLO https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v2.0/main/.nemesis/install/nemesis-install.sh \
+#              -O      https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v2.0/main/.nemesis/install/info-install.txt
+#         less info-install.txt          # leia o passo a passo
+#         less nemesis-install.sh        # inspecione o instalador
 #         bash nemesis-install.sh        # execute a partir da raiz do SEU projeto
 #
 # Variáveis: NEMESIS_VERSION (default: latest), NEMESIS_REPO (default: feryamaha/Nemesis_Defender_v2.0)
@@ -287,14 +291,19 @@ cat <<EOF
   Binarios instalados:  .nemesis/bin/
   Reinicie a IDE para os hooks entrarem em vigor.
 
-  >>> VALIDE A INSTALACAO (manual, quando quiser) <<<
-  1) Diagnostico do ambiente:
+  >>> VALIDE A INSTALACAO (manual, passo a passo em info-install.txt) <<<
+  1) Diagnostico do ambiente (siga as acoes que ele indicar):
        .nemesis/bin/nemesis-doctor --quick
-  2) Validacao pratica (real): cole no seu agente (Claude/Devin/Cursor/Codex/Gemini), na IDE ou
-     no TUI, o conteudo de:
+  2) Validacao ESTATICA (Nivel 1) - binario auto-detectado (macOS/Linux):
+       bash .nemesis/pentest-nemesis-control/nemesis-defender/run-pentest.sh
+     Sucesso: FAIL=0 (requer 'node' no PATH).
+  3) Validacao PRATICA (Nivel 2): cole no seu agente (Claude/Devin/Cursor/Codex/Gemini), na IDE
+     ou no TUI, o conteudo de:
        .nemesis/pentest-nemesis-control/nemesis-defender/pentest-final-amplificado-portal-dental.md
-     e confirme que o Nemesis BLOQUEIA cada acao (exit 2). Guia:
-       .nemesis/pentest-nemesis-control/nemesis-defender/info.md
+     e confirme que o Nemesis BLOQUEIA cada acao (exit 2).
+
+  Guias completos:  info-install.txt  (raiz)  e
+                    .nemesis/pentest-nemesis-control/nemesis-defender/info.md
 
   Se algo que DEVERIA ser bloqueado PASSAR (gap de seguranca):
      abra uma issue em https://github.com/$REPO/issues  ou contate feryamaha@hotmail.com
