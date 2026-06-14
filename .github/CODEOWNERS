@@ -1,0 +1,39 @@
+# CODEOWNERS — revisão obrigatória nos caminhos trust-critical do Nemesis.
+#
+# So tem EFEITO se a branch protection de `main` exigir "Require review from Code Owners"
+# (Settings > Branches). Sem isso, este arquivo e apenas documentacao de intencao.
+#
+# Objetivo: nenhuma mudanca nos arquivos que definem a PROPRIA seguranca/integridade do
+# Nemesis (scanner, denylists, hooks, esteira de build, instalador, eBPF) entra em `main`
+# sem revisao explicita do mantenedor — fecha o vetor "PR malicioso mergeado sem analise".
+
+# Default: tudo precisa de revisao do mantenedor.
+*                                           @feryamaha
+
+# --- Esteira de build / release (envenenamento de CI gera binario com backdoor) ---
+/.github/                                   @feryamaha
+/.github/workflows/                         @feryamaha
+
+# --- O proprio motor de deteccao (um diff aqui pode "cegar" o scanner) ---
+/.nemesis/nemesis-defender/src/             @feryamaha
+/.nemesis/denylist/                         @feryamaha
+/.nemesis/hooks/                            @feryamaha
+
+# --- Cadeia de dependencias e build nativo (build.rs roda codigo arbitrario) ---
+/.nemesis/Cargo.toml                        @feryamaha
+/.nemesis/Cargo.lock                        @feryamaha
+**/Cargo.toml                               @feryamaha
+**/build.rs                                 @feryamaha
+
+# --- eBPF (objeto carregado no kernel) ---
+/.nemesis/ebpf-kernel/                      @feryamaha
+
+# --- Distribuicao (instalador + leia-me baixados via curl) ---
+/.nemesis/install/                          @feryamaha
+
+# --- Documentos canonicos / alvos de engenharia social ---
+/AGENTS.md                                  @feryamaha
+/CLAUDE.md                                  @feryamaha
+/GEMINI.md                                  @feryamaha
+/.gitignore                                 @feryamaha
+/.github/CODEOWNERS                         @feryamaha

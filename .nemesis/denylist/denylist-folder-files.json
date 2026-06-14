@@ -72,10 +72,11 @@
     ]
   },
   "daemon_quarantine_exempt": {
-    "description": "Arquivos de INFRAESTRUTURA do projeto que o daemon NAO quarentena, mesmo que parecam maliciosos. O instalador do proprio Nemesis (nemesis-install.sh; install.sh mantido por compatibilidade) legitimamente contem os padroes que o Nemesis detecta (curl, rm, chmod, escrever hooks, referenciar binarios e o pentest) - nao ha como instalar sem eles. Lista controlada por HUMANO; o pretool continua bloqueando escrita maliciosa no write-time e o eBPF a execucao. Paths relativos a raiz do projeto.",
+    "description": "Arquivos de INFRAESTRUTURA do projeto que o daemon NAO quarentena (nao move), mesmo que pareçam maliciosos. O instalador (nemesis-install.sh; install.sh por compatibilidade) legitimamente contem os padroes detectados (curl, rm, chmod, hooks, binarios, pentest). A zona forense (.nemesis/forensics/) recebe conteudo EXTERNO/nao-confiavel de propósito: o daemon AINDA escaneia e LOGA, mas nao move nem trava a sessao - quem da o veredito e o scan MANUAL (scan-incoming.sh). Lista controlada por HUMANO; o pretool segue bloqueando escrita maliciosa no write-time e o eBPF a execucao. Entrada com '/' = substring do path; sem '/' = arquivo na raiz.",
     "paths": [
       "install.sh",
-      "nemesis-install.sh"
+      "nemesis-install.sh",
+      ".nemesis/forensics/"
     ]
   }
 }

@@ -1,0 +1,89 @@
+name: Self-Audit (integridade do Nemesis)
+
+# O Nemesis auditando o Nemesis. Roda em todo PR e push para main. É o GATE que torna um
+# comprometimento da fonte/cadeia caro e ruidoso (nao silencioso):
+#   - prova que o motor de deteccao AINDA FUNCIONA (pentest 194/194 = APROVADO);
+#   - exige Cargo.lock commitado e proibe binarios de kernel (.bpf.o) no repo;
+#   - exige TODAS as Actions fixadas por SHA (anti-supply-chain de CI);
+#   - audita CVEs das dependencias (cargo audit).
+#
+# LIMITE HONESTO (trusting-trust): este workflow NAO se autovalida. Um PR que altere ao
+# mesmo tempo o scanner/denylist/pentest pode subverter o gate. Por isso ele SO vale acoplado
+# a CODEOWNERS + branch protection (revisao humana obrigatoria nos arquivos trust-critical).
+#
+# NOTA 1: NAO fazemos self-scan do FONTE do Nemesis — o codigo do scanner contem legitimamente
+# as proprias assinaturas de ataque (regex/denylists/visitors); auto-escanear daria ~100% de
+# falso-positivo. O self-scan de CONTEUDO vale so para conteudo EXTERNO/nao-confiavel
+# (ver .nemesis/forensics/), nunca para a propria base de assinaturas.
+# NOTA 2: a compilacao da camada eBPF (clang/libbpf) NAO entra aqui — e opt-in, Linux-only e
+# build-da-fonte via Makefile; o controle que importa e "nenhum .bpf.o commitado" (abaixo).
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  integrity:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Actions devem ser fixadas por SHA (anti supply-chain de CI)
+        run: |
+          set -euo pipefail
+          unpinned="$(grep -rnE 'uses:[[:space:]]*[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@' .github/workflows/ \
+                       | grep -vE '@[0-9a-f]{40}([[:space:]]|#|$)' || true)"
+          if [ -n "$unpinned" ]; then
+            echo "::error::Actions NAO fixadas por commit SHA (vetor de supply-chain). Fixe-as:"
+            echo "$unpinned"
+            echo "Resolva o SHA com: gh api repos/OWNER/REPO/commits/REF --jq .sha"
+            exit 1
+          fi
+          echo "OK: todas as Actions estao fixadas por SHA."
+
+      - name: Cargo.lock deve estar commitado (build reproduzivel / lock da supply chain)
+        run: |
+          set -euo pipefail
+          if [ -z "$(git ls-files .nemesis/Cargo.lock)" ]; then
+            echo "::error::.nemesis/Cargo.lock NAO esta commitado. Remova-o do .gitignore e commite."
+            exit 1
+          fi
+          echo "OK: Cargo.lock commitado."
+
+      - name: Nenhum binario de kernel (.bpf.o) commitado (alvo de troca nao-revisavel)
+        run: |
+          set -euo pipefail
+          tracked="$(git ls-files '*.bpf.o' || true)"
+          if [ -n "$tracked" ]; then
+            echo "::error::Objeto eBPF compilado commitado (deve ser buildado do .bpf.c):"
+            echo "$tracked"
+            exit 1
+          fi
+          echo "OK: nenhum .bpf.o commitado."
+
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
+        with:
+          toolchain: stable
+
+      - name: Build do core (mesmos pacotes do release, travado na Cargo.lock)
+        run: |
+          cd .nemesis
+          cargo build --release --locked -p nemesis -p nemesis-defender -p nemesis-doctor
+
+      - name: Auditoria de CVEs das dependencias (cargo audit)
+        run: |
+          set -euo pipefail
+          cargo install cargo-audit --locked
+          cd .nemesis
+          cargo audit
+
+      - name: GATE — Pentest do Nemesis deve estar APROVADO (194/194, FAIL=0)
+        run: |
+          set -euo pipefail
+          # run-pentest.sh auto-detecta o binario e sai !=0 se houver gap ou falso-positivo.
+          bash .nemesis/pentest-nemesis-control/nemesis-defender/run-pentest.sh

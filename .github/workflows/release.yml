@@ -1,20 +1,36 @@
 name: Release Nemesis Binaries
 
 # Dispara em tags v* (ex.: v2.0.0). Gera binários PRÉ-COMPILADOS do CORE cross-platform
-# (mac arm64/x64, linux x64) + checksums, e sobe num GitHub Release (draft para revisão).
-# A camada eBPF (Linux-only) NÃO entra no pacote: depende de libbpf/make e do objeto
-# .bpf.o compatível com o kernel-alvo — é opt-in, construída da fonte por quem quiser.
+# (mac arm64/x64, linux x64) + checksums, ANEXA ATTESTATION DE PROVENIÊNCIA (SLSA) e sobe num
+# GitHub Release como DRAFT (revisão humana antes de publicar). A camada eBPF (Linux-only) NÃO
+# entra no pacote: depende de libbpf/make e do .bpf.o do kernel-alvo — opt-in, build da fonte.
+#
+# HARDENING DE SUPPLY CHAIN (ver AGENTS.md > Postura de supply chain):
+#  - permissions: {} global; cada job pede o MÍNIMO. O build NÃO pode publicar release.
+#  - build e publish SEPARADOS: o job 'release' roda num Environment com required reviewer
+#    (gate humano mesmo após o push da tag) e só ele tem contents:write.
+#  - cargo build --locked: trava na Cargo.lock commitada (sem bump silencioso de dependência).
+#  - attestation de proveniência (actions/attest-build-provenance): prova verificável de que
+#    o tarball veio DESTE repo/commit/workflow. O checksum (.sha256) é só INTEGRIDADE; a
+#    AUTENTICIDADE vem da attestation (verifique: gh attestation verify <tar> --repo <owner/repo>).
+#  - TODAS as Actions DEVEM ser fixadas por commit SHA (o workflow self-audit falha se não).
+#    TODO(seguranca): trocar cada @<tag> abaixo por @<sha40>  # <tag>  (gh api repos/<o>/<r>/commits/<ref> --jq .sha)
 
 on:
   push:
     tags:
       - 'v*'
 
-permissions:
-  contents: write
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -32,18 +48,18 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
         with:
+          toolchain: stable
           targets: ${{ matrix.target }}
 
-      # CORE apenas (pacotes nemesis + nemesis-defender + nemesis-doctor). NÃO compila
-      # ebpf-kernel (Linux-only, exige libbpf e o make do .bpf.o).
+      # CORE apenas (nemesis + nemesis-defender + nemesis-doctor). --locked trava na Cargo.lock.
       - name: Build core
         run: |
           cd .nemesis
-          cargo build --release --target ${{ matrix.target }} \
+          cargo build --release --locked --target ${{ matrix.target }} \
             -p nemesis -p nemesis-defender -p nemesis-doctor
 
       - name: Package
@@ -64,34 +80,66 @@ jobs:
           done
 
           # Denylists de COMANDO do pretool (deny-list*.json) — carregadas de disco.
-          # NOTA: denylist-defender.json (SEGURANÇA DE CONTEÚDO) NÃO é empacotado: está
-          # EMBUTIDO no binário (include_str!). Não fica exposto/editável no disco do usuário
-          # e o daemon não tem arquivo de config para auto-escanear.
+          # denylist-defender.json (SEGURANÇA DE CONTEÚDO) NÃO é empacotado: está EMBUTIDO no
+          # binário (include_str!), sem arquivo exposto/editável e sem config p/ o daemon escanear.
           cp -r .nemesis/denylist/. "$PKG/denylist/" 2>/dev/null || true
 
-          # Validação pós-install: só os 3 arquivos necessários (NÃO o CSV/resultados nem o
-          # pentest do ebpf). A pasta pentest-nemesis-control é ISENTA do scan do daemon
-          # (marcador em EXCLUDED_DIR_MARKERS), então não gera ruído de violações.
+          # Validação pós-install: só os 3 arquivos necessários. A pasta pentest-nemesis-control
+          # é ISENTA do scan do daemon (EXCLUDED_DIR_MARKERS), então não gera ruído de violações.
           PENTEST_SRC=".nemesis/pentest-nemesis-control/nemesis-defender"
           cp "$PENTEST_SRC/run-pentest.sh"                         "$PENTEST_DST/"
           cp "$PENTEST_SRC/info.md"                                "$PENTEST_DST/"
           cp "$PENTEST_SRC/pentest-final-amplificado-portal-dental.md" "$PENTEST_DST/"
 
           # Tarball: conteúdo na raiz (bin/, denylist/, pentest-nemesis-control/).
-          # O nemesis-install.sh extrai isto para dentro de .nemesis/ do projeto-alvo.
           tar -czf "$PKG.tar.gz" -C "$PKG" .
 
-          # Checksum (portável mac/linux)
+          # Checksum (INTEGRIDADE de download; a AUTENTICIDADE vem da attestation no job release).
           if command -v sha256sum >/dev/null 2>&1; then
             sha256sum "$PKG.tar.gz" > "$PKG.tar.gz.sha256"
           else
             shasum -a 256 "$PKG.tar.gz" > "$PKG.tar.gz.sha256"
           fi
 
-      - uses: softprops/action-gh-release@v2
+      - name: Upload artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
-          draft: false
+          name: nemesis-${{ matrix.suffix }}
+          path: |
+            nemesis-v2.0-${{ matrix.suffix }}.tar.gz
+            nemesis-v2.0-${{ matrix.suffix }}.tar.gz.sha256
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-22.04
+    # Gate humano: configure o Environment 'release' com Required reviewers (Settings >
+    # Environments). Mesmo após o push da tag, a publicação PAUSA esperando sua aprovação.
+    environment: release
+    permissions:
+      contents: write       # criar o GitHub Release
+      id-token: write       # OIDC para a attestation de proveniência
+      attestations: write   # gravar a attestation
+    steps:
+      - name: Baixar artefatos do build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Listar artefatos
+        run: ls -R dist
+
+      - name: Attestation de proveniência (SLSA) dos tarballs
+        uses: actions/attest-build-provenance@ef244123eb79f2f7a7e75d99086184180e6d0018  # v1
+        with:
+          subject-path: 'dist/*.tar.gz'
+
+      - name: Publicar GitHub Release (DRAFT — revise antes de tornar público)
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2
+        with:
+          draft: true
           fail_on_unmatched_files: true
           files: |
-            nemesis-v2.0-*.tar.gz
-            nemesis-v2.0-*.sha256
+            dist/*.tar.gz
+            dist/*.tar.gz.sha256

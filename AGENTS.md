@@ -236,5 +236,48 @@ pontas; no **macOS nada segura** → não faça nada irreversível. Lifecycle co
 
 ---
 
+## 10. Postura de supply chain — proteger o PRÓPRIO Nemesis
+
+O Nemesis protege quem o instala; esta seção protege o Nemesis. Premissa honesta: o risco
+residual real é a **conta do mantenedor** e o *trusting-trust* (um scanner não detecta backdoor
+em si mesmo). Os controles abaixo não dão garantia — tornam um comprometimento **caro, ruidoso e
+barrado por revisão+proveniência** em vez de silencioso.
+
+**Controles no repo (mantê-los; o `self-audit` falha se quebrarem):**
+- **`.github/CODEOWNERS`** cobre os caminhos *trust-critical* (workflows, `nemesis-defender/src`,
+  denylists, hooks, `Cargo.*`, `build.rs`, `ebpf-kernel`, `install/`, docs canônicos). Só tem
+  efeito com branch protection exigindo "review from Code Owners".
+- **Actions fixadas por commit SHA** (nunca tag/branch mutável). O `self-audit` reprova se achar
+  `uses: …@<tag>`. Resolver: `gh api repos/OWNER/REPO/commits/REF --jq .sha`.
+- **`.github/workflows/self-audit.yml`** (PR + push a `main`): pentest **194/194 = APROVADO** como
+  gate, `cargo audit`, exige `Cargo.lock` commitado e proíbe `.bpf.o` commitado. NÃO faz self-scan
+  do fonte (o código do scanner contém as próprias assinaturas → seria 100% FP).
+- **`.github/workflows/release.yml`**: build (sem privilégio) separado de release; `permissions: {}`
+  global + mínimo por job; `cargo build --locked`; `draft: true`; `environment: release` (gate de
+  reviewer); **attestation de proveniência** (SLSA). O `.sha256` é só INTEGRIDADE; a AUTENTICIDADE
+  vem da attestation (`gh attestation verify <tar> --repo <owner/repo>`).
+- **`Cargo.lock` é commitado** (app que distribui binário); **`*.bpf.o` não é commitado** (binário
+  de kernel não-revisável; opt-in regenera do `.bpf.c` via `make`). Ambos travados no `.gitignore`.
+
+**Auditoria forense de conteúdo externo (issue/PR) — ANTES de analisar/mergear:**
+- Cole o conteúdo não-confiável em `.nemesis/forensics/incoming/` e rode
+  `bash .nemesis/forensics/scan-incoming.sh` → veredito **APROVADO/REPROVADO** + relatório.
+- A pasta `.nemesis/forensics/` é **isenta da quarentena do daemon**
+  (`denylist-folder-files.json` → `daemon_quarantine_exempt`): o daemon escaneia/loga mas **não move
+  nem trava a sessão**; o veredito autoritativo é o scan manual. `incoming/` e o relatório **não
+  são versionados**. É triagem, não garantia — sempre **leia** + revise.
+
+**Regra anti-masquerading (MITRE ATT&CK):** repositório/pacote de terceiros que usa nome de marca
+(ex.: `*/Anthropic-*` cujo dono NÃO é a Anthropic) é **não-confiável por padrão** — é o próprio
+vetor de supply chain. NUNCA copie código dele para o Nemesis às cegas; trate como conteúdo externo
+(passe pela auditoria forense) e use no máximo como referência conceitual.
+
+**Fora do código (domínio do Fernando, no GitHub Settings):** branch protection em `main` (PR +
+review de code owner + status check = `self-audit` + commits assinados + sem force-push); Environment
+`release` com required reviewer; 2FA por hardware; sem PAT de longa duração; chave de assinatura
+fora do CI. Sem isso, CODEOWNERS/draft/environment são só intenção.
+
+---
+
 > Resumo: inteligência não implica autoridade — vale para os agentes que o Nemesis contém e para
 > você, que o mantém. Aja com método, prove, e preserve a autoridade humana.

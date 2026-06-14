@@ -1,7 +1,19 @@
 # Rust
 /target/
 **/*.rs.bk
-Cargo.lock
+# Cargo.lock: COMMITADO de proposito. O Nemesis distribui BINARIOS (aplicacao, nao lib);
+# a orientacao oficial do Rust e versionar o lockfile p/ builds reproduziveis e p/ travar a
+# cadeia de dependencias (supply chain). NAO reintroduza "Cargo.lock" neste .gitignore.
+
+# eBPF: objeto compilado NAO e commitado (binario de kernel nao-revisavel = alvo de troca).
+# Usuarios opt-in da camada eBPF o regeneram do .bpf.c via `make` (Makefile em ebpf-kernel/).
+*.bpf.o
+
+# Auditoria forense: conteudo EXTERNO/nao-confiavel (issue/PR) e o relatorio gerado NUNCA sao
+# versionados (conteudo hostil nao entra no historico). Mantem so o .gitkeep e a infra.
+.nemesis/forensics/incoming/*
+!.nemesis/forensics/incoming/.gitkeep
+.nemesis/forensics/forensics-report.md
 
 # IDE
 .vscode/
