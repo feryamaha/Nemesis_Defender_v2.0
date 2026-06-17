@@ -179,7 +179,7 @@ Baixa os binários do **GitHub Release**, **verifica o checksum SHA256** e insta
 
 Um único comando baixa o instalador **e** o guia (`info-install.txt`) e já instala. O arquivo vai para o disco antes de rodar (auditável) — **não** é o pipe cego `curl … | sh`, que o Nemesis bloqueia como vetor de ataque. Copie o bloco inteiro:
 
-# A partir da RAIZ do seu projeto:
+## A partir da RAIZ do seu projeto:
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v2.0/main/.nemesis/install/nemesis-install.sh \
      -O      https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v2.0/main/.nemesis/install/info-install.txt \
