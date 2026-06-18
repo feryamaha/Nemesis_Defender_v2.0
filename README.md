@@ -644,15 +644,26 @@ Rode na **raiz do projeto**, no seu **terminal nativo** (o script reverte o `nem
 
 Versão **self-contained** (funciona em qualquer instalação — baixa o script e roda, espelhando o install):
 
+## com confirmação interativa:
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v0/main/.nemesis/install/nemesis-uninstall.sh \
   && bash nemesis-uninstall.sh
-# sem confirmação interativa:
+```
+
+## sem confirmação interativa:
+```bash
 curl -fsSLO https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v0/main/.nemesis/install/nemesis-uninstall.sh \
   && NEMESIS_YES=1 bash nemesis-uninstall.sh
 ```
+## Observação do uninstall:
+O instalador também deixa uma cópia local — se ela existir, basta rodar ou deletar manualmente:
 
-O instalador também deixa uma cópia local — se ela existir, basta `bash .nemesis/install/nemesis-uninstall.sh`.
+```bash
+bash .nemesis/install/nemesis-uninstall.sh
+```
+
+## Observações:
+- Caso opte por desinstalar eu gostaria muito que me envia-se um email me informando o motivo porque sua opiniao seja positiva ou negativa é muito importante! 
 
 O script: para o daemon; desabilita o serviço eBPF (se você o instalou, opt-in); remove os hooks de IDE que apontam para o Nemesis (arquivos só-dele) e **avisa** sobre os compartilhados (`.claude/settings.json`, `.vscode/settings.json`) para você remover a entrada à mão preservando o resto; e remove a pasta `.nemesis/` (binários, daemon, **sua allowlist** e logs). **Git é seu** — nada é commitado/removido do versionamento; revise com `git status`. Reinicie a IDE depois.
 
