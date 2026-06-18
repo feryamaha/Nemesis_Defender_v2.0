@@ -250,13 +250,13 @@ Rode na **raiz do projeto**, no seu **terminal nativo**. O script reverte o `nem
 
 **Self-contained** (funciona em qualquer instalação — baixa o script e roda, espelhando o install):
 
-## com confirmação interativa:
+## Desinstalar com confirmação interativa:
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v0/main/.nemesis/install/nemesis-uninstall.sh \
   && bash nemesis-uninstall.sh
 ```
 
-# sem confirmação interativa:
+## Desinstalar sem confirmação interativa:
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/feryamaha/Nemesis_Defender_v0/main/.nemesis/install/nemesis-uninstall.sh \
   && NEMESIS_YES=1 bash nemesis-uninstall.sh
