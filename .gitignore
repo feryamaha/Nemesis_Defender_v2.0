@@ -53,6 +53,7 @@ yarn-error.log*
 # Documentation build
 /docs/build/
 
+
 # Test coverage
 /coverage/
 
@@ -75,4 +76,5 @@ yarn-error.log*
 # TESTE FOLDERS
 /testes/
 Feature-Documentation/
+session-context/
 

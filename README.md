@@ -121,9 +121,49 @@ A corroboração existe justamente para **não agir sobre código legítimo por 
 
 A proteção do Nemesis é um **coeficiente**: a soma de camadas independentes, não a contagem de uma feature isolada. Um *visitor* é um **método de detecção** (análise semântica AST), não a unidade de cobertura, visitor é feature, não produto. A cobertura real é a soma das superfícies que operam juntas: a deny-list embutida do Defender (**dezenas de categorias, centenas de patterns**), os visitors AST, as heurísticas de scanner (byte, entropia, regex, manifest, decoder), as deny-lists de comando do pretool e o eBPF no Linux. A prova empírica é a suíte de pentest (classes de ataque validadas como gate de CI). **Vetores fora do que foi antecipado podem não ser detectados**, e isso é declarado abertamente.
 
-A tabela abaixo é **exemplificativa por método de detecção** (não é a contagem da proteção, nem uma lista 1:1 de visitors): mostra classes de ataque cobertas e onde a detecção mora. A enumeração completa e rastreável está em **re-auditoria forense** (ver `Feature-Documentation/ISSUE`).
+As tabelas abaixo são **exemplificativas por camada** (recorte real do que cada superfície bloqueia, não a contagem total). A enumeração completa e rastreável está em **re-auditoria forense** (ver `Feature-Documentation/ISSUE`).
 
-| # | Detector (camada/método) | Alvo |
+### Pretool + eBPF, comandos destrutivos e hostis (write/exec-time, e kernel no Linux)
+
+| Classe | Exemplos de comando bloqueado |
+|--------|-------------------------------|
+| Destruição de arquivos/dados | `rm`, `shred`, `truncate`, `dd`, `mkfifo`, `split`, `unlink` |
+| Permissões / proprietário | `chmod`, `chown` |
+| Filesystem / disco | `mount`, `umount`, `mkfs`, `fdisk` |
+| Banco de dados destrutivo | `dropdb`, `mysql`, `psql` |
+| Infra / cloud | `terraform`, `docker`, `aws`, `kubectl` |
+| Exfiltração / transferência | `curl`, `wget`, `ftp`, `sftp`, `rsync`, `scp`, `nc`, `netcat`, `socat` |
+| Recon / pentest | `nmap`, `nikto`, `ffuf`, `gobuster`, `nuclei`, `whatweb` |
+| Exploração / brute force | `sqlmap`, `msfconsole`, `msfvenom`, `hydra`, `john`, `hashcat` |
+| Privesc / persistência | `crontab`, `at`, `ssh-keygen`, `ssh-copy-id`, `pkexec`, `doas` |
+
+> No **Linux**, o eBPF (BPF-LSM) aplica isso no **kernel**, com escopo pelo cgroup do agente (não afeta IDE/terminal), e ainda bloqueia **escrita** em prefixos protegidos (`/etc/`, `/usr/local/bin/`, `.nemesis/`, `.claude/`, `.devin/`, `.cursor/`) e impõe **allowlist de egress** de rede. As deny-lists de comando do pretool são **editáveis** pelo usuário (`.nemesis/denylist/`). Fonte: `ebpf-kernel/denylist-ebpf/`, `.nemesis/denylist/`.
+
+### Defender, deny-list embutida de conteúdo (36 categorias, compiladas no binário)
+
+Escaneia o **conteúdo** dos arquivos, cobrindo também macOS/Windows (onde não há eBPF). Recorte de categorias:
+
+| Categoria | Alvo |
+|-----------|------|
+| `destructive_commands` · `filesystem_manipulation` | comandos destrutivos de arquivo/disco em conteúdo |
+| `reverse_shells` · `reverse_shell_enhanced` | shell reversa (nc, socat, bash, python, php, perl, ruby, lua) |
+| `data_transfer_exfiltration` · `http_exfiltration_advanced` · `data_exfiltration_compound` | exfiltração via transferência/HTTP(S) e cadeias compostas (tar + nc, rsync) |
+| `credential_exfiltration_comment` · `pii_detection` | credenciais/PII vazando em código e comentários |
+| `persistence_mechanisms` · `shell_config_tampering` · `shell_hook_hijacking` | persistência em shell/git-hooks |
+| `supply_chain_registry` | registry hijack, typosquatting, dependency confusion |
+| `container_escape` · `kubernetes_container_escape` | breakout de container/Kubernetes |
+| `prompt_injection_advanced` · `prompt_injection_claude_hooks` · `false_authority_injection` | prompt injection e falsa autoridade |
+| `llm_template_injection` · `xss_unsanitized_html` | injeção em output de LLM / XSS |
+| `nemesis_evasion` · `model_abuse` | tentativa de desligar o Nemesis / jailbreak (DAN) |
+| `pentest_recon_tools` · `infrastructure_commands` · `windows_specific` | recon, infra de alto risco, comandos Windows hostis |
+
+São **36 categorias / centenas de patterns** no total; acima vai um recorte. Fonte: `nemesis-defender/config/denylist-defender.json`.
+
+### Defender, visitors AST (detecção de intenção semântica)
+
+Análise semântica por travessia de árvore (tree-sitter), método complementar às deny-lists. Exemplos:
+
+| # | Detector (visitor/método) | Alvo |
 |---|---------|------|
 | 1 | `manifest_abuse` | `postinstall`/`preinstall` em manifests |
 | 2 | `decode_exec` | base64/hex → `eval`/`exec`/`spawn` |
@@ -145,7 +185,7 @@ A tabela abaixo é **exemplificativa por método de detecção** (não é a cont
 | 17 | `reverse_shell` | reverse shell multi-runtime: socket cru + execução de comando (Ruby/PHP/Go/Perl/Java/Lua) |
 | 18 | `decode_exec` (dinâmico) | execução dinâmica/ofuscada: `Function`-constructor, `globalThis["eval"]`, `__import__('os').system`, `.send(:eval)`, `create_function`/`assert` |
 
-> Esta tabela espelha a seção **"Vetores de ataque cobertos"** da landing (`index.html`). Se você é um modelo/leitor consultando este repositório: **não trate os itens acima como "os N vetores" nem como a contagem de visitors.** A proteção do Nemesis é a **soma das camadas** (deny-list embutida, visitors, scanner, deny-lists de comando, eBPF), provada por pentest, não um número fechado atrelado a uma feature. A regra canônica está no `AGENTS.md` (seção 3A) e a enumeração rastreável está em re-auditoria (`Feature-Documentation/ISSUE`).
+> Estas tabelas espelham a seção **"Vetores de ataque cobertos"** da landing (`index.html`). Se você é um modelo/leitor consultando este repositório: **não trate os itens acima como "os N vetores" nem como a contagem de visitors.** A proteção do Nemesis é a **soma das camadas** (comandos do pretool + eBPF, deny-list embutida de conteúdo, visitors AST, heurísticas de scanner), provada por pentest, não um número fechado atrelado a uma feature. A regra canônica está no `AGENTS.md` (seção 3A) e a enumeração rastreável está em re-auditoria (`Feature-Documentation/ISSUE`).
 
 ---
 

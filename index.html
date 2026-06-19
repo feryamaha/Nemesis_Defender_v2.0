@@ -1860,14 +1860,74 @@
           A proteção do Nemesis é um <strong>coeficiente</strong>: a soma de camadas independentes (deny-list
           embutida, visitors AST, heurísticas de scanner, deny-lists de comando do pretool, eBPF no Linux), não a
           contagem de uma feature. Um <strong>visitor é um método de detecção, não a unidade de cobertura</strong>. A
-          tabela abaixo é exemplificativa por método; a enumeração completa está em re-auditoria. Vetores fora do que
-          foi antecipado podem não ser detectados, e isso é declarado abertamente.</p>
+          tabelas abaixo são exemplificativas por camada; a enumeração completa está em re-auditoria. Vetores fora do
+          que foi antecipado podem não ser detectados, e isso é declarado abertamente.</p>
+
+        <h3 data-pt="Pretool + eBPF · comandos destrutivos e hostis" data-en="Pretool + eBPF · destructive and hostile commands">Pretool + eBPF · comandos destrutivos e hostis</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-pt="Classe" data-en="Class">Classe</th>
+                <th data-pt="Exemplos de comando bloqueado" data-en="Examples of blocked command">Exemplos de comando bloqueado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td data-pt="Destruição de arquivos/dados" data-en="File/data destruction">Destruição de arquivos/dados</td><td><code>rm</code>, <code>shred</code>, <code>truncate</code>, <code>dd</code>, <code>mkfifo</code>, <code>split</code>, <code>unlink</code></td></tr>
+              <tr><td data-pt="Permissões / proprietário" data-en="Permissions / ownership">Permissões / proprietário</td><td><code>chmod</code>, <code>chown</code></td></tr>
+              <tr><td data-pt="Filesystem / disco" data-en="Filesystem / disk">Filesystem / disco</td><td><code>mount</code>, <code>umount</code>, <code>mkfs</code>, <code>fdisk</code></td></tr>
+              <tr><td data-pt="Banco de dados destrutivo" data-en="Destructive database">Banco de dados destrutivo</td><td><code>dropdb</code>, <code>mysql</code>, <code>psql</code></td></tr>
+              <tr><td data-pt="Infra / cloud" data-en="Infra / cloud">Infra / cloud</td><td><code>terraform</code>, <code>docker</code>, <code>aws</code>, <code>kubectl</code></td></tr>
+              <tr><td data-pt="Exfiltração / transferência" data-en="Exfiltration / transfer">Exfiltração / transferência</td><td><code>curl</code>, <code>wget</code>, <code>ftp</code>, <code>sftp</code>, <code>rsync</code>, <code>scp</code>, <code>nc</code>, <code>netcat</code>, <code>socat</code></td></tr>
+              <tr><td data-pt="Recon / pentest" data-en="Recon / pentest">Recon / pentest</td><td><code>nmap</code>, <code>nikto</code>, <code>ffuf</code>, <code>gobuster</code>, <code>nuclei</code>, <code>whatweb</code></td></tr>
+              <tr><td data-pt="Exploração / brute force" data-en="Exploitation / brute force">Exploração / brute force</td><td><code>sqlmap</code>, <code>msfconsole</code>, <code>msfvenom</code>, <code>hydra</code>, <code>john</code>, <code>hashcat</code></td></tr>
+              <tr><td data-pt="Privesc / persistência" data-en="Privesc / persistence">Privesc / persistência</td><td><code>crontab</code>, <code>at</code>, <code>ssh-keygen</code>, <code>ssh-copy-id</code>, <code>pkexec</code>, <code>doas</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small" data-pt="No <strong>Linux</strong>, o eBPF (BPF-LSM) aplica isso no <strong>kernel</strong>, com escopo pelo cgroup do agente (não afeta IDE/terminal), e ainda bloqueia <strong>escrita</strong> em prefixos protegidos (/etc/, /usr/local/bin/, .nemesis/, .claude/, .devin/, .cursor/) e impõe <strong>allowlist de egress</strong>. As deny-lists de comando do pretool são editáveis pelo usuário."
+          data-en="On <strong>Linux</strong>, eBPF (BPF-LSM) enforces this in the <strong>kernel</strong>, scoped by the agent cgroup (does not affect IDE/terminal), and also blocks <strong>writes</strong> to protected prefixes (/etc/, /usr/local/bin/, .nemesis/, .claude/, .devin/, .cursor/) and applies an <strong>egress allowlist</strong>. The pretool command deny-lists are user-editable.">
+          No <strong>Linux</strong>, o eBPF (BPF-LSM) aplica isso no <strong>kernel</strong>, com escopo pelo cgroup do
+          agente (não afeta IDE/terminal), e ainda bloqueia <strong>escrita</strong> em prefixos protegidos (/etc/,
+          /usr/local/bin/, .nemesis/, .claude/, .devin/, .cursor/) e impõe <strong>allowlist de egress</strong>. As
+          deny-lists de comando do pretool são editáveis pelo usuário.</p>
+
+        <h3 data-pt="Defender · deny-list embutida de conteúdo (36 categorias)" data-en="Defender · embedded content deny-list (36 categories)">Defender · deny-list embutida de conteúdo (36 categorias)</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-pt="Categoria" data-en="Category">Categoria</th>
+                <th data-pt="Alvo" data-en="Target">Alvo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>destructive_commands</code> · <code>filesystem_manipulation</code></td><td data-pt="comandos destrutivos de arquivo/disco em conteúdo" data-en="destructive file/disk commands in content">comandos destrutivos de arquivo/disco em conteúdo</td></tr>
+              <tr><td><code>reverse_shells</code> · <code>reverse_shell_enhanced</code></td><td data-pt="shell reversa (nc, socat, bash, python, php, perl, ruby, lua)" data-en="reverse shell (nc, socat, bash, python, php, perl, ruby, lua)">shell reversa (nc, socat, bash, python, php, perl, ruby, lua)</td></tr>
+              <tr><td><code>data_transfer_exfiltration</code> · <code>http_exfiltration_advanced</code> · <code>data_exfiltration_compound</code></td><td data-pt="exfiltração via transferência/HTTP(S) e cadeias compostas (tar + nc, rsync)" data-en="exfiltration via transfer/HTTP(S) and compound chains (tar + nc, rsync)">exfiltração via transferência/HTTP(S) e cadeias compostas (tar + nc, rsync)</td></tr>
+              <tr><td><code>credential_exfiltration_comment</code> · <code>pii_detection</code></td><td data-pt="credenciais/PII vazando em código e comentários" data-en="credentials/PII leaking in code and comments">credenciais/PII vazando em código e comentários</td></tr>
+              <tr><td><code>persistence_mechanisms</code> · <code>shell_config_tampering</code> · <code>shell_hook_hijacking</code></td><td data-pt="persistência em shell/git-hooks" data-en="persistence in shell/git-hooks">persistência em shell/git-hooks</td></tr>
+              <tr><td><code>supply_chain_registry</code></td><td data-pt="registry hijack, typosquatting, dependency confusion" data-en="registry hijack, typosquatting, dependency confusion">registry hijack, typosquatting, dependency confusion</td></tr>
+              <tr><td><code>container_escape</code> · <code>kubernetes_container_escape</code></td><td data-pt="breakout de container/Kubernetes" data-en="container/Kubernetes breakout">breakout de container/Kubernetes</td></tr>
+              <tr><td><code>prompt_injection_advanced</code> · <code>prompt_injection_claude_hooks</code> · <code>false_authority_injection</code></td><td data-pt="prompt injection e falsa autoridade" data-en="prompt injection and false authority">prompt injection e falsa autoridade</td></tr>
+              <tr><td><code>llm_template_injection</code> · <code>xss_unsanitized_html</code></td><td data-pt="injeção em output de LLM / XSS" data-en="LLM output injection / XSS">injeção em output de LLM / XSS</td></tr>
+              <tr><td><code>nemesis_evasion</code> · <code>model_abuse</code></td><td data-pt="tentativa de desligar o Nemesis / jailbreak (DAN)" data-en="attempt to disable Nemesis / jailbreak (DAN)">tentativa de desligar o Nemesis / jailbreak (DAN)</td></tr>
+              <tr><td><code>pentest_recon_tools</code> · <code>infrastructure_commands</code> · <code>windows_specific</code></td><td data-pt="recon, infra de alto risco, comandos Windows hostis" data-en="recon, high-risk infra, hostile Windows commands">recon, infra de alto risco, comandos Windows hostis</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small" data-pt="São <strong>36 categorias / centenas de patterns</strong> no total; acima vai um recorte. A deny-list é compilada no binário e escaneia o conteúdo dos arquivos, cobrindo também macOS/Windows (onde não há eBPF)."
+          data-en="There are <strong>36 categories / hundreds of patterns</strong> in total; the above is an excerpt. The deny-list is compiled into the binary and scans file content, also covering macOS/Windows (where there is no eBPF).">
+          São <strong>36 categorias / centenas de patterns</strong> no total; acima vai um recorte. A deny-list é
+          compilada no binário e escaneia o conteúdo dos arquivos, cobrindo também macOS/Windows (onde não há eBPF).</p>
+
+        <h3 data-pt="Defender · visitors AST (intenção semântica)" data-en="Defender · AST visitors (semantic intent)">Defender · visitors AST (intenção semântica)</h3>
         <div class="tbl-wrap">
           <table>
             <thead>
               <tr>
                 <th>#</th>
-                <th data-pt="Detector (camada/método)" data-en="Detector (layer/method)">Detector (camada/método)</th>
+                <th data-pt="Detector (visitor/método)" data-en="Detector (visitor/method)">Detector (visitor/método)</th>
                 <th data-pt="Alvo" data-en="Target">Alvo</th>
               </tr>
             </thead>

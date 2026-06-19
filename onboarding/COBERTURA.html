@@ -80,6 +80,17 @@
     <tr><td>red-teaming adversarial</td><td>run-pentest.sh; self-audit.yml:85-89; tests/</td><td><a href="conceitos/65-red-teaming.html">65</a></td><td><span class="pill ok">✓</span></td></tr>
   </table>
 
+  <h2>Camadas de proteção (o coeficiente)</h2>
+  <p>A proteção do Nemesis é a <strong>soma das camadas</strong>, não a contagem de visitors (visitor é método, não vetor). Recorte por camada:</p>
+  <table>
+    <tr><th>Camada</th><th>O que bloqueia (exemplos)</th><th>Fonte</th></tr>
+    <tr><td>Pretool + eBPF (comando; kernel no Linux)</td><td>destruição (<code>rm</code>, <code>shred</code>, <code>dd</code>, <code>truncate</code>), permissões (<code>chmod</code>, <code>chown</code>), filesystem (<code>mount</code>, <code>mkfs</code>, <code>fdisk</code>), DB (<code>dropdb</code>, <code>psql</code>, <code>mysql</code>), exfil (<code>curl</code>, <code>wget</code>, <code>nc</code>, <code>socat</code>, <code>scp</code>, <code>rsync</code>), recon/exploit (<code>nmap</code>, <code>sqlmap</code>, <code>msfconsole</code>, <code>hydra</code>, <code>john</code>, <code>hashcat</code>), persistência/privesc (<code>crontab</code>, <code>ssh-keygen</code>, <code>ssh-copy-id</code>, <code>pkexec</code>, <code>doas</code>)</td><td>denylist-ebpf/commands.toml; .nemesis/denylist/</td></tr>
+    <tr><td>eBPF: escrita + egress (Linux)</td><td>bloqueio de <strong>escrita</strong> em <code>/etc/</code>, <code>/usr/local/bin/</code>, <code>.nemesis/</code>, <code>.claude/</code>, <code>.devin/</code>, <code>.cursor/</code>; <strong>allowlist de egress</strong> de rede</td><td>denylist-ebpf/paths.toml; egress.toml</td></tr>
+    <tr><td>Defender: deny-list embutida (conteúdo)</td><td><strong>36 categorias</strong>: reverse_shells, data_exfiltration_compound, persistence_mechanisms, supply_chain_registry, container_escape, prompt_injection_*, llm_template_injection, xss_unsanitized_html, nemesis_evasion, pii_detection, ...</td><td>denylist-defender.json (.categories)</td></tr>
+    <tr><td>Defender: visitors AST (intenção semântica)</td><td><strong>15 arquivos / 14 despachados</strong>: decode_exec, dynamic_cmd, url_in_exec, unicode_steg, prompt_injection, credential_harvest, time_gated, self_clean, persistence_patterns, nemesis_bypass, python_import_injection, taint_tracker, exfil_chain, ide_config_poisoning</td><td>visitors/mod.rs</td></tr>
+  </table>
+  <p>Prova empírica: pentest estático em ~28 classes de ataque (módulos M), como gate de CI. Regra canônica do enquadramento: <code>AGENTS.md</code> §3A.</p>
+
   <h2>Lacunas e notas de honestidade</h2>
   <ul>
     <li><strong>"18 visitors" do enunciado:</strong> o código tem <strong>15</strong> arquivos de visitor. Nomes como <code>reverse_shell</code> e <code>manifest_registry_redirect</code> são <em>sinais emitidos</em> (em regex/decoder/manifest_scanner), não arquivos de visitor.</li>
