@@ -102,6 +102,41 @@ Regra canônica completa: `.devin/rules/nemesis-epistemic-safety.md`.
 
 ---
 
+## 3A. Vetores de proteção, o coeficiente (NÃO confundir com visitors) — REGRA CANÔNICA
+
+A proteção do Nemesis é um **coeficiente**: a soma de camadas independentes que operam juntas, não
+a contagem de uma feature isolada. **Visitor é feature (um método de detecção), não produto.** O
+produto, a proteção entregue ao usuário, é a soma dos vetores cobertos por todas as superfícies.
+
+**As superfícies que somam a proteção (cada uma com sua própria taxonomia):**
+1. **denylist embutida do Defender** (`denylist-defender.json`, categorias com patterns, compilada no
+   binário via `include_str!`): o maior catálogo nomeado de classes de ataque do Defender.
+2. **visitors AST** (`nemesis-defender/src/visitors/`): detecção de intenção semântica por travessia
+   de árvore; é um **método**, não a unidade de cobertura.
+3. **heurísticas de scanner** (`nemesis-defender/src/scanner/`): byte (BiDi, PUA, homoglyph,
+   zero-width), entropia, regex, manifest, decoder recursivo.
+4. **denylists de comando do pretool** (`.nemesis/denylist/`, editáveis pelo usuário).
+5. **eBPF / BPF-LSM no Linux** (`ebpf-kernel/denylist-ebpf/`): exec destrutivo + allowlist de egress.
+
+A **prova empírica** da cobertura é a suíte de pentest estático
+(`.nemesis/pentest-nemesis-control/`), organizada por classes de ataque (módulos M), validada como
+gate de CI (`self-audit`).
+
+**Proibições (anti-confusão método vs cobertura):**
+- **NUNCA** declarar "N vetores = N visitors" em README, `index.html`, onboarding ou qualquer
+  artefato. Isso confunde método com cobertura e subconta a proteção real em ordem de grandeza.
+- **NUNCA** inventar um número agregado único de "vetores" que não seja rastreável a uma taxonomia
+  auditável (categorias de denylist, classes de pentest). Na dúvida, descreva a cobertura **em
+  camadas, sem número fechado**.
+- Ao citar qualquer contagem (categorias de denylist, visitors despachados, casos de pentest), cite
+  a **fonte** (arquivo) e distinga **método** de **cobertura**. Confirme o número no código/teste
+  antes de publicá-lo (disciplina epistêmica, seção 2A).
+
+Aplicar junto: a fonte única de regras de conteúdo (`denylist-defender.json` embutido) e a auditoria
+forense por re-rastreamento (testes, finalidade, pré-requisitos, denylists, eBPF, Defender, pretool).
+
+---
+
 ## 4. Processo de desenvolvimento
 
 - **Siga o SDD pipeline:** `.devin/workflows/nemesis-sdd-pipeline.md` (SPEC → regras → PLAN →

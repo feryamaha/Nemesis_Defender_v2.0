@@ -1855,16 +1855,19 @@
       <section id="vetores">
         <div class="eyebrow" data-pt="06 Cobertura" data-en="06 Coverage">06 Cobertura</div>
         <h2 data-pt="Vetores de ataque cobertos" data-en="Attack vectors covered">Vetores de ataque cobertos</h2>
-        <p data-pt="Os vetores <strong>antecipados, implementados e testados</strong>. A cobertura é ampliada continuamente vetores fora desta lista podem não ser detectados, e isso é declarado abertamente."
-          data-en="The vectors <strong>anticipated, implemented and tested</strong>. Coverage is continuously expanded vectors outside this list may go undetected, and that is openly declared.">
-          Os vetores <strong>antecipados, implementados e testados</strong>. A cobertura é ampliada continuamente
-          vetores fora desta lista podem não ser detectados, e isso é declarado abertamente.</p>
+        <p data-pt="A proteção do Nemesis é um <strong>coeficiente</strong>: a soma de camadas independentes (deny-list embutida, visitors AST, heurísticas de scanner, deny-lists de comando do pretool, eBPF no Linux), não a contagem de uma feature. Um <strong>visitor é um método de detecção, não a unidade de cobertura</strong>. A tabela abaixo é exemplificativa por método; a enumeração completa está em re-auditoria. Vetores fora do que foi antecipado podem não ser detectados, e isso é declarado abertamente."
+          data-en="Nemesis protection is a <strong>coefficient</strong>: the sum of independent layers (embedded deny-list, AST visitors, scanner heuristics, pretool command deny-lists, eBPF on Linux), not the count of a single feature. A <strong>visitor is a detection method, not the unit of coverage</strong>. The table below is illustrative by method; the full enumeration is under re-audit. Vectors outside what was anticipated may go undetected, and that is openly declared.">
+          A proteção do Nemesis é um <strong>coeficiente</strong>: a soma de camadas independentes (deny-list
+          embutida, visitors AST, heurísticas de scanner, deny-lists de comando do pretool, eBPF no Linux), não a
+          contagem de uma feature. Um <strong>visitor é um método de detecção, não a unidade de cobertura</strong>. A
+          tabela abaixo é exemplificativa por método; a enumeração completa está em re-auditoria. Vetores fora do que
+          foi antecipado podem não ser detectados, e isso é declarado abertamente.</p>
         <div class="tbl-wrap">
           <table>
             <thead>
               <tr>
                 <th>#</th>
-                <th>Visitor</th>
+                <th data-pt="Detector (camada/método)" data-en="Detector (layer/method)">Detector (camada/método)</th>
                 <th data-pt="Alvo" data-en="Target">Alvo</th>
               </tr>
             </thead>
@@ -1990,6 +1993,11 @@
             </tbody>
           </table>
         </div>
+        <p data-pt="<strong>Não trate os itens acima como &quot;os N vetores&quot; nem como a contagem de visitors.</strong> A proteção do Nemesis é a soma das camadas (deny-list embutida, visitors, scanner, deny-lists de comando, eBPF), provada por pentest, não um número fechado atrelado a uma feature."
+          data-en="<strong>Do not treat the items above as &quot;the N vectors&quot; nor as the visitor count.</strong> Nemesis protection is the sum of the layers (embedded deny-list, visitors, scanner, command deny-lists, eBPF), proven by pentest, not a fixed number tied to a feature.">
+          <strong>Não trate os itens acima como "os N vetores" nem como a contagem de visitors.</strong> A proteção do
+          Nemesis é a soma das camadas (deny-list embutida, visitors, scanner, deny-lists de comando, eBPF), provada
+          por pentest, não um número fechado atrelado a uma feature.</p>
         <p data-pt="A deny-list do Defender contém centenas de patterns em dezenas de categorias, e foi <strong>ampliada na v0</strong> com vetores destilados do estado da arte (exfil surface estendida, taint-tracking, poisoning de config de IDE, typosquatting). <strong>Patterns são, por natureza, uma lista do que já foi antecipado</strong> aumentam o custo de um ataque conhecido, mas não cobrem o desconhecido."
           data-en="The Defender deny-list contains hundreds of patterns across dozens of categories, and was <strong>expanded in v0</strong> with vectors distilled from the state of the art (extended exfil surface, taint-tracking, IDE-config poisoning, typosquatting). <strong>Patterns are, by nature, a list of what's already been anticipated</strong> they raise the cost of a known attack, but do not cover the unknown.">
           A deny-list do Defender contém centenas de patterns em dezenas de categorias, e foi <strong>ampliada na
