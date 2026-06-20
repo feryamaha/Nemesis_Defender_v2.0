@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Código malicioso e supply-chain · Nemesis</title>
+<link rel="stylesheet" href="../assets/estilo.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>material de estudo</b></span>
+  <span class="spacer"></span>
+  <nav aria-label="Navegação principal">
+    <a href="../index.html">Início</a>
+    <a href="../competencias.html">Competências</a>
+    <a href="../COBERTURA.html">Cobertura</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<div class="layout with-toc">
+<main id="main">
+  <p class="crumb"><a href="../index.html">Início</a><span class="sep">/</span>Conceitos<span class="sep">/</span>8 · Código malicioso e supply-chain</p>
+
+  <span class="deftag">conceito 8 · malware e cadeia de suprimentos</span>
+  <h1>Código malicioso e supply-chain</h1>
+  <p class="lede">Aqui mora o malware de verdade: payload codificado para virar exec, shells reversos, evasão forense, esteganografia Unicode, abuso de manifesto e a cadeia de exfiltração. A regra que eu uso para amarrar tudo: fonte sensível somada a canal de saída, coexistindo, já é hostil.</p>
+
+  <div class="sec30">
+    <span class="t">Em 30 segundos</span>
+    <p>Um payload é escondido dentro de uma string codificada e executado em runtime (decode → exec); eu decodifico e reescaneio. Comandos são montados em pedaços (dynamic command) ou shells reversos abrem canal de volta ao atacante. A evasão tenta se apagar (self-clean), esperar uma data (time-gated) ou usar caracteres Unicode invisíveis para enganar o leitor humano (Trojan Source). No manifesto, scripts de <code>postinstall</code> e <code>build.rs</code> rodam código na instalação. E credencial lida mais canal de rede no mesmo arquivo é cadeia de exfiltração.</p>
+  </div>
+
+  <h2>Do zero: as classes de ataque</h2>
+  <p><strong>Decode → exec:</strong> o código real vem em base64/hex/charCode e só existe depois de decodificado, para escapar da análise estática. <strong>Reverse shell:</strong> a vítima conecta de volta ao atacante e entrega um shell. <strong>Self-clean:</strong> o script se apaga após rodar, destruindo evidência. <strong>Time-gated:</strong> o gatilho é uma data ou versão, fica dormente até a hora. <strong>Esteganografia Unicode / Trojan Source (CVE-2021-42574):</strong> caracteres de controle bidirecional reordenam o que o compilador executa versus o que o humano lê. <strong>Abuso de manifesto:</strong> hooks de ciclo de vida (<code>postinstall</code>, <code>preinstall</code>, <code>build.rs</code>) executam na instalação; some-se typosquatting e redirect de registry. <strong>Credential harvest + exfil:</strong> ler segredo e mandar para fora.</p>
+
+  <h2>Por que importa</h2>
+  <p>Esses são os vetores que aparecem nos incidentes reais de supply chain (o caso ClawHub, o Shai-Hulud que migrou de <code>postinstall</code> para <code>preinstall</code> para alcançar mais máquinas, o axios comprometido). Um agente de IA que instala dependências ou cola código de um pacote é exatamente o ponto onde isso entra. Eu precisava cobrir desde o truque sintático (Unicode) até a lógica de negócio do ataque (ler segredo, abrir socket).</p>
+
+  <h2>Como se correlaciona</h2>
+  <p>O fio é o meu princípio de <strong>coexistência</strong>: nenhuma peça isolada precisa ser conclusiva se a combinação é inequívoca. Decode sozinho pode ser legítimo; decode que vira exec, não. Ler <code>~/.ssh/id_rsa</code> pode ser backup; ler e mandar por <code>fetch</code> é exfiltração. Por isso o decoder do <a href="5-leitura-codigo-ast-pipeline.html">pipeline</a> reescaneia o conteúdo revelado, e a cadeia de exfil exige fonte e sink juntos. Isso conversa direto com a <a href="9-defesa-profundidade-decisao.html">corroboração</a>: sinais que se confirmam mutuamente.</p>
+
+  <h2>Como o Nemesis aplica</h2>
+  <p>O decoder executa a decodificação e, no conteúdo revelado, procura comandos da deny-list, é o vetor ClawHub clássico:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/scanner/decoder.rs:200-217</b> · payload decodificado vira sinal decode_exec</span>
+  <pre><code class="rust">for &cmd in DECODED_DENY_COMMANDS {
+    if decoded_lower.contains(cmd) {
+        violations.push(DefenderViolation {
+            visitor: "decode_exec".to_string(),
+            evidence: format!("encoded payload contains: \"{}\"", cmd.trim()),
+            /* "payload codificado decodifica para comando da deny-list" */ });
+    }
+}</code></pre>
+  <p>O byte-scanner separa os controles Unicode perigosos (BiDi de reordenação, Trojan Source) dos fracos (marcas i18n, variation selectors de emoji), os primeiros são confirmatórios, os segundos exigem um segundo sinal:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/scanner/byte_scanner.rs:17-46</b> · BiDi perigoso vs fraco (CVE-2021-42574)</span>
+  <pre><code class="rust">const BIDI_DANGEROUS: &[(u32, &str)] = &[
+    (0x202E, "Right-to-Left Override"), (0x2066, "Left-to-Right Isolate"), /* ... */ ];
+// sem uso legítimo em código → "unicode_bidi" (confirmatório)
+const BIDI_WEAK: &[(u32, &str)] = &[ (0x200E, "LRM"), (0xFE0F, "Variation Selector-16"), /* ... */ ];
+// aparecem em i18n/emoji → "unicode_zero_width" (corroborante)</code></pre>
+  <p>O manifest scanner mira hooks de ciclo de vida que executam (com os ataques de referência anotados):</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/scanner/manifest_scanner.rs:1-12</b> · postinstall / build.rs</span>
+  <pre><code class="rust">//! package.json: postinstall/preinstall/prepare · Cargo.toml: build.rs
+//! Shai-Hulud 2.0 (Nov 2025): postinstall → preinstall (mais alcance)
+//! axios: postinstall dropou um RAT cross-platform</code></pre>
+  <p>E a cadeia de exfiltração só dispara com fonte sensível <strong>e</strong> sink de rede coexistindo, com allowlist para env público (que não é segredo):</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/visitors/exfil_chain.rs:192-247</b> · SOURCE + SINK = malicioso</span>
+  <pre><code class="rust">let (source_evidence, _) = match source_match { Some(p) => p, None => return Vec::new() };
+let (sink_evidence, _)   = match sink_match   { Some(p) => p, None => return Vec::new() };
+// fonte + sink presentes → exfil chain confirmado (visitor "exfil_chain")</code></pre>
+
+  <h2>Nuances e armadilhas</h2>
+  <ul>
+    <li>O <code>decoder.rs</code> (scanner que <em>executa</em> a decodificação) é distinto do <code>visitors/decode_exec.rs</code> (que detecta o <em>padrão</em> decode→exec na AST). Dois ângulos do mesmo vetor, propositalmente separados.</li>
+    <li>A allowlist de env público (<code>NEXT_PUBLIC_*</code>, <code>CLIENT_ID</code>) existe porque sem ela todo route handler que usa um token público mais <code>fetch</code> virava Malicious, causa real de perda de dado no projeto. Segredo de verdade não é env público.</li>
+    <li>Os controles Unicode fracos aparecem em texto legítimo (árabe, hebraico, emoji). Marcá-los sozinhos geraria falso-positivo; por isso eles são corroborantes, não confirmatórios.</li>
+  </ul>
+
+  <h2>Auto-checagem</h2>
+  <details><summary>Por que decode sozinho não basta, mas decode → exec sim?</summary>
+  <p>Porque decodificar dado é comum e legítimo; executar o que foi decodificado em runtime é o vetor de esconder comando da análise estática. O decoder reescaneia o conteúdo revelado para flagrar exatamente isso.</p></details>
+  <details><summary>Qual a regra da cadeia de exfiltração?</summary>
+  <p>Fonte sensível (credencial, segredo) somada a sink de rede coexistindo no mesmo arquivo. Fonte isolada ou sink isolado não dispara; a coexistência é o sinal.</p></details>
+  <details><summary>O que é Trojan Source e por que é confirmatório?</summary>
+  <p>É o uso de controles Unicode bidirecionais (CVE-2021-42574) para o compilador executar uma lógica que o humano lê como outra. Esses controles não têm uso legítimo em código, então 1 ocorrência já confirma.</p></details>
+
+  <h2>Para ir além</h2>
+  <ul>
+    <li><a href="https://trojansource.codes/">Trojan Source (CVE-2021-42574)</a> e <a href="https://cwe.mitre.org/data/definitions/506.html">CWE-506, Embedded Malicious Code</a>.</li>
+    <li><a href="https://attack.mitre.org/techniques/T1195/">MITRE ATT&CK, Supply Chain Compromise</a>.</li>
+    <li><a href="https://cwe.mitre.org/data/definitions/94.html">CWE-94, Code Injection</a>.</li>
+  </ul>
+
+  <nav class="pager" aria-label="Navegação entre páginas">
+    <a class="prev" href="7-prompt-injection-ide-poisoning.html"><span class="lbl">Anterior</span><span class="ttl">Prompt injection e IDE poisoning</span></a>
+    <a class="next" href="9-defesa-profundidade-decisao.html"><span class="lbl">Próximo</span><span class="ttl">Defesa em profundidade e decisão</span></a>
+  </nav>
+  <div class="foot"><p>Citações verificadas contra o repositório. <a href="../index.html">Voltar ao índice</a>.</p></div>
+</main>
+
+<aside class="toc" aria-label="Sumário da página">
+  <div class="t">Nesta página</div>
+  <nav id="toc-list"></nav>
+</aside>
+</div>
+</div>
+<script src="../assets/nav.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Material de estudo — Nemesis Defender</title>
+<title>Material de estudo · Nemesis Defender</title>
 <meta name="description" content="Material de estudo navegável e auto-contido sobre a engenharia de sistemas, software e segurança do Nemesis Defender.">
 <link rel="stylesheet" href="assets/estilo.css">
 </head>
@@ -16,7 +16,6 @@
     <a href="index.html">Início</a>
     <a href="competencias.html">Competências</a>
     <a href="COBERTURA.html">Cobertura</a>
-    <a href="RELATORIO.html">Relatório</a>
   </nav>
 </header>
 
@@ -24,20 +23,20 @@
 <main id="main">
 
   <figure class="banner">
-    <img src="assets/gjeXH.png" alt="Banner: Fernando Moreira, autor do Nemesis Defender — Full-Stack TypeScript (React/Next.js), OWASP. Stack Rust, eBPF/LSM, Next.js, fail-closed. Escudo com cadeado e a regra 'rm -rf → exit 2 · DENIED'. Arquitetura de 3 camadas que bloqueia antes da execução.">
+    <img src="assets/gjeXH.png" alt="Banner: Fernando Moreira, autor do Nemesis Defender · Full-Stack TypeScript (React/Next.js), OWASP. Stack Rust, eBPF/LSM, Next.js, fail-closed. Escudo com cadeado e a regra 'rm -rf → exit 2 · DENIED'. Arquitetura de 3 camadas que bloqueia antes da execução.">
   </figure>
 
   <section class="hero">
-    <h1>Nemesis Defender — material de estudo</h1>
-    <p class="lede">Onboarding e aprofundamento na engenharia de sistemas, software e segurança que o projeto aplica. Cada afirmação técnica é rastreável a um arquivo real do repositório (<em>forensic-first</em>): nada é inventado.</p>
+    <h1>Nemesis Defender · material de estudo</h1>
+    <p class="lede">Onboarding e aprofundamento na engenharia de sistemas, software e segurança que eu apliquei no projeto. Cada afirmação técnica é rastreável a um arquivo real do repositório (<em>forensic-first</em>): nada é inventado.</p>
     <p class="muted">A tese central: <strong>instrução probabilística não contém; enforcement determinístico contém.</strong> Um agente de IA pode ignorar um pedido educado no prompt, mas não pode ignorar um processo que sai com <code>exit 2</code> antes da ação acontecer.</p>
     <div class="stat-row">
       <div class="stat"><b>4</b><span>crates no workspace</span></div>
-      <div class="stat"><b>15</b><span>visitors AST (método, não vetores)</span></div>
-      <div class="stat"><b>8</b><span>estágios de scan</span></div>
-      <div class="stat"><b>2</b><span>hooks LSM (eBPF)</span></div>
       <div class="stat"><b>3</b><span>camadas de defesa</span></div>
-      <div class="stat"><b>30</b><span>conceitos cobertos</span></div>
+      <div class="stat"><b>2</b><span>hooks BPF-LSM (eBPF)</span></div>
+      <div class="stat"><b>36</b><span>categorias na deny-list embutida</span></div>
+      <div class="stat"><b>10</b><span>grupos de conceito</span></div>
+      <div class="stat"><b>100%</b><span>local, sem rede</span></div>
     </div>
   </section>
 
@@ -48,102 +47,71 @@
   </section>
 
   <section class="card">
-    <h3 style="margin-top:4px">Trilha sugerida (iniciante → avançado)</h3>
+    <h3 style="margin-top:4px">Por onde começar</h3>
+    <p>A <a href="jornada.html"><strong>jornada</strong></a> abre o material e te leva pela trilha; os dez grupos aprofundam cada bloco; a <a href="conceitos/visao-geral.html">visão geral</a> fecha juntando tudo. A proteção do Nemesis é a <strong>soma das camadas</strong> (o coeficiente), não a contagem de uma feature: visitor é método de detecção, não unidade de cobertura.</p>
     <ol>
-      <li><strong>Fundamentos:</strong> <a href="conceitos/00-arquitetura-geral.html">Arquitetura geral</a> → <a href="conceitos/10-exit-codes-exit2.html">exit codes / exit 2</a> → <a href="conceitos/40-agentes-hooks-pretool.html">agentes e hooks</a>.</li>
-      <li><strong>A tese:</strong> <a href="conceitos/41-probabilistico-vs-deterministico.html">probabilístico vs determinístico</a> → <a href="conceitos/60-defense-in-depth.html">defense-in-depth</a>.</li>
-      <li><strong>Como ele lê código:</strong> <a href="conceitos/30-ast-treesitter-visitor.html">AST/Visitor</a> → <a href="conceitos/31-pipeline-6-camadas.html">pipeline de camadas</a> → <a href="conceitos/32-entropia-shannon.html">entropia</a> → <a href="conceitos/33-taint-tracking-dataflow.html">taint tracking</a>.</li>
-      <li><strong>O que ele caça:</strong> ataques de <a href="conceitos/50-decode-exec-reverse-shell.html">decode→exec</a>, <a href="conceitos/53-credential-harvest-exfil.html">exfiltração</a>, <a href="conceitos/42-prompt-injection-ide-poisoning.html">poisoning</a>.</li>
-      <li><strong>Decisão e contenção:</strong> <a href="conceitos/61-severidade-corroboracao-quarentena.html">severidade/quarentena</a> → <a href="conceitos/13-ebpf-verifier-mapas.html">eBPF</a> → <a href="conceitos/16-sockets-egress-c2.html">egress</a>.</li>
-      <li><strong>Processo:</strong> <a href="conceitos/63-devsecops-slsa-selfaudit.html">DevSecOps</a> → <a href="conceitos/65-red-teaming.html">red-teaming</a> → <a href="conceitos/62-threat-model-limitacoes.html">limitações honestas</a>.</li>
+      <li><strong>O contrato:</strong> <a href="conceitos/1-contrato-posix-exit2.html">exit 2</a> → <a href="conceitos/2-kernel-ebpf-lsm.html">kernel/eBPF/LSM</a> → <a href="conceitos/3-confinamento-kernel-egress.html">confinamento e egress</a>.</li>
+      <li><strong>A engenharia:</strong> <a href="conceitos/4-rust-defesa.html">Rust de defesa</a> → <a href="conceitos/5-leitura-codigo-ast-pipeline.html">AST e pipeline</a>.</li>
+      <li><strong>A mecânica e as ameaças:</strong> <a href="conceitos/6-pretool-defender-daemon.html">pretool/defender/daemon</a> → <a href="conceitos/7-prompt-injection-ide-poisoning.html">prompt injection</a> → <a href="conceitos/8-codigo-malicioso-supply-chain.html">supply-chain</a>.</li>
+      <li><strong>Decisão e processo:</strong> <a href="conceitos/9-defesa-profundidade-decisao.html">defesa em profundidade</a> → <a href="conceitos/10-processo-honestidade.html">processo e honestidade</a>.</li>
+      <li><strong>Síntese:</strong> <a href="conceitos/visao-geral.html">visão geral</a>.</li>
     </ol>
   </section>
 
-  <!-- ======================= DOMÍNIOS ======================= -->
+  <!-- ======================= GRUPOS ======================= -->
 
   <section class="domain">
-    <h2><span class="ix">00</span> Arquitetura</h2>
+    <h2><span class="ix">★</span> Abertura</h2>
     <div class="grid">
-      <a class="tile" href="conceitos/00-arquitetura-geral.html"><span class="num">00</span><span class="name">Arquitetura geral</span><span class="desc">As 3 camadas, o pipeline e o fluxo do enforcement, em uma página.</span></a>
+      <a class="tile" href="jornada.html"><span class="num">★</span><span class="name">A jornada</span><span class="desc">A porta de entrada: a trilha e por que ela é nessa ordem.</span></a>
     </div>
   </section>
 
   <section class="domain">
-    <h2><span class="ix">10</span> Sistema operacional e baixo nível</h2>
+    <h2><span class="ix">1–3</span> Fundamentos do enforcement</h2>
     <div class="grid">
-      <a class="tile" href="conceitos/10-exit-codes-exit2.html"><span class="num">10</span><span class="name">Exit codes e o exit 2</span><span class="desc">Por que o código de saída 2 é o enforcement determinístico.</span></a>
-      <a class="tile" href="conceitos/11-posix-processos-syscalls.html"><span class="num">11</span><span class="name">POSIX, processos, syscalls, stdio</span><span class="desc">Processos, descritores padrão, sinais, o modelo Unix do hook.</span></a>
-      <a class="tile" href="conceitos/12-kernel-userspace-bprm.html"><span class="num">12</span><span class="name">Kernel vs userspace · bprm_check</span><span class="desc">O que é uma syscall e o hook de exec no kernel.</span></a>
-      <a class="tile" href="conceitos/13-ebpf-verifier-mapas.html"><span class="num">13</span><span class="name">eBPF: verifier, mapas, BPF-LSM</span><span class="desc">Programas seguros no kernel; mapas hash/ringbuf/LPM.</span></a>
-      <a class="tile" href="conceitos/14-lsm-hooks.html"><span class="num">14</span><span class="name">LSM e os hooks lsm/*</span><span class="desc">Linux Security Modules e os pontos de decisão de segurança.</span></a>
-      <a class="tile" href="conceitos/15-capabilities-cgroups-landlock.html"><span class="num">15</span><span class="name">Capabilities, cgroups, Landlock</span><span class="desc">Escopo por cgroup e sandbox sem root.</span></a>
-      <a class="tile" href="conceitos/16-sockets-egress-c2.html"><span class="num">16</span><span class="name">Sockets, egress allowlist, C2</span><span class="desc">Bloqueio de conexões e prevenção de exfiltração.</span></a>
+      <a class="tile" href="conceitos/1-contrato-posix-exit2.html"><span class="num">1</span><span class="name">Contrato POSIX e o exit 2</span><span class="desc">Por que o código de saída 2 é o enforcement determinístico.</span></a>
+      <a class="tile" href="conceitos/2-kernel-ebpf-lsm.html"><span class="num">2</span><span class="name">Kernel, eBPF e LSM</span><span class="desc">Userspace vs kernel, o hook de exec, o verifier e os mapas.</span></a>
+      <a class="tile" href="conceitos/3-confinamento-kernel-egress.html"><span class="num">3</span><span class="name">Confinamento do kernel e egress</span><span class="desc">cgroup, Landlock sem root e allowlist de egress contra exfil/C2.</span></a>
     </div>
   </section>
 
   <section class="domain">
-    <h2><span class="ix">20</span> Linguagem e Rust</h2>
+    <h2><span class="ix">4–5</span> Engenharia de software e análise</h2>
     <div class="grid">
-      <a class="tile" href="conceitos/20-workspace-cargo-lock.html"><span class="num">20</span><span class="name">Workspace e Cargo.lock</span><span class="desc">Crates do monorepo e por que o lockfile é commitado.</span></a>
-      <a class="tile" href="conceitos/21-ownership-result-option.html"><span class="num">21</span><span class="name">Ownership, Result/Option</span><span class="desc">Tratamento de erro sem exceções; o modelo de memória.</span></a>
-      <a class="tile" href="conceitos/22-panic-fail-closed.html"><span class="num">22</span><span class="name">Panic e fail-closed</span><span class="desc">Falhar fechado: qualquer panic vira exit 2.</span></a>
-      <a class="tile" href="conceitos/23-regex-linear-redos.html"><span class="num">23</span><span class="name">Regex linear e ReDoS</span><span class="desc">Motor sem backtracking; por que isso importa.</span></a>
-      <a class="tile" href="conceitos/24-performance-determinismo.html"><span class="num">24</span><span class="name">Performance e determinismo</span><span class="desc">Ordenação de camadas e limites contra DoS.</span></a>
+      <a class="tile" href="conceitos/4-rust-defesa.html"><span class="num">4</span><span class="name">Rust como linguagem de defesa</span><span class="desc">Fail-closed, erro sem exceções, regex linear, determinismo.</span></a>
+      <a class="tile" href="conceitos/5-leitura-codigo-ast-pipeline.html"><span class="num">5</span><span class="name">Como o Nemesis lê código</span><span class="desc">AST/Visitor, pipeline de camadas, entropia e taint tracking.</span></a>
     </div>
   </section>
 
   <section class="domain">
-    <h2><span class="ix">30</span> Análise de código</h2>
+    <h2><span class="ix">6–8</span> Mecânica e ameaças</h2>
     <div class="grid">
-      <a class="tile" href="conceitos/30-ast-treesitter-visitor.html"><span class="num">30</span><span class="name">AST, tree-sitter, Visitor</span><span class="desc">Análise estática semântica por travessia da árvore.</span></a>
-      <a class="tile" href="conceitos/31-pipeline-6-camadas.html"><span class="num">31</span><span class="name">O pipeline de camadas</span><span class="desc">Byte → entropia → regex → manifesto → AST → decoder.</span></a>
-      <a class="tile" href="conceitos/32-entropia-shannon.html"><span class="num">32</span><span class="name">Entropia de Shannon</span><span class="desc">Detecção de payload ofuscado/empacotado.</span></a>
-      <a class="tile" href="conceitos/33-taint-tracking-dataflow.html"><span class="num">33</span><span class="name">Taint tracking e data-flow</span><span class="desc">Fonte → propagação → sink, em 3 passadas.</span></a>
+      <a class="tile" href="conceitos/6-pretool-defender-daemon.html"><span class="num">6</span><span class="name">Pretool, defender e daemon</span><span class="desc">Interceptar, decidir (compute_severity) e conter (quarentena).</span></a>
+      <a class="tile" href="conceitos/7-prompt-injection-ide-poisoning.html"><span class="num">7</span><span class="name">Prompt injection e IDE poisoning</span><span class="desc">Extração de system prompt, authority injection, config envenenada.</span></a>
+      <a class="tile" href="conceitos/8-codigo-malicioso-supply-chain.html"><span class="num">8</span><span class="name">Código malicioso e supply-chain</span><span class="desc">decode→exec, evasão, Unicode steg, manifestos, exfil chain.</span></a>
     </div>
   </section>
 
   <section class="domain">
-    <h2><span class="ix">40</span> Segurança de IA e agentic coding</h2>
+    <h2><span class="ix">9–10</span> Decisão e processo</h2>
     <div class="grid">
-      <a class="tile" href="conceitos/40-agentes-hooks-pretool.html"><span class="num">40</span><span class="name">Agentes LLM e hooks pretool</span><span class="desc">O ponto de interceptação antes de cada ação.</span></a>
-      <a class="tile" href="conceitos/41-probabilistico-vs-deterministico.html"><span class="num">41</span><span class="name">Probabilístico vs determinístico</span><span class="desc">A tese central do projeto.</span></a>
-      <a class="tile" href="conceitos/42-prompt-injection-ide-poisoning.html"><span class="num">42</span><span class="name">Prompt injection e IDE poisoning</span><span class="desc">Extração de system prompt, authority injection.</span></a>
+      <a class="tile" href="conceitos/9-defesa-profundidade-decisao.html"><span class="num">9</span><span class="name">Defesa em profundidade e decisão</span><span class="desc">Camadas independentes, corroboração, quarentena, coeficiente.</span></a>
+      <a class="tile" href="conceitos/10-processo-honestidade.html"><span class="num">10</span><span class="name">Processo e honestidade</span><span class="desc">Threat model, SLSA, self-audit, CODEOWNERS, doctor, red-team.</span></a>
     </div>
   </section>
 
   <section class="domain">
-    <h2><span class="ix">50</span> Código malicioso e supply-chain</h2>
+    <h2><span class="ix">∑</span> Síntese e apoio</h2>
     <div class="grid">
-      <a class="tile" href="conceitos/50-decode-exec-reverse-shell.html"><span class="num">50</span><span class="name">Decode→exec e reverse shell</span><span class="desc">Payload codificado e shells multi-runtime.</span></a>
-      <a class="tile" href="conceitos/51-self-clean-time-gated-unicode-steg.html"><span class="num">51</span><span class="name">Self-clean, time-gated, Unicode steg</span><span class="desc">Evasão forense, gatilho temporal, Trojan Source.</span></a>
-      <a class="tile" href="conceitos/52-manifests-typosquat-lockfiles.html"><span class="num">52</span><span class="name">Manifests, typosquat, lockfiles</span><span class="desc">postinstall/build.rs, registry redirect.</span></a>
-      <a class="tile" href="conceitos/53-credential-harvest-exfil.html"><span class="num">53</span><span class="name">Credential harvest e exfil chain</span><span class="desc">Coleta de segredo + canal de saída = malicioso.</span></a>
-    </div>
-  </section>
-
-  <section class="domain">
-    <h2><span class="ix">60</span> Arquitetura de defesa e processo</h2>
-    <div class="grid">
-      <a class="tile" href="conceitos/60-defense-in-depth.html"><span class="num">60</span><span class="name">Defense-in-depth</span><span class="desc">Camadas independentes; eBPF como backstop.</span></a>
-      <a class="tile" href="conceitos/61-severidade-corroboracao-quarentena.html"><span class="num">61</span><span class="name">Severidade, corroboração, quarentena</span><span class="desc">Tier A/B, 2 sinais independentes, reversibilidade.</span></a>
-      <a class="tile" href="conceitos/62-threat-model-limitacoes.html"><span class="num">62</span><span class="name">Threat model e limitações</span><span class="desc">Não-objetivos e limites declarados com honestidade.</span></a>
-      <a class="tile" href="conceitos/63-devsecops-slsa-selfaudit.html"><span class="num">63</span><span class="name">DevSecOps: SLSA e self-audit</span><span class="desc">Atestação, gate de CI, CODEOWNERS, regras embutidas.</span></a>
-      <a class="tile" href="conceitos/64-nemesis-doctor.html"><span class="num">64</span><span class="name">nemesis-doctor (G1–G7)</span><span class="desc">Diagnóstico e observabilidade da postura.</span></a>
-      <a class="tile" href="conceitos/65-red-teaming.html"><span class="num">65</span><span class="name">Red-teaming adversarial</span><span class="desc">Validação por pentest como gate de CI.</span></a>
-    </div>
-  </section>
-
-  <section class="domain">
-    <h2><span class="ix">★</span> Páginas de apoio</h2>
-    <div class="grid">
+      <a class="tile" href="conceitos/visao-geral.html"><span class="num">∑</span><span class="name">Visão geral</span><span class="desc">O sistema inteiro convergindo: camadas, pipeline e o caminho do exit 2.</span></a>
       <a class="tile" href="competencias.html"><span class="num">★</span><span class="name">Competências de engenharia</span><span class="desc">Evidência de estudo autodidata por domínio.</span></a>
       <a class="tile" href="COBERTURA.html"><span class="num">★</span><span class="name">Matriz de cobertura</span><span class="desc">Conceito → arquivo-fonte → página, com lacunas.</span></a>
-      <a class="tile" href="RELATORIO.html"><span class="num">★</span><span class="name">Relatório técnico</span><span class="desc">Inventário, decisões de design, TODOs.</span></a>
     </div>
   </section>
 
   <div class="foot">
-    <p>Material gerado por análise forense da codebase. As versões de software, números de visitors e a ordem do pipeline foram lidos do código, não deduzidos. Abra este arquivo offline; nenhuma dependência de rede é necessária.</p>
+    <p>Material gerado por análise forense da codebase. As versões de software e a ordem do pipeline foram lidas do código, não deduzidas; onde a documentação interna diverge do código, eu sigo o código. A proteção é descrita como soma de camadas (coeficiente), nunca como contagem de visitors. Abra este arquivo offline; nenhuma dependência de rede é necessária.</p>
   </div>
 
 </main>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rust como linguagem de defesa · Nemesis</title>
+<link rel="stylesheet" href="../assets/estilo.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>material de estudo</b></span>
+  <span class="spacer"></span>
+  <nav aria-label="Navegação principal">
+    <a href="../index.html">Início</a>
+    <a href="../competencias.html">Competências</a>
+    <a href="../COBERTURA.html">Cobertura</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<div class="layout with-toc">
+<main id="main">
+  <p class="crumb"><a href="../index.html">Início</a><span class="sep">/</span>Conceitos<span class="sep">/</span>4 · Rust como linguagem de defesa</p>
+
+  <span class="deftag">conceito 4 · Rust</span>
+  <h1>Rust como linguagem de defesa</h1>
+  <p class="lede">Eu escrevi o Nemesis em Rust de propósito. Uma ferramenta de segurança não pode ser, ela mesma, fonte de bug ou de negação de serviço. O fio condutor deste grupo é esse: cada escolha de linguagem serve para o defensor não virar o problema.</p>
+
+  <div class="sec30">
+    <span class="t">Em 30 segundos</span>
+    <p>O projeto é um workspace de crates com a <code>Cargo.lock</code> commitada (build reprodutível). Erros não viram exceções soltas: eu trato com <code>Result</code>/<code>Option</code> e <code>match</code>. Se algo der pânico mesmo assim, um <code>catch_unwind</code> converte em <code>exit 2</code> (fail-closed: na dúvida, bloqueia). O motor de regex é de tempo linear, sem backtracking, então não há ReDoS. E há limites duros (profundidade, tamanho) para o scanner ser determinístico e não travar.</p>
+  </div>
+
+  <h2>Do zero: o que Rust me dá</h2>
+  <p>Rust não tem exceções no estilo "lança e alguém pega lá em cima". O erro é um valor: uma função devolve <code>Result&lt;T, E&gt;</code> (deu certo com <code>T</code> ou falhou com <code>E</code>) ou <code>Option&lt;T&gt;</code> (tem valor ou não tem), e o compilador me obriga a tratar os dois casos. O modelo de <em>ownership</em> garante segurança de memória sem coletor de lixo. Um <em>workspace</em> agrupa vários crates (pacotes) sob uma resolução de dependência única, e a <code>Cargo.lock</code> fixa as versões exatas. <em>Pânico</em> é o aborto controlado de uma thread; <code>catch_unwind</code> permite capturá-lo na fronteira.</p>
+
+  <h2>Por que importa</h2>
+  <p>Pensa no pior caso: o scanner recebe um arquivo construído para derrubá-lo. Se ele estourasse a pilha, entrasse em loop ou crashasse silenciosamente, o atacante teria achado um jeito de <em>desligar a defesa só escrevendo um arquivo</em>. Rust me deixa fechar essas portas: erro é tratado, pânico vira bloqueio, regex não explode, e há teto para recursão e tamanho. A ferramenta falha fechada, nunca aberta.</p>
+
+  <h2>Como se correlaciona</h2>
+  <p>Tudo aqui serve ao contrato do <a href="1-contrato-posix-exit2.html">grupo 1</a>: o fail-closed é o que garante que mesmo um erro interno termine em <code>exit 2</code>, mantendo o contrato de bloqueio honrado. Os limites de profundidade conversam com o <a href="8-codigo-malicioso-supply-chain.html">decoder recursivo</a> (payload aninhado não vira DoS) e com o <a href="5-leitura-codigo-ast-pipeline.html">pipeline</a> (ordem determinística). E a <code>Cargo.lock</code> commitada é parte da postura de <a href="10-processo-honestidade.html">supply chain</a>: sem bump silencioso de dependência.</p>
+
+  <h2>Como o Nemesis aplica</h2>
+  <p>O workspace declara os quatro crates e fixa a resolução; a <code>Cargo.lock</code> entra no git:</p>
+  <span class="src-ref">📄 <b>.nemesis/Cargo.toml:1-9</b> · workspace de quatro membros</span>
+  <pre><code class="rust">[workspace]
+resolver = "2"
+members = [ "ast-linters", "ebpf-kernel", "nemesis-defender", "nemesis-doctor" ]</code></pre>
+  <p>Erro como valor, não exceção: ler um arquivo é um <code>match</code> sobre <code>Result</code>, e a falha tem tratamento explícito.</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/main.rs:149-156</b> · Result/Option no caminho de I/O</span>
+  <pre><code class="rust">let content = match std::fs::read(&path) {
+    Ok(c) => c,
+    Err(e) => {
+        eprintln!("[nemesis-defender] Cannot read {}: {}", path.display(), e);
+        std::process::exit(1);
+    }
+};</code></pre>
+  <p>E o fail-closed da fronteira: o <code>main</code> do pretool roda dentro de um <code>catch_unwind</code>; qualquer pânico vira <code>exit 2</code>.</p>
+  <span class="src-ref">📄 <b>.nemesis/hooks/nemesis-pretool-check-unix.rs:861-879</b> · catch_unwind → exit 2</span>
+  <pre><code class="rust">fn main() {
+    match std::panic::catch_unwind(|| { run_pretool() }) {
+        Ok(()) => {}
+        Err(panic) => {
+            eprintln!("[NEMESIS ERROR] Hook panic: {}", /* msg */);
+            std::process::exit(2);   // fail-closed: pânico = bloqueio
+        }
+    }
+}</code></pre>
+  <p>Contra DoS, há limites declarados como constantes, por exemplo a profundidade máxima do decoder e as faixas de tamanho que valem a pena escanear:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/scanner/decoder.rs:22-28</b> · limites contra DoS</span>
+  <pre><code class="rust">const MAX_DECODE_DEPTH: u8 = 3;        // payload aninhado não vira recursão infinita
+const MIN_DECODED_LEN: usize = 8;
+const MAX_CANDIDATE_LEN: usize = 4096; // não escaneia blobs gigantes</code></pre>
+
+  <h2>Nuances e armadilhas</h2>
+  <ul>
+    <li>No caminho que processa input não-confiável eu evito <code>unwrap()</code>/<code>expect()</code>: uso <code>unwrap_or_else</code>, <code>.ok()?</code> ou <code>let _ =</code> para best-effort. Um <code>unwrap</code> ali seria um pânico controlável pelo atacante.</li>
+    <li>O fail-closed é por construção: <code>exit 2</code> em pânico está certo no pretool, onde "na dúvida, bloqueie" é o desejado. É diferente do daemon, que nunca deleta na dúvida (ver <a href="9-defesa-profundidade-decisao.html">grupo 9</a>).</li>
+    <li>ReDoS vem de motores com backtracking e lookahead; o crate <code>regex</code> que uso é de tempo linear garantido, então um padrão hostil não trava o scanner. Os padrões de <code>exfil_chain</code> e da denylist correm nesse motor.</li>
+  </ul>
+
+  <h2>Auto-checagem</h2>
+  <details><summary>Por que um pânico precisa virar exit 2 em vez de só crashar?</summary>
+  <p>Porque crashar sem código de bloqueio poderia ser lido como "passou". Convertendo o pânico em <code>exit 2</code>, eu mantenho o contrato: na dúvida, a ação é negada. Isso é fail-closed.</p></details>
+  <details><summary>Como Rust evita que o scanner seja derrubado por um arquivo malicioso?</summary>
+  <p>Erro tratado como valor (sem exceção solta), segurança de memória por ownership, regex linear (sem ReDoS) e limites duros de profundidade/tamanho. A ferramenta falha fechada, não aberta.</p></details>
+  <details><summary>Por que commitar a Cargo.lock?</summary>
+  <p>Porque o Nemesis distribui binário: travar as versões exatas dá build reprodutível e impede que uma dependência mude por baixo (vetor de supply chain). O CI compila com <code>--locked</code>.</p></details>
+
+  <h2>Para ir além</h2>
+  <ul>
+    <li><a href="https://doc.rust-lang.org/book/ch09-00-error-handling.html">The Rust Book, tratamento de erro</a>.</li>
+    <li><a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">The Rust Book, ownership</a>.</li>
+    <li><a href="https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS">OWASP, ReDoS</a>.</li>
+  </ul>
+
+  <nav class="pager" aria-label="Navegação entre páginas">
+    <a class="prev" href="3-confinamento-kernel-egress.html"><span class="lbl">Anterior</span><span class="ttl">Confinamento do kernel e egress</span></a>
+    <a class="next" href="5-leitura-codigo-ast-pipeline.html"><span class="lbl">Próximo</span><span class="ttl">Como o Nemesis lê código</span></a>
+  </nav>
+  <div class="foot"><p>Citações verificadas contra o repositório. <a href="../index.html">Voltar ao índice</a>.</p></div>
+</main>
+
+<aside class="toc" aria-label="Sumário da página">
+  <div class="t">Nesta página</div>
+  <nav id="toc-list"></nav>
+</aside>
+</div>
+</div>
+<script src="../assets/nav.js"></script>
+</body>
+</html>

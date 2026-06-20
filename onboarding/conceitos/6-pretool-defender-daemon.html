@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pretool, defender e daemon · Nemesis</title>
+<link rel="stylesheet" href="../assets/estilo.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>material de estudo</b></span>
+  <span class="spacer"></span>
+  <nav aria-label="Navegação principal">
+    <a href="../index.html">Início</a>
+    <a href="../competencias.html">Competências</a>
+    <a href="../COBERTURA.html">Cobertura</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<div class="layout with-toc">
+<main id="main">
+  <p class="crumb"><a href="../index.html">Início</a><span class="sep">/</span>Conceitos<span class="sep">/</span>6 · Pretool, defender e daemon</p>
+
+  <span class="deftag">conceito 6 · interceptação e contenção</span>
+  <h1>Pretool, defender e daemon: interceptação, decisão e contenção</h1>
+  <p class="lede">Três peças que se chamam e formam o fluxo: o pretool intercepta a ação antes de acontecer, o nemesis-defender é o cérebro que escaneia e dá o veredito, e o daemon é o processo de fundo que observa o filesystem e move o malware confirmado para a quarentena.</p>
+
+  <div class="sec30">
+    <span class="t">Em 30 segundos</span>
+    <p>O <strong>pretool</strong> é um hook síncrono e fail-closed: a IDE o chama antes de cada ação do agente, ele traduz o pedido e passa o conteúdo ao motor. O <strong>nemesis-defender</strong> é esse motor: a função <code>compute_severity</code>, pura, decide Clean / Suspicious / Malicious. O <strong>daemon</strong> é um processo que roda em background, desacoplado do shell, observando o filesystem; quando confirma hostilidade, ele <em>move</em> o arquivo para a quarentena (não deleta) e trava a sessão para revisão humana.</p>
+  </div>
+
+  <h2>Do zero: o que é um daemon</h2>
+  <p>Um <strong>daemon</strong> é um processo que roda continuamente em segundo plano, sem terminal nem interação direta, normalmente iniciado uma vez e vivo enquanto o serviço existir. Ele é <em>desacoplado</em> do PID do shell que o lançou: fecha-se o terminal e ele continua. É o oposto de um hook, que nasce, decide e morre a cada invocação. O pretool é hook (vida curta, write-time, síncrono); o defender-daemon é serviço (vida longa, observando eventos de arquivo). Essa diferença de natureza é o que permite as duas cobrirem janelas de tempo diferentes.</p>
+
+  <h2>Por que importa</h2>
+  <p>O pretool pega a ação <em>antes</em> de o byte tocar o disco, é a hora certa de barrar uma escrita ruim, porque barrar é reversível. Mas e se um arquivo hostil chegar ao disco por um caminho que o hook não viu? Aí entra o daemon: ele vigia o filesystem e age depois, sobre o arquivo já materializado. Como agir depois pode significar destruir, o daemon nunca deleta: ele move para a quarentena e chama o humano. Interceptar e conter são dois tempos do mesmo problema.</p>
+
+  <h2>Como se correlaciona</h2>
+  <p>Eles se invocam em cadeia. O pretool, ao rodar, garante que o daemon esteja no ar (fire-and-forget) e, no Linux, garante também o daemon eBPF do <a href="2-kernel-ebpf-lsm.html">grupo 2</a>. Pretool e daemon compartilham o mesmo motor <code>scan_content</code> (mesma fonte de regras, mesmo veredito para bytes iguais, ver <a href="visao-geral.html">visão geral</a>). E a decisão de severidade aqui é a mesma que o <a href="9-defesa-profundidade-decisao.html">grupo 9</a> aprofunda na corroboração e na quarentena.</p>
+
+  <h2>Como o Nemesis aplica</h2>
+  <p>A interceptação começa traduzindo o nome da ferramenta da IDE em uma intenção do Nemesis, isso é o que normaliza Devin, Claude, Cursor, Codex e outros num vocabulário só:</p>
+  <span class="src-ref">📄 <b>.nemesis/hooks/nemesis-pretool-check-unix.rs:312-347</b> · tradução de ferramenta em intenção</span>
+  <pre><code class="rust">let agent_action = match tool_name {
+    "Edit" | "Write" | "MultiEdit" => "pre_write_code",
+    "Bash" => "pre_run_command",
+    "Read" | "Grep" => "pre_read_code",
+    // Claude / Codex / Cursor / Antigravity ...
+    s if s.starts_with("mcp__") => "pre_mcp_tool_use",
+    _ => "pre_write_code",
+};</code></pre>
+  <p>O cérebro é a função pura de severidade: instrução probabilística não contém; enforcement determinístico contém. Um sinal confirmatório basta para Malicious; senão, conta-se quantos tipos distintos de sinal corroborante apareceram:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/lib.rs:420-443</b> · compute_severity (função pura)</span>
+  <pre><code class="rust">fn compute_severity(violations: &[DefenderViolation]) -> Severity {
+    if violations.iter().any(|v| CONFIRMATORY_VISITORS.contains(&v.visitor.as_str())) {
+        return Severity::Malicious;
+    }
+    // conta TIPOS distintos de visitor corroborante
+    match distinct.len() {
+        0 => Severity::Clean,
+        1 => Severity::Suspicious,   // heurístico isolado, loga e mantém
+        _ => Severity::Malicious,    // 2+ métodos independentes concordam
+    }
+}</code></pre>
+  <p>O pretool sobe o daemon eBPF como fire-and-forget quando o kernel suporta BPF-LSM, sem esperar:</p>
+  <span class="src-ref">📄 <b>.nemesis/hooks/nemesis-pretool-check-unix.rs:945-981</b> · backstop eBPF (Linux)</span>
+  <pre><code class="rust">let lsm_ok = std::fs::read_to_string("/sys/kernel/security/lsm")
+    .map(|s| s.contains("bpf")).unwrap_or(false);
+if lsm_ok { /* spawn nemesis-ebpf-daemon --ensure-daemon (não espera) */ }</code></pre>
+  <p>E a contenção é movimento, não destruição: o daemon move o arquivo confirmado para uma pasta de quarentena com metadados, e trava a sessão enquanto houver pendência:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/quarantine.rs:1-11</b> · mover para quarentena, não deletar</span>
+  <pre><code class="rust">//! em vez de DELETAR arquivos maliciosos, o nemesis-defender os MOVE para
+//! .nemesis/quarantine/ e os retém para revisão humana.
+//!   - o arquivo original (preservado, inerte) + meta.json (por quê)
+//! enquanto houver itens pendentes, o pretool bloqueia a sessão (exit 2).</code></pre>
+
+  <h2>Nuances e armadilhas</h2>
+  <ul>
+    <li>O daemon é <strong>security-only</strong>: regra de qualidade nunca chega nele. Qualidade implica bloquear escrita (reversível); deletar é irreversível. Por isso a única divergência legítima entre pretool e daemon é a camada de qualidade, que só o pretool tem no write-time.</li>
+    <li>Subir o daemon é fire-and-forget para não travar a IDE; mas durante o install isso é proibido, porque o daemon recém-subido moveria o próprio instalador para a quarentena. Lá se usa a varredura pontual (<code>--scan</code>).</li>
+    <li><code>compute_severity</code> conta <strong>tipos distintos</strong> de sinal corroborante, não hits. Vários matches da mesma causa num arquivo não escalam indevidamente para Malicious.</li>
+  </ul>
+
+  <h2>Auto-checagem</h2>
+  <details><summary>Por que o pretool barra escrita mas o daemon move para quarentena?</summary>
+  <p>Porque o pretool age antes do disco (barrar é reversível) e o daemon age depois, sobre o arquivo já materializado (deletar seria irreversível). Mover preserva a evidência e devolve a decisão ao humano.</p></details>
+  <details><summary>O que torna a decisão determinística e não probabilística?</summary>
+  <p><code>compute_severity</code> é uma função pura: mesmos sinais, mesmo veredito. Não há "talvez" do modelo; há regra. Instrução no prompt pode ser ignorada, a função não.</p></details>
+  <details><summary>Por que um daemon e não outro hook?</summary>
+  <p>Porque o daemon vive em background, desacoplado do shell, e observa eventos do filesystem ao longo do tempo, uma janela que o hook (vida curta, write-time) não cobre.</p></details>
+
+  <h2>Para ir além</h2>
+  <ul>
+    <li><a href="https://man7.org/linux/man-pages/man7/daemon.7.html">man7, daemon(7)</a>.</li>
+    <li><a href="https://docs.devin.ai/">Documentação de hooks de agente (Devin)</a>.</li>
+    <li><a href="https://owasp.org/www-project-proactive-controls/">OWASP Proactive Controls</a>.</li>
+  </ul>
+
+  <nav class="pager" aria-label="Navegação entre páginas">
+    <a class="prev" href="5-leitura-codigo-ast-pipeline.html"><span class="lbl">Anterior</span><span class="ttl">Como o Nemesis lê código</span></a>
+    <a class="next" href="7-prompt-injection-ide-poisoning.html"><span class="lbl">Próximo</span><span class="ttl">Prompt injection e IDE poisoning</span></a>
+  </nav>
+  <div class="foot"><p>Citações verificadas contra o repositório. <a href="../index.html">Voltar ao índice</a>.</p></div>
+</main>
+
+<aside class="toc" aria-label="Sumário da página">
+  <div class="t">Nesta página</div>
+  <nav id="toc-list"></nav>
+</aside>
+</div>
+</div>
+<script src="../assets/nav.js"></script>
+</body>
+</html>

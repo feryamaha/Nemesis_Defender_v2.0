@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Processo e honestidade · Nemesis</title>
+<link rel="stylesheet" href="../assets/estilo.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>material de estudo</b></span>
+  <span class="spacer"></span>
+  <nav aria-label="Navegação principal">
+    <a href="../index.html">Início</a>
+    <a href="../competencias.html">Competências</a>
+    <a href="../COBERTURA.html">Cobertura</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<div class="layout with-toc">
+<main id="main">
+  <p class="crumb"><a href="../index.html">Início</a><span class="sep">/</span>Conceitos<span class="sep">/</span>10 · Processo e honestidade</p>
+
+  <span class="deftag">conceito 10 · processo e DevSecOps</span>
+  <h1>Processo e honestidade: threat model, DevSecOps, doctor e red-team</h1>
+  <p class="lede">Uma ferramenta de segurança vale o que vale o processo em volta dela. Aqui eu declaro os limites com honestidade, mostro como o CI vira gate (self-audit, SLSA, pin de SHA, CODEOWNERS), como o doctor dá observabilidade e como o red-team valida de forma adversarial.</p>
+
+  <div class="sec30">
+    <span class="t">Em 30 segundos</span>
+    <p>Eu declaro os não-objetivos e o risco residual (a conta do mantenedor, o problema do <em>trusting-trust</em>: um scanner não detecta backdoor em si mesmo). Contra isso: o <strong>self-audit</strong> roda o pentest como gate de CI mais <code>cargo audit</code> e exige <code>Cargo.lock</code>; o <strong>release</strong> separa build de publicação, exige reviewer e anexa proveniência <strong>SLSA</strong>; o <strong>CODEOWNERS</strong> trava os caminhos críticos. O <strong>nemesis-doctor</strong> dá o quadro da postura por grupos de checagem, e o <strong>red-team</strong> (pentest) prova que o motor ainda detecta.</p>
+  </div>
+
+  <h2>Do zero: os conceitos de processo</h2>
+  <p><strong>Threat model</strong> é declarar o que você defende, contra quem, e o que está fora de escopo, honestidade sobre limites vale mais que promessa de segurança total. <strong>DevSecOps</strong> é embutir segurança na esteira de build, não depois. <strong>SLSA</strong> é um framework de integridade da cadeia: a <em>attestation</em> de proveniência prova que um artefato veio de um repo/commit/workflow específico. <strong>CODEOWNERS</strong> exige revisão de dono nos arquivos sensíveis. <strong>Red-teaming</strong> é atacar o próprio sistema de propósito para validar a defesa. O <strong>doctor</strong> é a observabilidade: um diagnóstico que reporta o estado real de cada camada.</p>
+
+  <h2>Por que importa</h2>
+  <p>Eu prefiro um comprometimento <strong>caro e ruidoso</strong> a um silencioso. Nenhum desses controles dá garantia absoluta, e eu digo isso, mas juntos eles tornam um ataque à cadeia algo que precisa passar por revisão humana, proveniência e um gate que prova que o scanner ainda funciona. O honesto é assumir o risco residual (a conta do mantenedor, o trusting-trust) e desenhar para encarecer o ataque, não fingir que ele não existe.</p>
+
+  <h2>Como se correlaciona</h2>
+  <p>O threat model define o alvo; o self-audit e o release impõem o gate; o CODEOWNERS fecha o "PR malicioso mergeado sem análise"; o doctor observa; o red-team valida. É o mesmo princípio do <a href="9-defesa-profundidade-decisao.html">grupo 9</a> aplicado ao próprio projeto: camadas que se reforçam, com honestidade sobre o que cada uma não cobre. E proteger o Nemesis fecha o ciclo do <a href="7-prompt-injection-ide-poisoning.html">grupo 7</a> (o agente, e o repo, são superfície de ameaça).</p>
+
+  <h2>Como o Nemesis aplica</h2>
+  <p>O self-audit declara o limite no próprio arquivo (trusting-trust: ele não se autovalida) e por isso só vale acoplado a CODEOWNERS mais branch protection:</p>
+  <span class="src-ref">📄 <b>.github/workflows/self-audit.yml:10-17</b> · limite honesto declarado</span>
+  <pre><code class="bash"># LIMITE HONESTO (trusting-trust): este workflow NAO se autovalida.
+# Por isso SO vale acoplado a CODEOWNERS + branch protection (revisao humana
+# obrigatoria nos arquivos trust-critical).</code></pre>
+  <p>O pentest é o gate que prova que o motor ainda detecta:</p>
+  <span class="src-ref">📄 <b>.github/workflows/self-audit.yml:85-89</b> · pentest como gate de CI</span>
+  <pre><code class="bash"># GATE · Pentest do Nemesis deve estar APROVADO
+bash .nemesis/pentest-nemesis-control/nemesis-defender/run-pentest.sh</code></pre>
+  <p>O release separa build de publicação, zera permissões por padrão e anexa proveniência SLSA:</p>
+  <span class="src-ref">📄 <b>.github/workflows/release.yml:8-16</b> · SLSA, draft, environment com reviewer</span>
+  <pre><code class="bash"># permissions: {} global; build NAO pode publicar release.
+# job 'release' num Environment com required reviewer; cargo build --locked
+# attestation de proveniencia (SLSA): prova que o tarball veio DESTE repo/commit.</code></pre>
+  <p>O CODEOWNERS trava os caminhos que definem a própria segurança (um diff ali poderia "cegar" o scanner):</p>
+  <span class="src-ref">📄 <b>.github/CODEOWNERS:18-21</b> · o motor de detecção sob revisão obrigatória</span>
+  <pre><code class="bash">/.nemesis/nemesis-defender/src/   @feryamaha
+/.nemesis/denylist/               @feryamaha
+/.nemesis/hooks/                  @feryamaha</code></pre>
+  <p>O doctor organiza a checagem em grupos (os módulos <code>compile</code>, <code>unit_tests</code>, <code>ebpf</code>, <code>daemon</code>, <code>scaffold</code>, <code>inventory</code>, <code>pentest</code>), e o <code>--quick</code> pula os pesados:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-doctor/src/checks/mod.rs:3-9</b> e <b>main.rs:10</b></span>
+  <pre><code class="rust">pub mod compile;  pub mod daemon;  pub mod ebpf;  pub mod inventory;
+pub mod pentest;  pub mod scaffold;  pub mod unit_tests;
+// --quick: pula grupos pesados (G1 compile, G2 testes, G7 pentest)</code></pre>
+
+  <h2>Nuances e armadilhas</h2>
+  <ul>
+    <li><strong>Números de pentest divergem entre fontes:</strong> o cabeçalho do <code>run-pentest.sh</code> diz "184 testes, 26 módulos (v2.0)", enquanto o <code>self-audit.yml</code> e o <code>AGENTS.md</code> citam "194/194". O script auto-detecta e falha se houver gap ou falso-positivo, então o número é dinâmico; eu não fixo um valor que possa defasar e aponto a divergência em vez de escolher um lado.</li>
+    <li><strong>Doctor:</strong> o código nomeia explicitamente G1 (compile), G2 (testes) e G7 (pentest) no texto de ajuda; os demais grupos mapeiam para os módulos de checagem. Eu descrevo por módulo para não inventar rótulos.</li>
+    <li><strong>O self-audit não faz self-scan do fonte:</strong> o código do scanner contém legitimamente as próprias assinaturas de ataque; auto-escanear daria quase 100% de falso-positivo. O self-scan de conteúdo vale só para conteúdo externo.</li>
+    <li>CODEOWNERS, draft e environment só têm efeito com a branch protection configurada no GitHub (domínio do Fernando). Sem isso, são intenção declarada, e eu digo isso.</li>
+  </ul>
+
+  <h2>Auto-checagem</h2>
+  <details><summary>O que é o problema do trusting-trust e como ele limita o self-audit?</summary>
+  <p>Um scanner não consegue detectar um backdoor em si mesmo de forma confiável. Por isso o self-audit não se autovalida e só vale acoplado a revisão humana (CODEOWNERS + branch protection).</p></details>
+  <details><summary>Qual a diferença entre o checksum e a attestation de proveniência?</summary>
+  <p>O <code>.sha256</code> garante integridade (o arquivo não mudou). A attestation SLSA garante autenticidade (o arquivo veio deste repo/commit/workflow). Integridade não é autenticidade.</p></details>
+  <details><summary>Por que não fixar o número de testes do pentest no material?</summary>
+  <p>Porque o script auto-detecta e as fontes do repo divergem (184/26 no cabeçalho, 194 no self-audit). Fixar um número defasaria; o honesto é descrever o gate e apontar a divergência.</p></details>
+
+  <h2>Para ir além</h2>
+  <ul>
+    <li><a href="https://slsa.dev/">SLSA, níveis de proveniência</a>.</li>
+    <li><a href="https://owasp.org/www-project-devsecops-guideline/">OWASP DevSecOps Guideline</a>.</li>
+    <li><a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners">GitHub, CODEOWNERS</a>.</li>
+  </ul>
+
+  <nav class="pager" aria-label="Navegação entre páginas">
+    <a class="prev" href="9-defesa-profundidade-decisao.html"><span class="lbl">Anterior</span><span class="ttl">Defesa em profundidade e decisão</span></a>
+    <a class="next" href="visao-geral.html"><span class="lbl">Próximo</span><span class="ttl">Visão geral: o sistema convergindo</span></a>
+  </nav>
+  <div class="foot"><p>Citações verificadas contra o repositório. <a href="../index.html">Voltar ao índice</a>.</p></div>
+</main>
+
+<aside class="toc" aria-label="Sumário da página">
+  <div class="t">Nesta página</div>
+  <nav id="toc-list"></nav>
+</aside>
+</div>
+</div>
+<script src="../assets/nav.js"></script>
+</body>
+</html>

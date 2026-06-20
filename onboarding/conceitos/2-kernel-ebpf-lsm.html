@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kernel, eBPF e LSM · Nemesis</title>
+<link rel="stylesheet" href="../assets/estilo.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>material de estudo</b></span>
+  <span class="spacer"></span>
+  <nav aria-label="Navegação principal">
+    <a href="../index.html">Início</a>
+    <a href="../competencias.html">Competências</a>
+    <a href="../COBERTURA.html">Cobertura</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<div class="layout with-toc">
+<main id="main">
+  <p class="crumb"><a href="../index.html">Início</a><span class="sep">/</span>Conceitos<span class="sep">/</span>2 · Kernel, eBPF e LSM</p>
+
+  <span class="deftag">conceito 2 · kernel Linux</span>
+  <h1>Kernel, eBPF e LSM</h1>
+  <p class="lede">Três ângulos do mesmo assunto: o que separa o userspace do kernel e onde o kernel decide se um programa pode executar; o que é o eBPF e por que ele é seguro de carregar no kernel; e como o BPF-LSM me dá o ponto exato para dizer "não".</p>
+
+  <div class="sec30">
+    <span class="t">Em 30 segundos</span>
+    <p>Quando um programa vai ser executado, o kernel passa por um ponto de verificação chamado <code>bprm_check_security</code>. Eu pendurei ali um programa eBPF: ele olha o nome do binário, confere numa tabela de comandos bloqueados e, se bater, devolve <code>-EPERM</code>, o exec não acontece. eBPF é código que roda dentro do kernel mas passa antes por um <em>verifier</em> que prova que ele não trava nem acessa memória inválida. O LSM (Linux Security Modules) é a moldura de ganchos de segurança do kernel onde eu encaixo essa decisão.</p>
+  </div>
+
+  <h2>Do zero: userspace, kernel e a syscall</h2>
+  <p>O sistema roda em dois mundos. O <strong>userspace</strong> é onde vivem os programas comuns; o <strong>kernel</strong> é o núcleo privilegiado que controla CPU, memória, disco e rede. Um programa não toca o hardware direto: ele faz uma <em>syscall</em>, um pedido formal ao kernel ("execute este binário", "abra este socket"). Executar um programa passa por uma syscall da família <code>execve</code>, e dentro do kernel esse caminho cruza o gancho <code>bprm_check_security</code> (de <em>binary parameters</em>): o último ponto onde a política de segurança pode aprovar ou vetar o exec antes de a imagem do novo programa assumir.</p>
+
+  <h2>Por que importa</h2>
+  <p>O hook do userspace (o <a href="1-contrato-posix-exit2.html">exit 2</a>) depende de a IDE chamar o hook. Se o pretool está desconectado, ou se o agente arruma um jeito de executar algo por fora, o userspace não vê. O kernel vê tudo: nenhum processo executa sem passar pelo <code>bprm_check_security</code>. Por isso eu queria uma decisão lá embaixo, como rede de segurança que não depende da cooperação da IDE.</p>
+
+  <h2>Como se correlaciona</h2>
+  <p>eBPF, verifier e LSM se encaixam assim: o <strong>LSM</strong> oferece os ganchos (onde decidir); o <strong>eBPF</strong> é a tecnologia que me deixa carregar lógica nesses ganchos sem recompilar o kernel; e o <strong>verifier</strong> é o que torna isso aceitável, ele prova, antes de carregar, que meu programa termina e não corrompe nada. Por isso meus loops são de tamanho fixo com <code>#pragma unroll</code> e os caminhos são limitados: é o que o verifier exige. As estruturas de dados que ligo a esse programa são <em>mapas</em> BPF, e eu uso vários tipos conforme a necessidade.</p>
+
+  <h2>Como o Nemesis aplica</h2>
+  <p>Eu declaro os mapas que o programa usa: uma tabela hash com os comandos bloqueados, um ring buffer para emitir eventos ao userspace, e tries LPM para a allowlist de egress (que detalho no <a href="3-confinamento-kernel-egress.html">grupo 3</a>).</p>
+  <span class="src-ref">📄 <b>.nemesis/ebpf-kernel/ebpf/nemesis-block.bpf.c:20-67</b> · mapas hash, ringbuf, array e LPM trie</span>
+  <pre><code class="rust">struct {
+    __uint(type, BPF_MAP_TYPE_HASH);
+    __uint(max_entries, 256);
+    __type(key, struct command_key);
+    __type(value, __u8);
+} blocked_commands SEC(".maps");
+
+struct {
+    __uint(type, BPF_MAP_TYPE_RINGBUF);
+    __uint(max_entries, 1 << 24);
+} events SEC(".maps");</code></pre>
+  <p>E o gancho de exec: ele respeita a decisão de um LSM anterior na cadeia (não sobrepõe um <code>ret</code> já tomado), confere se o processo é do agente, lê o basename do binário e, se ele estiver na tabela, devolve <code>-EPERM</code>.</p>
+  <span class="src-ref">📄 <b>.nemesis/ebpf-kernel/ebpf/nemesis-block.bpf.c:68-138</b> · hook lsm/bprm_check_security</span>
+  <pre><code class="rust">SEC("lsm/bprm_check_security")
+int BPF_PROG(nemesis_check_exec, struct linux_binprm *bprm, int ret)
+{
+    if (ret != 0)
+        return ret;              // respeita decisão anterior da cadeia LSM
+    // ... escopo por cgroup do agente, lê basename ...
+    blocked = bpf_map_lookup_elem(&blocked_commands, &key);
+    if (!blocked)
+        return 0;
+    return -EPERM;               // nega o exec no kernel
+}</code></pre>
+
+  <h2>Nuances e armadilhas</h2>
+  <ul>
+    <li>Eu <strong>nunca sobreponho</strong> uma negação anterior da cadeia LSM: se <code>ret != 0</code>, devolvo o próprio <code>ret</code>. Sobrepor isso seria abrir um buraco em outra política de segurança do sistema.</li>
+    <li>Isto é Linux. No macOS não há eBPF (o análogo seria o Endpoint Security Framework, que eu ainda não construí). Lá, sem o pretool, não há backstop de kernel.</li>
+    <li>O BPF-LSM precisa estar habilitado no kernel (<code>bpf</code> em <code>/sys/kernel/security/lsm</code>). O pretool só tenta subir o daemon eBPF quando confirma esse suporte.</li>
+  </ul>
+
+  <h2>Auto-checagem</h2>
+  <details><summary>Por que o controle no kernel cobre casos que o hook do userspace não cobre?</summary>
+  <p>Porque toda execução de binário passa pelo <code>bprm_check_security</code> no kernel, independente de a IDE chamar o pretool. É o backstop quando o hook está desconectado.</p></details>
+  <details><summary>Para que serve o verifier do eBPF?</summary>
+  <p>Ele prova, antes de carregar, que o programa termina (sem loops infinitos) e não acessa memória inválida. É o que torna seguro rodar meu código dentro do kernel; por isso uso loops de tamanho fixo.</p></details>
+  <details><summary>O que acontece se outro LSM já tiver negado a ação?</summary>
+  <p>Meu programa devolve o <code>ret</code> recebido sem alterá-lo. Eu só decido quando a cadeia ainda não decidiu (<code>ret == 0</code>).</p></details>
+
+  <h2>Para ir além</h2>
+  <ul>
+    <li><a href="https://ebpf.io/what-is-ebpf/">ebpf.io, o que é eBPF e o verifier</a>.</li>
+    <li><a href="https://www.kernel.org/doc/html/latest/bpf/prog_lsm.html">kernel.org, BPF LSM programs</a>.</li>
+    <li><a href="https://www.kernel.org/doc/html/latest/admin-guide/LSM/index.html">kernel.org, Linux Security Modules</a>.</li>
+  </ul>
+
+  <nav class="pager" aria-label="Navegação entre páginas">
+    <a class="prev" href="1-contrato-posix-exit2.html"><span class="lbl">Anterior</span><span class="ttl">Contrato POSIX e o exit 2</span></a>
+    <a class="next" href="3-confinamento-kernel-egress.html"><span class="lbl">Próximo</span><span class="ttl">Confinamento do kernel e egress</span></a>
+  </nav>
+  <div class="foot"><p>Citações verificadas contra o repositório. <a href="../index.html">Voltar ao índice</a>.</p></div>
+</main>
+
+<aside class="toc" aria-label="Sumário da página">
+  <div class="t">Nesta página</div>
+  <nav id="toc-list"></nav>
+</aside>
+</div>
+</div>
+<script src="../assets/nav.js"></script>
+</body>
+</html>

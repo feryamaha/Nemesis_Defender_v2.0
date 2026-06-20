@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A jornada · Nemesis Defender</title>
+<meta name="description" content="A jornada de estudo do Nemesis Defender: abertura narrativa que leva aos dez grupos de conceito e fecha na visão geral.">
+<link rel="stylesheet" href="assets/estilo.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>material de estudo</b></span>
+  <span class="spacer"></span>
+  <nav aria-label="Navegação principal">
+    <a href="index.html">Início</a>
+    <a href="competencias.html">Competências</a>
+    <a href="COBERTURA.html">Cobertura</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<div class="layout with-toc">
+<main id="main">
+  <p class="crumb"><a href="index.html">Início</a><span class="sep">/</span>A jornada</p>
+
+  <span class="deftag">abertura · como ler este material</span>
+  <h1>A jornada</h1>
+  <p class="lede">Esta é a porta de entrada. Eu organizei o estudo do Nemesis Defender em dez grupos de conceito que se aprofundam, e uma visão geral que fecha juntando tudo. Aqui eu te conto o caminho e por que ele é nessa ordem.</p>
+
+  <div class="sec30">
+    <span class="t">Em 30 segundos</span>
+    <p>O Nemesis existe por uma tese: <strong>instrução probabilística não contém; enforcement determinístico contém.</strong> Um agente de IA pode ignorar um pedido educado no prompt, mas não pode ignorar um processo que sai com <code>exit 2</code> antes da ação acontecer. A jornada começa nesse contrato, desce ao kernel, passa pelo Rust e pela leitura de código, mostra o malware que eu caço, a arquitetura de decisão e o processo, e fecha na visão geral.</p>
+  </div>
+
+  <h2>Como eu construí este material</h2>
+  <p>Cada afirmação técnica aqui é rastreável a um arquivo real do repositório (<em>forensic-first</em>): eu não invento, e quando o código diverge da documentação, eu sigo o código e aponto a divergência. A voz é minha, em primeira pessoa, porque a engenharia é minha, eu desenvolvi cada camada. E uma regra atravessa tudo: <strong>visitor é um método de detecção, não a unidade de cobertura</strong>. A proteção do Nemesis é a soma das camadas (o coeficiente), não a contagem de uma feature.</p>
+
+  <h2>A trilha (na ordem que eu recomendo)</h2>
+  <ol>
+    <li><strong>O contrato:</strong> <a href="conceitos/1-contrato-posix-exit2.html">1 · Contrato POSIX e o exit 2</a>. Onde tudo começa: por que o código de saída 2 é o enforcement.</li>
+    <li><strong>O kernel:</strong> <a href="conceitos/2-kernel-ebpf-lsm.html">2 · Kernel, eBPF e LSM</a> e <a href="conceitos/3-confinamento-kernel-egress.html">3 · Confinamento e egress</a>. A decisão no kernel e como conter sem dano colateral.</li>
+    <li><strong>A linguagem:</strong> <a href="conceitos/4-rust-defesa.html">4 · Rust como linguagem de defesa</a>. Por que o defensor não pode ser fonte de bug nem de DoS.</li>
+    <li><strong>A leitura de código:</strong> <a href="conceitos/5-leitura-codigo-ast-pipeline.html">5 · AST, pipeline e detecção semântica</a>. Como o Nemesis entende intenção.</li>
+    <li><strong>A mecânica:</strong> <a href="conceitos/6-pretool-defender-daemon.html">6 · Pretool, defender e daemon</a>. Interceptar, decidir e conter.</li>
+    <li><strong>O que ele caça:</strong> <a href="conceitos/7-prompt-injection-ide-poisoning.html">7 · Prompt injection e IDE poisoning</a> e <a href="conceitos/8-codigo-malicioso-supply-chain.html">8 · Código malicioso e supply-chain</a>.</li>
+    <li><strong>A decisão:</strong> <a href="conceitos/9-defesa-profundidade-decisao.html">9 · Defesa em profundidade e decisão</a>. Conter sem apagar o que é legítimo.</li>
+    <li><strong>O processo:</strong> <a href="conceitos/10-processo-honestidade.html">10 · Processo e honestidade</a>. Threat model, DevSecOps, doctor, red-team.</li>
+    <li><strong>O fecho:</strong> <a href="conceitos/visao-geral.html">Visão geral</a>. O sistema inteiro convergindo num quadro só.</li>
+  </ol>
+
+  <div class="callout tip"><span class="t">Atalho</span>Se você quiser o mapa completo de tiles por domínio, o <a href="index.html">índice</a> tem todos os dez grupos mais as páginas de apoio. Se quiser ver conceito mapeado a arquivo-fonte, vá direto à <a href="COBERTURA.html">matriz de cobertura</a>.</div>
+
+  <h2>Por que essa ordem</h2>
+  <p>Eu agrupei conceitos que se chamam, que são causa e efeito, ou que são o mesmo assunto por ângulos diferentes. O exit 2 vem primeiro porque é o contrato que todo o resto honra. O kernel vem antes do Rust porque define <em>onde</em> a decisão acontece. A leitura de código vem antes do malware porque é <em>como</em> eu o reconheço. E a decisão e o processo fecham, porque é onde a engenharia vira disciplina. A visão geral, no fim, só faz sentido depois que você viu as peças.</p>
+
+  <nav class="pager" aria-label="Navegação entre páginas">
+    <a class="prev" href="index.html"><span class="lbl">Anterior</span><span class="ttl">Índice</span></a>
+    <a class="next" href="conceitos/1-contrato-posix-exit2.html"><span class="lbl">Próximo</span><span class="ttl">1 · Contrato POSIX e o exit 2</span></a>
+  </nav>
+  <div class="foot"><p>Material gerado por análise forense da codebase. <a href="index.html">Voltar ao índice</a>.</p></div>
+</main>
+
+<aside class="toc" aria-label="Sumário da página">
+  <div class="t">Nesta página</div>
+  <nav id="toc-list"></nav>
+</aside>
+</div>
+</div>
+<script src="assets/nav.js"></script>
+</body>
+</html>

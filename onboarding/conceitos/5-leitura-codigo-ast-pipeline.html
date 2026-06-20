@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Como o Nemesis lê código · Nemesis</title>
+<link rel="stylesheet" href="../assets/estilo.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>material de estudo</b></span>
+  <span class="spacer"></span>
+  <nav aria-label="Navegação principal">
+    <a href="../index.html">Início</a>
+    <a href="../competencias.html">Competências</a>
+    <a href="../COBERTURA.html">Cobertura</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<div class="layout with-toc">
+<main id="main">
+  <p class="crumb"><a href="../index.html">Início</a><span class="sep">/</span>Conceitos<span class="sep">/</span>5 · Como o Nemesis lê código</p>
+
+  <span class="deftag">conceito 5 · análise de código</span>
+  <h1>Como o Nemesis lê código: AST, pipeline e detecção semântica</h1>
+  <p class="lede">Para entender intenção, não basta procurar texto. Eu parseio o código em árvore (AST) e visito os nós, rodo um pipeline de camadas do mais barato ao mais caro, meço entropia para flagrar payload ofuscado e sigo o dado da fonte ao sink (taint).</p>
+
+  <div class="sec30">
+    <span class="t">Em 30 segundos</span>
+    <p>O <strong>tree-sitter</strong> transforma o código em uma árvore sintática (AST). Eu caminho por essa árvore e, em cada nó, chamo um conjunto de <strong>visitors</strong>, cada visitor é um método que reconhece um padrão semântico. Isso é parte de um <strong>pipeline</strong> em camadas: byte, entropia, regex, manifesto, ide, exfil, AST e por fim o decoder recursivo. A <strong>entropia de Shannon</strong> denuncia strings que parecem payload codificado, e o <strong>taint tracking</strong> liga uma fonte sensível a um sink perigoso dentro do arquivo.</p>
+  </div>
+
+  <h2>Do zero: AST, Visitor e pipeline</h2>
+  <p>Um analisador léxico quebra o texto em tokens; o parser monta com eles uma <strong>árvore sintática abstrata</strong>, onde cada nó é uma construção da linguagem (uma chamada de função, uma string, uma atribuição). Visitar a AST é percorrer essa árvore aplicando uma função a cada nó: é o <strong>padrão Visitor</strong>. Importante: o visitor é um <em>método de detecção</em>, não uma unidade de cobertura. <strong>Entropia</strong> mede imprevisibilidade; texto natural e código têm entropia média, dado comprimido ou cifrado tem entropia alta. <strong>Taint tracking</strong> é análise de fluxo: marca valores que vêm de uma fonte não-confiável e vê se eles chegam a um ponto perigoso.</p>
+
+  <h2>Por que importa</h2>
+  <p>Atacante esconde intenção. Um <code>eval</code> de string concatenada, um segredo lido e mandado para a rede, um comando montado em pedaços, nada disso é pego por uma busca ingênua de substring sem gerar montanha de falso-positivo. Lendo a estrutura, eu distingo "a palavra <code>exec</code> aparece num comentário" de "há uma chamada de <code>exec</code> sobre um valor decodificado em runtime". É a diferença entre alarme falso e detecção real.</p>
+
+  <h2>Como se correlaciona</h2>
+  <p>As camadas se encadeiam do barato ao caro: o byte-scan roda sem parser; a entropia e o regex são rápidos; a AST só roda em linguagens suportadas; e o decoder fecha decodificando o que estava escondido e <em>reescaneando</em>. O taint é uma passada de conteúdo completa acoplada à AST. A severidade que sai dali alimenta o <a href="9-defesa-profundidade-decisao.html">modelo de decisão</a>, e muitos visitors deste pipeline são exatamente os que caçam os ataques do <a href="8-codigo-malicioso-supply-chain.html">grupo 8</a>.</p>
+
+  <h2>Como o Nemesis aplica</h2>
+  <p>A travessia da AST chama os visitors em cada nó (aqui, JavaScript), e acopla a passada de taint sobre o conteúdo inteiro:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/scanner/ast_scanner.rs:58-79</b> · Visitor por nó + taint</span>
+  <pre><code class="rust">violations.extend(visitors::taint_tracker::scan_js_content(content));
+// ... em cada nó:
+violations.extend(visitors::decode_exec::visit_js_node(node, source));
+violations.extend(visitors::dynamic_cmd::visit_js_node(node, source));
+violations.extend(visitors::url_in_exec::visit_js_node(node, source));
+violations.extend(visitors::unicode_steg::visit_js_node(node, source));
+violations.extend(visitors::prompt_injection::visit_js_node(node, source));
+// ...recursão nos filhos</code></pre>
+  <p>O pipeline real é orquestrado em <code>scan_content</code>, na ordem efetiva (byte com quatro sub-scans, depois entropia, regex, manifesto, ide, exfil, AST e decoder):</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/lib.rs:248-298</b> · execução real do pipeline</span>
+  <pre><code class="rust">let byte_violations = scanner::byte_scanner::scan_bidi(content);      // + pua, homoglyph, zero_width
+let entropy_violations = scanner::entropy::scan_high_entropy(content);
+let regex_violations = scanner::regex_layer::scan(content, &language);
+let manifest_violations = scanner::manifest_scanner::scan(path, content);
+let ide_violations = visitors::ide_config_poisoning::scan_ide_config(path, content);
+let exfil_chain_violations = visitors::exfil_chain::scan_content(path, content);
+// Layer 5 AST (só linguagens suportadas) · Layer 6 decoder recursivo</code></pre>
+  <p>A entropia tem limiar afinado para pegar payload sem marcar CSS legítimo:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/scanner/entropy.rs:14-16</b> · limiar de Shannon</span>
+  <pre><code class="rust">const ENTROPY_THRESHOLD: f64 = 5.5;   // > 5.5 bits/char = suspeito
+const MIN_STRING_LEN: usize = 20;
+const MAX_STRING_LEN: usize = 500;</code></pre>
+  <p>E o taint roda em três passadas: coleta fontes, propaga por atribuição e detecta a fonte chegando a um sink de exec ou de rede:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/visitors/taint_tracker.rs:251-318</b> · fonte → propagação → sink</span>
+  <pre><code class="rust">// Pass 1: coletar fontes contaminadas
+// Pass 2: propagar taint por atribuições
+// Pass 3: detectar var contaminada alcançando EXEC_SINK / NETWORK_SINK</code></pre>
+
+  <h2>Nuances e armadilhas</h2>
+  <ul>
+    <li>O comentário no cabeçalho de <code>scanner/mod.rs</code> descreve <strong>seis</strong> camadas, mas a execução em <code>lib.rs</code> tem mais chamadas: o byte sozinho são quatro sub-scans e ainda entram <code>ide_config</code> e <code>exfil_chain</code>. Onde a doc e o código divergem, o código manda; eu sigo o código.</li>
+    <li>A AST só roda em linguagens suportadas (JS, TS, Bash, Python). Arquivo de tipo desconhecido recebe só byte, entropia, regex e os scans de conteúdo, ainda assim cobre muita coisa.</li>
+    <li>Entropia é heurística (corroborante), não confirma sozinha: CSS de utilitário fica perto do limiar. Por isso o limiar é 5.5 e o tamanho é limitado, para não marcar o que é legítimo.</li>
+  </ul>
+
+  <h2>Auto-checagem</h2>
+  <details><summary>Por que ler a AST em vez de só procurar substrings?</summary>
+  <p>Para distinguir intenção de menção: <code>exec</code> num comentário é inofensivo; <code>exec</code> sobre um valor decodificado em runtime é ataque. A estrutura me dá esse contexto e derruba o falso-positivo.</p></details>
+  <details><summary>Visitor é a unidade de cobertura do Nemesis?</summary>
+  <p>Não. Visitor é um método de detecção (intenção semântica por travessia). A cobertura é a soma das camadas (o coeficiente); contar visitors subconta a proteção.</p></details>
+  <details><summary>O que o taint tracking precisa para disparar?</summary>
+  <p>De um fluxo: uma fonte contaminada que, propagada por atribuições, chega a um sink de exec ou de rede. Fonte isolada ou sink isolado não dispara.</p></details>
+
+  <h2>Para ir além</h2>
+  <ul>
+    <li><a href="https://tree-sitter.github.io/tree-sitter/">tree-sitter, parsing incremental</a>.</li>
+    <li><a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)">Entropia de Shannon (teoria da informação)</a>.</li>
+    <li><a href="https://owasp.org/www-community/controls/Static_Code_Analysis">OWASP, análise estática</a>.</li>
+  </ul>
+
+  <nav class="pager" aria-label="Navegação entre páginas">
+    <a class="prev" href="4-rust-defesa.html"><span class="lbl">Anterior</span><span class="ttl">Rust como linguagem de defesa</span></a>
+    <a class="next" href="6-pretool-defender-daemon.html"><span class="lbl">Próximo</span><span class="ttl">Pretool, defender e daemon</span></a>
+  </nav>
+  <div class="foot"><p>Citações verificadas contra o repositório. <a href="../index.html">Voltar ao índice</a>.</p></div>
+</main>
+
+<aside class="toc" aria-label="Sumário da página">
+  <div class="t">Nesta página</div>
+  <nav id="toc-list"></nav>
+</aside>
+</div>
+</div>
+<script src="../assets/nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contrato POSIX e o exit 2 · Nemesis</title>
+<link rel="stylesheet" href="../assets/estilo.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>material de estudo</b></span>
+  <span class="spacer"></span>
+  <nav aria-label="Navegação principal">
+    <a href="../index.html">Início</a>
+    <a href="../competencias.html">Competências</a>
+    <a href="../COBERTURA.html">Cobertura</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<div class="layout with-toc">
+<main id="main">
+  <p class="crumb"><a href="../index.html">Início</a><span class="sep">/</span>Conceitos<span class="sep">/</span>1 · Contrato POSIX e o exit 2</p>
+
+  <span class="deftag">conceito 1 · sistema operacional</span>
+  <h1>Contrato POSIX e o exit 2</h1>
+  <p class="lede">O número 2 que o Nemesis devolve quando bloqueia não saiu do nada: ele é produto direto do modelo de processos POSIX. Eu escolhi esse número porque ele virou um contrato que as IDEs entendem sem ambiguidade.</p>
+
+  <div class="sec30">
+    <span class="t">Em 30 segundos</span>
+    <p>Todo processo Unix termina devolvendo um inteiro ao pai: o <em>exit code</em>. Zero é sucesso, diferente de zero é falha. As IDEs de agente combinaram que, no hook que roda antes da ação, sair com <code>exit 2</code> significa "bloqueie esta ação". Então eu leio o pedido do agente pela entrada padrão (stdin), decido, e quando é hostil eu chamo <code>exit(2)</code>. É determinístico: não é um pedido, é o fim do processo com um veredito.</p>
+  </div>
+
+  <h2>Do zero: de onde vem o exit code</h2>
+  <p>No modelo POSIX, um processo é criado por <code>fork</code>/<code>exec</code> e, quando morre, entrega ao processo pai um status via <code>wait</code>. Desse status o pai lê um byte: o código de saída. A convenção é antiga e universal: <code>0</code> quer dizer "deu certo", qualquer valor de <code>1</code> a <code>255</code> quer dizer "deu errado", e cada programa pode atribuir significados aos códigos diferentes de zero. O agente conversa com o hook por três descritores padrão: entrada (stdin), saída (stdout) e erro (stderr). O hook recebe o pedido em stdin como JSON, processa, e o que importa para a decisão não é o que ele imprime, e sim com qual número ele termina.</p>
+
+  <h2>Por que importa</h2>
+  <p>Eu precisava de um sinal que o agente não pudesse "convencer" a mudar. Texto no prompt é probabilístico: o modelo pode ignorar. Já o código de saída de um processo é um fato do sistema operacional. Quando a IDE combina "se o hook pré-ação sair com 2, eu cancelo a ação", o controle deixa de depender da boa vontade do modelo e passa a depender do kernel entregar o status do processo, o que ele sempre faz.</p>
+
+  <h2>Como se correlaciona</h2>
+  <p>Esse contrato amarra tudo o que vem depois. O <a href="6-pretool-defender-daemon.html">pretool</a> é o processo que lê o stdin e decide; o <a href="4-rust-defesa.html">desenho fail-closed</a> garante que até um erro interno termine em <code>exit 2</code> em vez de deixar passar; e a <a href="2-kernel-ebpf-lsm.html">camada de kernel</a> usa o análogo no nível do kernel, devolver <code>-EPERM</code> em vez de <code>0</code>, para negar exec. O exit code é a forma userspace do mesmo princípio: comunicar "negado" por um canal que não se discute.</p>
+
+  <h2>Como o Nemesis aplica</h2>
+  <p>O ponto de bloqueio é uma função única que registra o motivo no ledger e encerra o processo com 2. Só registra na telemetria quando o motivo é de segurança (o vocabulário das mensagens <code>NEMESIS</code>), porque erro operacional do hook não é proteção.</p>
+  <span class="src-ref">📄 <b>.nemesis/hooks/nemesis-pretool-check-unix.rs:190-194</b> · o bloqueio que sai com exit 2</span>
+  <pre><code class="rust">if reason.contains("NEMESIS ") {
+    nemesis_defender::violations_log::append("pretool", reason);
+}
+std::process::exit(2);</code></pre>
+  <p>E onde eu crio um processo filho, uso a API POSIX com os três descritores explicitamente desligados, exatamente o modelo de <code>fork</code>/<code>exec</code> mais redirecionamento de stdio:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/main.rs:106-126</b> · spawn do daemon com stdio nulo</span>
+  <pre><code class="rust">std::process::Command::new(&exe)
+    .arg("--daemon")
+    .current_dir(&project_root)
+    .stdin(std::process::Stdio::null())
+    .stdout(std::process::Stdio::null())
+    .stderr(std::process::Stdio::null())
+    .spawn()</code></pre>
+
+  <h2>Nuances e armadilhas</h2>
+  <ul>
+    <li>O significado de "2 = bloqueado" é uma <strong>convenção das IDEs de agente</strong>, não uma lei do POSIX. O POSIX só garante "0 = ok, ≠0 = erro". Eu dependo de a IDE honrar o 2 como cancelamento; por isso valido isso no pentest com o hook conectado.</li>
+    <li>O que o hook imprime em stdout/stderr é diagnóstico para o humano; a decisão é só o código de saída. Misturar os dois é erro comum.</li>
+    <li>Um processo que trava (não termina) não devolve código nenhum. Por isso o hook é síncrono e rápido, e tem o desenho fail-closed para nunca ficar pendurado sem veredito.</li>
+  </ul>
+
+  <h2>Auto-checagem</h2>
+  <details><summary>Por que o código de saída é mais confiável que uma instrução no prompt?</summary>
+  <p>Porque é um fato do sistema operacional, entregue pelo kernel ao processo pai, e não uma sugestão que o modelo pode ignorar. O agente não tem como "argumentar" contra o término de um processo com status 2.</p></details>
+  <details><summary>Por onde o hook recebe o pedido do agente?</summary>
+  <p>Pela entrada padrão (stdin), como JSON. Ele lê, decide, e comunica o veredito pelo código de saída, não pelo texto impresso.</p></details>
+  <details><summary>O "2" é exigido pelo POSIX?</summary>
+  <p>Não. POSIX só fixa 0 = sucesso e ≠0 = falha. O 2 como "bloqueado" é a convenção combinada com as IDEs de agente; é por isso que eu o trato como contrato e o valido na prática.</p></details>
+
+  <h2>Para ir além</h2>
+  <ul>
+    <li><a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/exit.html">POSIX <code>exit()</code> (The Open Group)</a>.</li>
+    <li><a href="https://docs.devin.ai/">Documentação de hooks de agente (Devin)</a>.</li>
+    <li><a href="https://doc.rust-lang.org/std/process/fn.exit.html">Rust <code>std::process::exit</code></a>.</li>
+  </ul>
+
+  <nav class="pager" aria-label="Navegação entre páginas">
+    <a class="prev" href="../jornada.html"><span class="lbl">Anterior</span><span class="ttl">A jornada</span></a>
+    <a class="next" href="2-kernel-ebpf-lsm.html"><span class="lbl">Próximo</span><span class="ttl">Kernel, eBPF e LSM</span></a>
+  </nav>
+  <div class="foot"><p>Citações verificadas contra o repositório. <a href="../index.html">Voltar ao índice</a>.</p></div>
+</main>
+
+<aside class="toc" aria-label="Sumário da página">
+  <div class="t">Nesta página</div>
+  <nav id="toc-list"></nav>
+</aside>
+</div>
+</div>
+<script src="../assets/nav.js"></script>
+</body>
+</html>

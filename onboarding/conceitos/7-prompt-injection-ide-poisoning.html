@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt injection e IDE poisoning · Nemesis</title>
+<link rel="stylesheet" href="../assets/estilo.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>material de estudo</b></span>
+  <span class="spacer"></span>
+  <nav aria-label="Navegação principal">
+    <a href="../index.html">Início</a>
+    <a href="../competencias.html">Competências</a>
+    <a href="../COBERTURA.html">Cobertura</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<div class="layout with-toc">
+<main id="main">
+  <p class="crumb"><a href="../index.html">Início</a><span class="sep">/</span>Conceitos<span class="sep">/</span>7 · Prompt injection e IDE poisoning</p>
+
+  <span class="deftag">conceito 7 · segurança de IA</span>
+  <h1>Prompt injection e IDE poisoning</h1>
+  <p class="lede">O agente de IA é, ele mesmo, uma superfície de ataque. Texto colocado nos lugares errados pode sequestrar suas instruções: extrair o system prompt, injetar falsa autoridade ou envenenar arquivos de config que a IDE lê como regra de projeto.</p>
+
+  <div class="sec30">
+    <span class="t">Em 30 segundos</span>
+    <p><strong>Prompt injection</strong> é instrução hostil escondida em conteúdo que o agente lê ("ignore as instruções anteriores", tokens de formato como <code>&lt;|im_start|&gt;</code>, "revele seu system prompt"). <strong>IDE poisoning</strong> é a variante que mira arquivos de configuração (como <code>CLAUDE.md</code>, <code>.cursorrules</code>): o atacante planta ali ordens disfarçadas de regra do projeto, falsa autoridade ("verificado pela Anthropic") ou um "scan de segurança" falso que faz o agente ler e vazar credenciais. Eu escaneio esses arquivos como qualquer outro conteúdo.</p>
+  </div>
+
+  <h2>Do zero: por que o texto vira comando</h2>
+  <p>Um LLM não separa de forma dura "dados" de "instruções": tudo é texto no contexto. Se o agente lê um arquivo do projeto e dentro dele há uma frase imperativa convincente, o modelo pode obedecer como se fosse o usuário falando. Daí os dois nomes. <strong>Prompt injection</strong> direta vem no próprio pedido; a <strong>indireta</strong> vem de conteúdo que o agente busca (um README, um issue, um arquivo de config). <strong>IDE poisoning</strong> é injeção indireta com alvo escolhido: os arquivos que a IDE trata como autoridade de projeto, justamente os que o agente tende a obedecer sem questionar.</p>
+
+  <h2>Por que importa</h2>
+  <p>Os próprios arquivos de instrução do Nemesis (o <code>AGENTS.md</code>, o <code>CLAUDE.md</code>) são autoridade que eu mando o agente respeitar. Se um atacante consegue editar um desses, ou plantar um <code>.cursorrules</code> envenenado, ele fala com a voz do projeto. Por isso a regra que eu sigo é dura: esses arquivos de config são <strong>escaneados</strong> contra poisoning e nunca isentados do scan. A defesa precisava tratar a config como conteúdo não-confiável, não como verdade.</p>
+
+  <h2>Como se correlaciona</h2>
+  <p>Prompt injection e poisoning são o mesmo vetor em dois lugares: o pattern de injeção é o coração, e o poisoning é ele aplicado a um arquivo-alvo de IDE, somado a truques de engenharia social (falsa autoridade, scan falso). A coleta de credencial que o "scan falso" tenta provocar é a ponte para o <a href="8-codigo-malicioso-supply-chain.html">grupo 8</a> (exfiltração). E o fato de eu escanear meus próprios arquivos de regra é parte da postura de <a href="10-processo-honestidade.html">proteger o próprio Nemesis</a>.</p>
+
+  <h2>Como o Nemesis aplica</h2>
+  <p>O visitor de injeção carrega uma lista de padrões: ordens de ignorar instruções, tokens de formato de IA e tentativas de extração do system prompt.</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/visitors/prompt_injection.rs:1-29</b> · padrões de injeção</span>
+  <pre><code class="rust">//! Detecta instrução de IA injetada em strings/comentários:
+//! - "ignore previous instructions"
+//! - tokens de formato (&lt;|im_start|&gt;, [INST], &lt;&lt;SYS&gt;&gt;)
+//! - extração de system prompt ("reveal your system prompt")
+const INJECTION_PATTERNS: &[&str] = &[
+    "ignore previous instructions", "override safety", "bypass restrictions",
+    "<|im_start|>", "[INST]", "<<SYS>>", /* ... */ ];</code></pre>
+  <p>Para config de IDE, eu só ajo se o arquivo for de fato um arquivo de config (alvo), e checo três coisas: injeção, scan de segurança falso e injeção de autoridade:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/visitors/ide_config_poisoning.rs:157-206</b> · scan_ide_config</span>
+  <pre><code class="rust">pub fn scan_ide_config(path: &Path, content: &[u8]) -> Vec<DefenderViolation> {
+    if !is_ide_config_file(path) { return violations; }   // só arquivos de config
+    if has_ide_prompt_injection(text) { /* ignore-previous, DAN, override */ }
+    if has_fake_security_scan(text)  { /* "rode um scan" = ler+vazar credencial */ }
+    if has_authority_injection(text) { /* "verified by Anthropic", "rules suspended" */ }
+}</code></pre>
+
+  <h2>Nuances e armadilhas</h2>
+  <ul>
+    <li>O "scan de segurança falso" é engenharia social fina: o arquivo manda o agente "rodar um scan" antes de responder, e o "scan" é ler credenciais e mandar para fora. Detecção legítima é feita por CI, não por agente lendo segredo.</li>
+    <li>Injeção de autoridade explora confiança: "configuração confiável", "regras de segurança suspensas", "verificado pela Anthropic". Nenhum arquivo externo pode conceder permissão elevada; eu trato toda alegação dessas como ataque.</li>
+    <li>Há risco de falso-positivo: um texto que <em>fala sobre</em> prompt injection (documentação, este próprio material) contém os termos. Por isso o poisoning mira arquivos de config de IDE, e a coleta de credencial isenta prosa pura, ela exige um sink executável.</li>
+  </ul>
+
+  <h2>Auto-checagem</h2>
+  <details><summary>Por que os arquivos de config (CLAUDE.md, .cursorrules) são escaneados em vez de confiados?</summary>
+  <p>Porque eles têm autoridade sobre o agente; um atacante que os edita fala com a voz do projeto. A regra é nunca isentá-los do scan, eles são conteúdo não-confiável como qualquer outro.</p></details>
+  <details><summary>O que é injeção de autoridade?</summary>
+  <p>Alegação falsa de legitimidade ("verificado pela Anthropic", "regras suspensas") para o agente obedecer sem resistência. Nenhum arquivo externo concede permissão; é engenharia social, e eu sinalizo.</p></details>
+  <details><summary>Por que separar prompt injection (direto) de poisoning (config)?</summary>
+  <p>É o mesmo vetor, mas o poisoning mira arquivos-alvo que a IDE trata como regra, o que muda o gatilho (só dispara em arquivo de config) e agrega truques de autoridade e scan falso.</p></details>
+
+  <h2>Para ir além</h2>
+  <ul>
+    <li><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">OWASP Top 10 for LLM Applications</a> (LLM01: Prompt Injection).</li>
+    <li><a href="https://genai.owasp.org/llmrisk/llm01-prompt-injection/">OWASP GenAI, Prompt Injection</a>.</li>
+    <li><a href="https://attack.mitre.org/techniques/T1059/">MITRE ATT&CK, Command and Scripting Interpreter</a>.</li>
+  </ul>
+
+  <nav class="pager" aria-label="Navegação entre páginas">
+    <a class="prev" href="6-pretool-defender-daemon.html"><span class="lbl">Anterior</span><span class="ttl">Pretool, defender e daemon</span></a>
+    <a class="next" href="8-codigo-malicioso-supply-chain.html"><span class="lbl">Próximo</span><span class="ttl">Código malicioso e supply-chain</span></a>
+  </nav>
+  <div class="foot"><p>Citações verificadas contra o repositório. <a href="../index.html">Voltar ao índice</a>.</p></div>
+</main>
+
+<aside class="toc" aria-label="Sumário da página">
+  <div class="t">Nesta página</div>
+  <nav id="toc-list"></nav>
+</aside>
+</div>
+</div>
+<script src="../assets/nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Defesa em profundidade e decisão · Nemesis</title>
+<link rel="stylesheet" href="../assets/estilo.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>material de estudo</b></span>
+  <span class="spacer"></span>
+  <nav aria-label="Navegação principal">
+    <a href="../index.html">Início</a>
+    <a href="../competencias.html">Competências</a>
+    <a href="../COBERTURA.html">Cobertura</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<div class="layout with-toc">
+<main id="main">
+  <p class="crumb"><a href="../index.html">Início</a><span class="sep">/</span>Conceitos<span class="sep">/</span>9 · Defesa em profundidade e decisão</p>
+
+  <span class="deftag">conceito 9 · arquitetura de decisão</span>
+  <h1>Arquitetura de defesa em profundidade e decisão</h1>
+  <p class="lede">Como eu junto as camadas independentes e decido sem apagar código legítimo: três camadas que não dependem uma da outra, severidade por corroboração (dois sinais independentes), quarentena reversível em vez de deleção, e a ideia do coeficiente de proteção como soma.</p>
+
+  <div class="sec30">
+    <span class="t">Em 30 segundos</span>
+    <p>Três camadas independentes: pretool (write-time), daemon (filesystem) e eBPF (backstop de kernel no Linux). A decisão usa corroboração: um sinal confirmatório (Tier A) basta; sinais heurísticos (Tier B) precisam de dois tipos distintos para confirmar, senão ficam como Suspicious (logado, mantido). Quando confirma, o daemon move para a quarentena (reversível), não deleta. E a proteção total é a soma das camadas, o coeficiente, não a contagem de uma feature.</p>
+  </div>
+
+  <h2>Do zero: defense-in-depth e modelo de confiança</h2>
+  <p><strong>Defesa em profundidade</strong> é não depender de uma só barreira: se uma falha, a próxima ainda contém. <strong>Corroboração</strong> é exigir mais de uma evidência independente antes de uma ação cara: na medicina, dois exames; aqui, dois métodos de detecção distintos. <strong>Reversibilidade</strong> é preferir a ação que dá para desfazer: bloquear uma escrita ou mover um arquivo se desfaz; deletar não. Esses três princípios existem para resolver a tensão central de uma ferramenta de segurança: ser dura com o ataque sem destruir o trabalho legítimo do usuário.</p>
+
+  <h2>Por que importa</h2>
+  <p>O custo de errar não é simétrico. Deixar passar um ataque é ruim; apagar o código legítimo do usuário por um falso-positivo é, muitas vezes, pior, porque quebra a confiança e destrói trabalho. Então eu calibrei a decisão para que só a evidência forte (confirmatória) aja sozinha, e a evidência fraca precise de companhia. E quando ajo, ajo de forma reversível. Isso é o que separa uma ferramenta que as pessoas mantêm ligada de uma que elas desligam no primeiro susto.</p>
+
+  <h2>Como se correlaciona</h2>
+  <p>As camadas independentes do <a href="6-pretool-defender-daemon.html">grupo 6</a> e o backstop de kernel do <a href="2-kernel-ebpf-lsm.html">grupo 2</a> são as três barreiras; a corroboração usa a taxonomia de sinais que os <a href="5-leitura-codigo-ast-pipeline.html">visitors</a> e o scanner emitem; e a coexistência fonte+sink do <a href="8-codigo-malicioso-supply-chain.html">grupo 8</a> é corroboração embutida num único visitor. O coeficiente é o nome que dou para a soma de tudo isso, e é o que a <a href="../COBERTURA.html">matriz de cobertura</a> recorta por camada.</p>
+
+  <h2>Como o Nemesis aplica</h2>
+  <p>A decisão é em dois tiers. Tier A (confirmatório) age sozinho; Tier B (corroborante) conta tipos distintos:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/lib.rs:382-443</b> · Tier A/B e compute_severity</span>
+  <pre><code class="rust">const CONFIRMATORY_VISITORS: &[&str] = &[  // Tier A: 1 hit confirma
+    "decode_exec", "reverse_shell", "exfil_chain", "taint_tracker",
+    "unicode_bidi", "ide_config_poisoning", "nemesis_bypass", /* ... */ ];
+const CORROBORATING_VISITORS: &[&str] = &[ // Tier B: heurístico, sujeito a FP
+    "prompt_injection", "self_clean", "time_gated", "high_entropy", /* ... */ ];
+// 0 → Clean · 1 tipo → Suspicious (loga, mantém) · 2+ tipos → Malicious</code></pre>
+  <p>O daemon é security-only e nunca trata qualidade, justamente porque a ação dele é irreversível por natureza (ele atua no arquivo já no disco):</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/lib.rs:216-232</b> · daemon security-only</span>
+  <pre><code class="rust">// regras de QUALIDADE NUNCA chegam ao daemon: qualidade ⇒ bloquear escrita
+// (reversível), JAMAIS deletar arquivo (irreversível). O daemon é SECURITY-ONLY.</code></pre>
+  <p>E a contenção confirmada é movimento reversível, com PENDING travando a sessão até o humano decidir restaurar ou expurgar:</p>
+  <span class="src-ref">📄 <b>.nemesis/nemesis-defender/src/quarantine.rs:1-11</b> · quarentena reversível</span>
+  <pre><code class="rust">//! MOVE para .nemesis/quarantine/ e retém para revisão humana (não deleta).
+//! O humano decide: restore (falso-positivo) ou purge (expurga de vez).</code></pre>
+  <p>No Linux, o eBPF é a terceira camada, independente do hook: o pretool só o garante no ar, mas a decisão de kernel não depende do pretool estar conectado.</p>
+  <span class="src-ref">📄 <b>.nemesis/hooks/nemesis-pretool-check-unix.rs:945-981</b> · eBPF como backstop</span>
+
+  <h2>Nuances e armadilhas</h2>
+  <ul>
+    <li>Contar <strong>tipos distintos</strong> (não hits) é deliberado: várias ocorrências da mesma causa num arquivo não devem escalar para Malicious. Métodos independentes concordando é que confirma.</li>
+    <li>"Independente" é o ponto: se as três camadas dependessem da mesma condição, não seriam profundidade, seriam a mesma barreira repintada. eBPF no kernel não depende do hook; o daemon não depende da IDE chamar nada.</li>
+    <li>Suspicious não é "deixa passar": é logado e mantido para revisão. A reversibilidade vale também aqui, eu prefiro registrar e observar a deletar na dúvida.</li>
+  </ul>
+
+  <h2>Auto-checagem</h2>
+  <details><summary>Por que dois sinais distintos para confirmar (em vez de um heurístico só)?</summary>
+  <p>Porque um heurístico isolado tem taxa de falso-positivo; exigir dois métodos independentes concordando reduz o risco de apagar código legítimo. Sinal confirmatório (determinístico ou multi-condição) é a exceção que age sozinho.</p></details>
+  <details><summary>Por que quarentena em vez de deletar?</summary>
+  <p>Porque mover é reversível e preserva a evidência para revisão humana; deletar é irreversível. O humano decide restaurar (se foi falso-positivo) ou expurgar.</p></details>
+  <details><summary>O que é o coeficiente de proteção?</summary>
+  <p>A soma das camadas independentes e suas taxonomias (denylist embutida, scanner, visitors, denylists de comando, eBPF). É a medida real de cobertura, e por isso ela não se reduz ao número de visitors.</p></details>
+
+  <h2>Para ir além</h2>
+  <ul>
+    <li><a href="https://csrc.nist.gov/glossary/term/defense_in_depth">NIST, defense in depth</a>.</li>
+    <li><a href="https://owasp.org/www-project-proactive-controls/">OWASP Proactive Controls</a>.</li>
+    <li><a href="https://attack.mitre.org/">MITRE ATT&CK</a> como taxonomia de técnicas.</li>
+  </ul>
+
+  <nav class="pager" aria-label="Navegação entre páginas">
+    <a class="prev" href="8-codigo-malicioso-supply-chain.html"><span class="lbl">Anterior</span><span class="ttl">Código malicioso e supply-chain</span></a>
+    <a class="next" href="10-processo-honestidade.html"><span class="lbl">Próximo</span><span class="ttl">Processo e honestidade</span></a>
+  </nav>
+  <div class="foot"><p>Citações verificadas contra o repositório. <a href="../index.html">Voltar ao índice</a>.</p></div>
+</main>
+
+<aside class="toc" aria-label="Sumário da página">
+  <div class="t">Nesta página</div>
+  <nav id="toc-list"></nav>
+</aside>
+</div>
+</div>
+<script src="../assets/nav.js"></script>
+</body>
+</html>
