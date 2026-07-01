@@ -253,6 +253,7 @@ details p { margin: 8px 0 2px; color: var(--txt-1); }
 /* ---------- SVG diagrams ---------- */
 .diagram { margin: 18px 0; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; overflow-x: auto; }
 .diagram svg { display: block; max-width: 100%; height: auto; }
+.diagram img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
 figcaption { font-size: 12px; color: var(--txt-2); text-align: center; margin-top: 6px; }
 
 /* ---------- Footer ---------- */

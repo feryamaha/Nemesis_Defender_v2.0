@@ -1,0 +1,19 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 50, "rankSpacing": 58}}}%%
+flowchart TB
+subgraph CLASSES["attack classes detected"]
+  direction TB
+  A1["obfuscated execution chain"]
+  A2["remote callback channel"]
+  A3["Unicode obfuscation (homoglyph)"]
+  A4["build-time hook injection"]
+  A5["dormant trigger (time-gated)"]
+end
+CLASSES ==> PR["COEXISTENCE PRINCIPLE<br/>no single signal is conclusive<br/>if the combination is unambiguous"]
+PR ==> SAMPLE["credential access + egress<br/>= data loss chain"]
+
+classDef atk fill:#2a1014,stroke:#ff6b6b,color:#ffd7d7;
+classDef princ fill:#0d1f1d,stroke:#38e1d3,color:#e8edf6;
+classDef sample fill:#2a2410,stroke:#f5b54a,color:#ffeccb;
+class A1,A2,A3,A4,A5 atk;
+class PR princ;
+class SAMPLE sample;

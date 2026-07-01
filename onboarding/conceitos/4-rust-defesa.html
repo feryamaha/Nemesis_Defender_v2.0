@@ -32,6 +32,11 @@
     <p>O projeto é um workspace de crates com a <code>Cargo.lock</code> commitada (build reprodutível). Erros não viram exceções soltas: eu trato com <code>Result</code>/<code>Option</code> e <code>match</code>. Se algo der pânico mesmo assim, um <code>catch_unwind</code> converte em <code>exit 2</code> (fail-closed: na dúvida, bloqueia). O motor de regex é de tempo linear, sem backtracking, então não há ReDoS. E há limites duros (profundidade, tamanho) para o scanner ser determinístico e não travar.</p>
   </div>
 
+  <figure class="diagram">
+    <img src="../diagramas/4-rust-defesa.svg" alt="Um arquivo hostil tenta derrubar o scanner; Rust garante erro tratado como valor, panico convertido em exit 2, regex de tempo linear sem ReDoS e limites de profundidade e tamanho. A ferramenta falha fechada.">
+    <figcaption>Erro tratado, pânico vira <code>exit 2</code>, regex linear, limites duros: a ferramenta falha fechada, nunca aberta.</figcaption>
+  </figure>
+
   <h2>Do zero: o que Rust me dá</h2>
   <p>Rust não tem exceções no estilo "lança e alguém pega lá em cima". O erro é um valor: uma função devolve <code>Result&lt;T, E&gt;</code> (deu certo com <code>T</code> ou falhou com <code>E</code>) ou <code>Option&lt;T&gt;</code> (tem valor ou não tem), e o compilador me obriga a tratar os dois casos. O modelo de <em>ownership</em> garante segurança de memória sem coletor de lixo. Um <em>workspace</em> agrupa vários crates (pacotes) sob uma resolução de dependência única, e a <code>Cargo.lock</code> fixa as versões exatas. <em>Pânico</em> é o aborto controlado de uma thread; <code>catch_unwind</code> permite capturá-lo na fronteira.</p>
 

@@ -1,0 +1,43 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 45, "rankSpacing": 55}}}%%
+flowchart LR
+
+subgraph C1["LAYER 1 · PRETOOL"]
+  direction TB
+  a1["WHEN<br/>pre-execution"]
+  a2["WHERE<br/>userspace · sync"]
+  a3["DOES<br/>scan + exit 2"]
+  a4["CATCHES<br/>hostile action or command"]
+  a1 --- a2 --- a3 --- a4
+end
+
+subgraph C2["LAYER 2 · DAEMON"]
+  direction TB
+  b1["WHEN<br/>post-action · background"]
+  b2["WHERE<br/>userspace · async"]
+  b3["DOES<br/>quarantine file"]
+  b4["CATCHES<br/>malware on disk"]
+  b1 --- b2 --- b3 --- b4
+end
+
+subgraph C3["LAYER 3 · eBPF"]
+  direction TB
+  c1["WHEN<br/>pretool bypassed"]
+  c2["WHERE<br/>kernel · Linux · opt-in"]
+  c3["DOES<br/>deny with -EPERM"]
+  c4["CATCHES<br/>exec + egress"]
+  c1 --- c2 --- c3 --- c4
+end
+
+C1 ==> C2 ==> C3
+
+NOTE["Independent layers: if one fails, the next holds.<br/>L1 and L2 share the engine. Defense = sum of layers."]
+C3 -.-> NOTE
+
+classDef l1 fill:#0d1f1d,stroke:#38e1d3,color:#e8edf6;
+classDef l2 fill:#0e2a1a,stroke:#5fd38a,color:#e8edf6;
+classDef l3 fill:#1e1830,stroke:#b794f6,color:#efe6ff;
+classDef note fill:#0c1019,stroke:#21a99e,color:#b8c4d6;
+class a1,a2,a3,a4 l1;
+class b1,b2,b3,b4 l2;
+class c1,c2,c3,c4 l3;
+class NOTE note;

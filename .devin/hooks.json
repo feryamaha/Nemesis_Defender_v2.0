@@ -1,52 +1,52 @@
-// {
-//   "hooks": {
-//     "pre_write_code": [
-//       {
-//         "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-pretool-check-unix",
-//         "show_output": true
-//       }
-//     ],
-//     "pre_run_command": [
-//       {
-//         "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-pretool-check-unix",
-//         "show_output": true
-//       }
-//     ],
-//     "pre_read_code": [
-//       {
-//         "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-pretool-check-unix",
-//         "show_output": true
-//       }
-//     ],
-//     "pre_mcp_tool_use": [
-//       {
-//         "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-pretool-check-unix",
-//         "show_output": true
-//       }
-//     ],
-//     "post_write_code": [
-//       {
-//         "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-posttool-check-unix",
-//         "show_output": true
-//       }
-//     ],
-//     "post_run_command": [
-//       {
-//         "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-posttool-check-unix",
-//         "show_output": true
-//       }
-//     ],
-//     "post_read_code": [
-//       {
-//         "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-posttool-check-unix",
-//         "show_output": true
-//       }
-//     ],
-//     "post_mcp_tool_use": [
-//       {
-//         "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-posttool-check-unix",
-//         "show_output": true
-//       }
-//     ]
-//   }
-// }
+{
+  "hooks": {
+    "pre_write_code": [
+      {
+        "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-pretool-check-unix",
+        "show_output": true
+      }
+    ],
+    "pre_run_command": [
+      {
+        "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-pretool-check-unix",
+        "show_output": true
+      }
+    ],
+    "pre_read_code": [
+      {
+        "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-pretool-check-unix",
+        "show_output": true
+      }
+    ],
+    "pre_mcp_tool_use": [
+      {
+        "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-pretool-check-unix",
+        "show_output": true
+      }
+    ],
+    "post_write_code": [
+      {
+        "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-posttool-check-unix",
+        "show_output": true
+      }
+    ],
+    "post_run_command": [
+      {
+        "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-posttool-check-unix",
+        "show_output": true
+      }
+    ],
+    "post_read_code": [
+      {
+        "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-posttool-check-unix",
+        "show_output": true
+      }
+    ],
+    "post_mcp_tool_use": [
+      {
+        "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-posttool-check-unix",
+        "show_output": true
+      }
+    ]
+  }
+}

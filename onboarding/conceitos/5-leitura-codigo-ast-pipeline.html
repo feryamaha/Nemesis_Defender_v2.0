@@ -32,6 +32,11 @@
     <p>O <strong>tree-sitter</strong> transforma o código em uma árvore sintática (AST). Eu caminho por essa árvore e, em cada nó, chamo um conjunto de <strong>visitors</strong>, cada visitor é um método que reconhece um padrão semântico. Isso é parte de um <strong>pipeline</strong> em camadas: byte, entropia, regex, manifesto, ide, exfil, AST e por fim o decoder recursivo. A <strong>entropia de Shannon</strong> denuncia strings que parecem payload codificado, e o <strong>taint tracking</strong> liga uma fonte sensível a um sink perigoso dentro do arquivo.</p>
   </div>
 
+  <figure class="diagram">
+    <img src="../diagramas/5-leitura-codigo-ast-pipeline.svg" alt="O conteudo passa por um pipeline do mais barato ao mais caro: byte/Unicode, entropia, regex, manifesto, config de IDE, cadeia de exfil, AST com visitors e por fim o decoder que revela o escondido e reescaneia; o resultado e a severidade.">
+    <figcaption>Pipeline do mais barato ao mais caro; o decoder reescaneia o que estava escondido. O taint liga fonte a destino perigoso.</figcaption>
+  </figure>
+
   <h2>Do zero: AST, Visitor e pipeline</h2>
   <p>Um analisador léxico quebra o texto em tokens; o parser monta com eles uma <strong>árvore sintática abstrata</strong>, onde cada nó é uma construção da linguagem (uma chamada de função, uma string, uma atribuição). Visitar a AST é percorrer essa árvore aplicando uma função a cada nó: é o <strong>padrão Visitor</strong>. Importante: o visitor é um <em>método de detecção</em>, não uma unidade de cobertura. <strong>Entropia</strong> mede imprevisibilidade; texto natural e código têm entropia média, dado comprimido ou cifrado tem entropia alta. <strong>Taint tracking</strong> é análise de fluxo: marca valores que vêm de uma fonte não-confiável e vê se eles chegam a um ponto perigoso.</p>
 

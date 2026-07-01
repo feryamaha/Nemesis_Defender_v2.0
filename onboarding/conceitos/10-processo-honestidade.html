@@ -32,6 +32,11 @@
     <p>Eu declaro os não-objetivos e o risco residual (a conta do mantenedor, o problema do <em>trusting-trust</em>: um scanner não detecta backdoor em si mesmo). Contra isso: o <strong>self-audit</strong> roda o pentest como gate de CI mais <code>cargo audit</code> e exige <code>Cargo.lock</code>; o <strong>release</strong> separa build de publicação, exige reviewer e anexa proveniência <strong>SLSA</strong>; o <strong>CODEOWNERS</strong> trava os caminhos críticos. O <strong>nemesis-doctor</strong> dá o quadro da postura por grupos de checagem, e o <strong>red-team</strong> (pentest) prova que o motor ainda detecta.</p>
   </div>
 
+  <figure class="diagram">
+    <img src="../diagramas/10-processo-honestidade.svg" alt="O threat model declara o que protege e os limites (risco residual trusting-trust); o CI vira gate com self-audit (pentest, auditoria de dependencia, lockfile), release com revisor e prova de origem SLSA, e CODEOWNERS; o doctor da observabilidade e o red-team prova que o motor detecta.">
+    <figcaption>Threat model honesto; CI vira gate (self-audit, SLSA, CODEOWNERS); o doctor observa; o red-team valida.</figcaption>
+  </figure>
+
   <h2>Do zero: os conceitos de processo</h2>
   <p><strong>Threat model</strong> é declarar o que você defende, contra quem, e o que está fora de escopo, honestidade sobre limites vale mais que promessa de segurança total. <strong>DevSecOps</strong> é embutir segurança na esteira de build, não depois. <strong>SLSA</strong> é um framework de integridade da cadeia: a <em>attestation</em> de proveniência prova que um artefato veio de um repo/commit/workflow específico. <strong>CODEOWNERS</strong> exige revisão de dono nos arquivos sensíveis. <strong>Red-teaming</strong> é atacar o próprio sistema de propósito para validar a defesa. O <strong>doctor</strong> é a observabilidade: um diagnóstico que reporta o estado real de cada camada.</p>
 

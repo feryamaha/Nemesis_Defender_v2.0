@@ -32,6 +32,11 @@
     <p>Quando um programa vai ser executado, o kernel passa por um ponto de verificação chamado <code>bprm_check_security</code>. Eu pendurei ali um programa eBPF: ele olha o nome do binário, confere numa tabela de comandos bloqueados e, se bater, devolve <code>-EPERM</code>, o exec não acontece. eBPF é código que roda dentro do kernel mas passa antes por um <em>verifier</em> que prova que ele não trava nem acessa memória inválida. O LSM (Linux Security Modules) é a moldura de ganchos de segurança do kernel onde eu encaixo essa decisão.</p>
   </div>
 
+  <figure class="diagram">
+    <img src="../diagramas/2-kernel-ebpf-lsm.svg" alt="No userspace o agente tenta executar um binario; a chamada passa pelo ponto bprm_check_security no kernel; um programa eBPF verificado consulta a tabela de comandos bloqueados e nega com -EPERM se bater.">
+    <figcaption>Toda execução passa pelo ponto <code>bprm_check_security</code> no kernel; o eBPF consulta a tabela e nega com <code>-EPERM</code>.</figcaption>
+  </figure>
+
   <h2>Do zero: userspace, kernel e a syscall</h2>
   <p>O sistema roda em dois mundos. O <strong>userspace</strong> é onde vivem os programas comuns; o <strong>kernel</strong> é o núcleo privilegiado que controla CPU, memória, disco e rede. Um programa não toca o hardware direto: ele faz uma <em>syscall</em>, um pedido formal ao kernel ("execute este binário", "abra este socket"). Executar um programa passa por uma syscall da família <code>execve</code>, e dentro do kernel esse caminho cruza o gancho <code>bprm_check_security</code> (de <em>binary parameters</em>): o último ponto onde a política de segurança pode aprovar ou vetar o exec antes de a imagem do novo programa assumir.</p>
 

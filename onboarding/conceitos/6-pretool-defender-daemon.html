@@ -32,6 +32,11 @@
     <p>O <strong>pretool</strong> é um hook síncrono e fail-closed: a IDE o chama antes de cada ação do agente, ele traduz o pedido e passa o conteúdo ao motor. O <strong>nemesis-defender</strong> é esse motor: a função <code>compute_severity</code>, pura, decide Clean / Suspicious / Malicious. O <strong>daemon</strong> é um processo que roda em background, desacoplado do shell, observando o filesystem; quando confirma hostilidade, ele <em>move</em> o arquivo para a quarentena (não deleta) e trava a sessão para revisão humana.</p>
   </div>
 
+  <figure class="diagram">
+    <img src="../diagramas/6-pretool-defender-daemon.svg" alt="O pretool (hook de vida curta, antes de executar) e o daemon (servico que vigia o disco) usam o mesmo motor compute_severity; o pretool barra a escrita com exit 2, o daemon move o malicioso ja no disco para quarentena, e o humano decide.">
+    <figcaption>Pretool (antes, hook) e daemon (depois, serviço) usam o mesmo motor; barrar é reversível, por isso o daemon move, não deleta.</figcaption>
+  </figure>
+
   <h2>Do zero: o que é um daemon</h2>
   <p>Um <strong>daemon</strong> é um processo que roda continuamente em segundo plano, sem terminal nem interação direta, normalmente iniciado uma vez e vivo enquanto o serviço existir. Ele é <em>desacoplado</em> do PID do shell que o lançou: fecha-se o terminal e ele continua. É o oposto de um hook, que nasce, decide e morre a cada invocação. O pretool é hook (vida curta, write-time, síncrono); o defender-daemon é serviço (vida longa, observando eventos de arquivo). Essa diferença de natureza é o que permite as duas cobrirem janelas de tempo diferentes.</p>
 

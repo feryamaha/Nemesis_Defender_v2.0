@@ -32,6 +32,11 @@
     <p>Eu não quero bloquear o sistema inteiro, só o agente. Por isso o programa eBPF só age sobre processos do <strong>cgroup</strong> do agente. Para o próprio Nemesis rodar com pouco poder, uso o <strong>Landlock</strong>, que restringe o que o processo pode executar e tocar sem precisar de root, ligando <code>no_new_privs</code> antes. E para impedir que dados saiam, mantenho uma <strong>allowlist de egress</strong>: por padrão nega tudo, só passa o que está explicitamente liberado.</p>
   </div>
 
+  <figure class="diagram">
+    <img src="../diagramas/3-confinamento-kernel-egress.svg" alt="O cgroup do agente identifica quem e o agente e restringe o bloqueio de execucao e o controle de egress a ele; a allowlist de egress nega saida por padrao; o Landlock faz o Nemesis rodar sem root.">
+    <figcaption>O cgroup restringe ao agente; a allowlist de egress nega saída por padrão; o Landlock roda sem root.</figcaption>
+  </figure>
+
   <h2>Do zero: os três mecanismos</h2>
   <p><strong>Capabilities</strong> quebram o poder do root em pedaços: em vez de "tudo ou nada", um processo recebe só a capacidade de que precisa. <strong>cgroups</strong> (control groups) agrupam processos para a contabilidade e o controle do kernel; cada grupo tem um identificador, o <code>cgroup_id</code>, e é por ele que eu sei "este processo é do agente". <strong>Landlock</strong> é um LSM que deixa um processo comum se autolimitar (sandbox sem privilégio): ele declara o que pode fazer e o kernel passa a recusar o resto, inclusive para os filhos. <strong>Egress</strong> é o tráfego de saída; controlá-lo é decidir para onde o processo pode abrir conexão.</p>
 

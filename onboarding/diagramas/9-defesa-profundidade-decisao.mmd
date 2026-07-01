@@ -1,0 +1,25 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 50, "rankSpacing": 58}}}%%
+flowchart TB
+IND["3 independent layers: pretool · daemon · eBPF<br/>if one fails, the next holds"]
+IND ==> DEC
+subgraph DEC["decision by corroboration"]
+  direction TB
+  TA["confirmatory signal (Tier A)<br/>1 confirms"] ==> MAL["Malicious"]
+  TB2["heuristic signal (Tier B)"] ==>|"1 type"| SUS["Suspicious<br/>log + keep"]
+  TB2 ==>|"2+ types"| MAL
+end
+MAL ==> QR["reversible quarantine<br/>move · human decides"]
+QR -.-> COEF["Protection = sum of layers (coefficient)"]
+
+classDef ind fill:#1e1830,stroke:#b794f6,color:#efe6ff;
+classDef step fill:#121826,stroke:#38e1d3,color:#e8edf6;
+classDef mal fill:#2a1014,stroke:#ff6b6b,color:#ffd7d7;
+classDef sus fill:#2a2410,stroke:#f5b54a,color:#ffeccb;
+classDef qz fill:#0e2a1a,stroke:#5fd38a,color:#d7ffe6;
+classDef note fill:#0c1019,stroke:#21a99e,color:#b8c4d6;
+class IND ind;
+class TA,TB2 step;
+class MAL mal;
+class SUS sus;
+class QR qz;
+class COEF note;

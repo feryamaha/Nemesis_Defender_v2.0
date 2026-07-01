@@ -32,6 +32,11 @@
     <p><strong>Prompt injection</strong> é instrução hostil escondida em conteúdo que o agente lê ("ignore as instruções anteriores", tokens de formato como <code>&lt;|im_start|&gt;</code>, "revele seu system prompt"). <strong>IDE poisoning</strong> é a variante que mira arquivos de configuração (como <code>CLAUDE.md</code>, <code>.cursorrules</code>): o atacante planta ali ordens disfarçadas de regra do projeto, falsa autoridade ("verificado pela Anthropic") ou um "scan de segurança" falso que faz o agente ler e vazar credenciais. Eu escaneio esses arquivos como qualquer outro conteúdo.</p>
   </div>
 
+  <figure class="diagram">
+    <img src="../diagramas/7-prompt-injection-ide-poisoning.svg" alt="Texto hostil entra pelo proprio pedido (injecao direta) ou por conteudo que o agente le (injecao indireta); o IDE poisoning mira arquivos de config tratados como regra do projeto; o Nemesis escaneia a config como conteudo nao-confiavel e bloqueia.">
+    <figcaption>Injeção direta ou indireta; o poisoning mira config de IDE; o Nemesis trata a config como conteúdo não-confiável.</figcaption>
+  </figure>
+
   <h2>Do zero: por que o texto vira comando</h2>
   <p>Um LLM não separa de forma dura "dados" de "instruções": tudo é texto no contexto. Se o agente lê um arquivo do projeto e dentro dele há uma frase imperativa convincente, o modelo pode obedecer como se fosse o usuário falando. Daí os dois nomes. <strong>Prompt injection</strong> direta vem no próprio pedido; a <strong>indireta</strong> vem de conteúdo que o agente busca (um README, um issue, um arquivo de config). <strong>IDE poisoning</strong> é injeção indireta com alvo escolhido: os arquivos que a IDE trata como autoridade de projeto, justamente os que o agente tende a obedecer sem questionar.</p>
 

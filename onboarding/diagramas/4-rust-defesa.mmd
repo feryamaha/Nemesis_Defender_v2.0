@@ -1,0 +1,16 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 50, "rankSpacing": 58}}}%%
+flowchart TB
+IN["Hostile file targets the scanner"] ==> R{"Rust guarantees"}
+R ==>|"error"| E1["error-as-value<br/>no unchecked exceptions"]
+R ==>|"panic"| E2["catch_unwind to exit 2"]
+R ==>|"regex"| E3["linear-time engine<br/>no ReDoS"]
+R ==>|"nested payload"| E4["depth + size limits"]
+E1 ==> FC["FAIL-CLOSED<br/>deny on doubt, never open"]
+E2 ==> FC
+E3 ==> FC
+E4 ==> FC
+
+classDef step fill:#121826,stroke:#38e1d3,color:#e8edf6;
+classDef fc fill:#0e2a1a,stroke:#5fd38a,color:#d7ffe6;
+class IN,R,E1,E2,E3,E4 step;
+class FC fc;

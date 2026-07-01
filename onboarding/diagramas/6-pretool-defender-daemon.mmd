@@ -1,0 +1,22 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 50, "rankSpacing": 58}}}%%
+flowchart TB
+AG["Agent action"] ==> PT["PRETOOL<br/>hook · pre-execution"]
+PT ==> M["compute_severity<br/>Clean / Suspicious / Malicious"]
+DA["DAEMON<br/>background fs watcher"] ==> M
+M ==>|"hostile at write-time"| B["exit 2<br/>block write (reversible)"]
+M ==>|"malicious on disk"| QA["move to quarantine"]
+QA ==> HU["human decides"]
+M -.-> N["Same engine. Reversible, so it quarantines, not deletes."]
+
+classDef step fill:#121826,stroke:#38e1d3,color:#e8edf6;
+classDef mot fill:#0d1f1d,stroke:#38e1d3,color:#e8edf6;
+classDef blk fill:#2a1014,stroke:#ff6b6b,color:#ffd7d7;
+classDef qz fill:#2a2410,stroke:#f5b54a,color:#ffeccb;
+classDef hum fill:#1e1830,stroke:#b794f6,color:#efe6ff;
+classDef note fill:#0c1019,stroke:#21a99e,color:#b8c4d6;
+class AG,PT,DA step;
+class M mot;
+class B blk;
+class QA qz;
+class HU hum;
+class N note;

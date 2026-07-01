@@ -32,6 +32,11 @@
     <p>Três camadas independentes: pretool (write-time), daemon (filesystem) e eBPF (backstop de kernel no Linux). A decisão usa corroboração: um sinal confirmatório (Tier A) basta; sinais heurísticos (Tier B) precisam de dois tipos distintos para confirmar, senão ficam como Suspicious (logado, mantido). Quando confirma, o daemon move para a quarentena (reversível), não deleta. E a proteção total é a soma das camadas, o coeficiente, não a contagem de uma feature.</p>
   </div>
 
+  <figure class="diagram">
+    <img src="../diagramas/9-defesa-profundidade-decisao.svg" alt="Tres camadas independentes (pretool, daemon, eBPF); a decisao usa corroboracao: um sinal confirmatorio (Tier A) basta, um heuristico (Tier B) precisa de dois tipos distintos, senao fica Suspicious; ao confirmar, quarentena reversivel; protecao e a soma das camadas, o coeficiente.">
+    <figcaption>3 camadas independentes; decisão por corroboração; quarentena reversível; proteção = soma das camadas (o coeficiente).</figcaption>
+  </figure>
+
   <h2>Do zero: defense-in-depth e modelo de confiança</h2>
   <p><strong>Defesa em profundidade</strong> é não depender de uma só barreira: se uma falha, a próxima ainda contém. <strong>Corroboração</strong> é exigir mais de uma evidência independente antes de uma ação cara: na medicina, dois exames; aqui, dois métodos de detecção distintos. <strong>Reversibilidade</strong> é preferir a ação que dá para desfazer: bloquear uma escrita ou mover um arquivo se desfaz; deletar não. Esses três princípios existem para resolver a tensão central de uma ferramenta de segurança: ser dura com o ataque sem destruir o trabalho legítimo do usuário.</p>
 

@@ -1,0 +1,21 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 50, "rankSpacing": 58}}}%%
+flowchart TB
+TM["THREAT MODEL<br/>scope + limits<br/>residual risk: trusting-trust"]
+TM ==> GATE
+subgraph GATE["CI as gate (DevSecOps)"]
+  direction TB
+  SA["self-audit<br/>pentest + cargo audit + lockfile"]
+  RE["release<br/>SLSA provenance + reviewer"]
+  CO["CODEOWNERS<br/>human review on critical paths"]
+end
+GATE ==> DOC["nemesis-doctor<br/>observability per layer"]
+DOC ==> RT["red-team<br/>proves the engine still detects"]
+
+classDef step fill:#121826,stroke:#38e1d3,color:#e8edf6;
+classDef tm fill:#1e1830,stroke:#b794f6,color:#efe6ff;
+classDef doc fill:#0d1f1d,stroke:#38e1d3,color:#e8edf6;
+classDef rt fill:#0e2a1a,stroke:#5fd38a,color:#d7ffe6;
+class TM tm;
+class SA,RE,CO step;
+class DOC doc;
+class RT rt;

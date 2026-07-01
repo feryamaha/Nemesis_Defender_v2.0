@@ -1,0 +1,19 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 40, "rankSpacing": 50}}}%%
+flowchart LR
+C["File content"] ==> P1["byte / Unicode"]
+P1 ==> P2["entropy (Shannon)"]
+P2 ==> P3["regex (denylist)"]
+P3 ==> P4["manifest"]
+P4 ==> P5["IDE config"]
+P5 ==> P6["exfil chain"]
+P6 ==> P7["AST visitors<br/>supported langs"]
+P7 ==> P8["recursive decoder<br/>reveal + rescan"]
+P8 ==> SEV["severity"]
+SEV -.-> N["Cheap to expensive. Taint links source to sink."]
+
+classDef step fill:#121826,stroke:#38e1d3,color:#e8edf6;
+classDef out fill:#2a2410,stroke:#f5b54a,color:#ffeccb;
+classDef note fill:#0c1019,stroke:#21a99e,color:#b8c4d6;
+class C,P1,P2,P3,P4,P5,P6,P7,P8 step;
+class SEV out;
+class N note;

@@ -1,0 +1,16 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 50, "rankSpacing": 58}}}%%
+flowchart LR
+A["Agent requests action"] ==> H["Pretool hook<br/>reads request via stdin (JSON)"]
+H ==> D{"hostile?"}
+D ==>|"no"| Z["exit 0<br/>IDE ALLOWS"]
+D ==>|"yes"| T["exit 2<br/>IDE CANCELS"]
+T -.-> N["Exit code delivered by the kernel.<br/>Deterministic: the agent cannot argue."]
+
+classDef ok fill:#0e2a1a,stroke:#5fd38a,color:#d7ffe6;
+classDef blk fill:#2a1014,stroke:#ff6b6b,color:#ffd7d7;
+classDef step fill:#121826,stroke:#38e1d3,color:#e8edf6;
+classDef note fill:#0c1019,stroke:#21a99e,color:#b8c4d6;
+class A,H,D step;
+class Z ok;
+class T blk;
+class N note;

@@ -1,26 +1,26 @@
 {
-  // "hooks": {
-  //   "PreToolUse": [
-  //     {
-  //       "matcher": "Read|Write|Edit|MultiEdit|Bash|NotebookEdit",
-  //       "hooks": [
-  //         {
-  //           "type": "command",
-  //           "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-pretool-check-unix"
-  //         }
-  //       ]
-  //     }
-  //   ],
-  //   "PostToolUse": [
-  //     {
-  //       "matcher": "Read|Write|Edit|MultiEdit|Bash|NotebookEdit",
-  //       "hooks": [
-  //         {
-  //           "type": "command",
-  //           "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-posttool-check-unix"
-  //         }
-  //       ]
-  //     }
-  //   ]
-  // }
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Write|Edit|MultiEdit|Bash|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-pretool-check-unix"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read|Write|Edit|MultiEdit|Bash|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/fernando/devproj/Nemesis_Defender_v0/.nemesis/target/release/nemesis-posttool-check-unix"
+          }
+        ]
+      }
+    ]
+  }
 }

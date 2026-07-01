@@ -1,0 +1,38 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 50, "rankSpacing": 58}}}%%
+flowchart TB
+
+AG["AI AGENT<br/>Claude · Cursor · Codex · Devin"]
+AG ==> ACT{{"Agent action:<br/>file write or shell command"}}
+
+ACT ==> P["LAYER 1 · PRETOOL HOOK<br/>intercept before execution"]
+P ==> ENG["scan_content engine<br/>content + command analysis"]
+ENG ==> SEV{"hostile?"}
+
+SEV ==>|"no"| OK["ALLOW<br/>action proceeds"]
+SEV ==>|"yes"| BLK["BLOCK<br/>exit 2 · no execution"]
+
+BLK -. "reached disk" .-> DM["LAYER 2 · DAEMON<br/>filesystem watcher"]
+DM ==> Q["QUARANTINE<br/>isolate file · no delete"]
+Q ==> HUM["human decides<br/>restore or purge"]
+
+ACT -. "Linux · parallel" .-> K["LAYER 3 · eBPF (kernel)<br/>backstop if pretool bypassed"]
+K ==> EP["BLOCK in kernel<br/>-EPERM"]
+
+OK ==> LOG["local-only log<br/>nothing leaves the host"]
+BLK ==> LOG
+EP ==> LOG
+
+classDef ag fill:#0d1424,stroke:#5aa9ff,color:#e8edf6;
+classDef step fill:#121826,stroke:#38e1d3,color:#e8edf6;
+classDef ok fill:#0e2a1a,stroke:#5fd38a,color:#d7ffe6;
+classDef blk fill:#2a1014,stroke:#ff6b6b,color:#ffd7d7;
+classDef qz fill:#2a2410,stroke:#f5b54a,color:#ffeccb;
+classDef hum fill:#1e1830,stroke:#b794f6,color:#efe6ff;
+classDef log fill:#121826,stroke:#21a99e,color:#cfe;
+class AG ag;
+class ACT,P,ENG,SEV,DM,K step;
+class OK ok;
+class BLK,EP blk;
+class Q qz;
+class HUM hum;
+class LOG log;

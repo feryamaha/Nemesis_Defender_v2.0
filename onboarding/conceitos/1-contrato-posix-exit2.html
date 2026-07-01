@@ -32,6 +32,11 @@
     <p>Todo processo Unix termina devolvendo um inteiro ao pai: o <em>exit code</em>. Zero é sucesso, diferente de zero é falha. As IDEs de agente combinaram que, no hook que roda antes da ação, sair com <code>exit 2</code> significa "bloqueie esta ação". Então eu leio o pedido do agente pela entrada padrão (stdin), decido, e quando é hostil eu chamo <code>exit(2)</code>. É determinístico: não é um pedido, é o fim do processo com um veredito.</p>
   </div>
 
+  <figure class="diagram">
+    <img src="../diagramas/1-contrato-posix-exit2.svg" alt="O agente pede uma acao; o hook pretool le pelo stdin e decide; o processo termina com 0 (a IDE permite) ou 2 (a IDE cancela). O numero e entregue pelo kernel, o agente nao tem como discutir.">
+    <figcaption>O agente pede, o hook decide, o processo termina com 0 (permite) ou 2 (cancela). O número vem do kernel.</figcaption>
+  </figure>
+
   <h2>Do zero: de onde vem o exit code</h2>
   <p>No modelo POSIX, um processo é criado por <code>fork</code>/<code>exec</code> e, quando morre, entrega ao processo pai um status via <code>wait</code>. Desse status o pai lê um byte: o código de saída. A convenção é antiga e universal: <code>0</code> quer dizer "deu certo", qualquer valor de <code>1</code> a <code>255</code> quer dizer "deu errado", e cada programa pode atribuir significados aos códigos diferentes de zero. O agente conversa com o hook por três descritores padrão: entrada (stdin), saída (stdout) e erro (stderr). O hook recebe o pedido em stdin como JSON, processa, e o que importa para a decisão não é o que ele imprime, e sim com qual número ele termina.</p>
 

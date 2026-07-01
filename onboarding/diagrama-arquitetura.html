@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquitetura do sistema · Nemesis Defender</title>
+<meta name="description" content="Como o Nemesis Defender funciona: intercepta a acao do agente LLM antes de executar e nega o hostil, em 3 camadas independentes. Diagramas consumidos da pasta diagramas/.">
+<style>
+  /* ============================================================
+     PAGINA AUTONOMA: estilos base inlinados (antes em assets/estilo.css).
+     Esta pagina nao depende de nenhum arquivo externo: abra offline.
+     ============================================================ */
+  :root {
+    --bg-0: #07090f; --bg-1: #0c1019; --bg-2: #121826; --bg-3: #18202f;
+    --border: #243043; --border-soft: #1b2433;
+    --txt-0: #e8edf6; --txt-1: #b8c4d6; --txt-2: #8595ab;
+    --cyan: #38e1d3; --cyan-dim: #21a99e; --blue: #5aa9ff; --amber: #f5b54a;
+    --red: #ff6b6b; --green: #5fd38a; --violet: #b794f6;
+    --radius: 10px;
+    --mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --maxw: 1180px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 700px at 80% -10%, #0e1626 0%, var(--bg-0) 55%) fixed;
+    color: var(--txt-1); font-family: var(--sans); font-size: 16px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased; max-width: 100%;
+  }
+  a { color: var(--cyan); text-decoration: none; }
+  a:hover { color: #6ff3e8; text-decoration: underline; }
+  a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 4px; }
+  .topbar {
+    position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 16px;
+    flex-wrap: wrap; row-gap: 6px; padding: 12px 22px;
+    background: rgba(7,9,15,.86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+  }
+  .topbar .brand { font-family: var(--mono); font-weight: 700; letter-spacing: .5px; color: var(--txt-0); font-size: 15px; white-space: nowrap; }
+  .topbar .brand b { color: var(--cyan); }
+  .topbar nav { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; }
+  .topbar nav a { color: var(--txt-2); }
+  .topbar nav a:hover { color: var(--cyan); text-decoration: none; }
+  .topbar .spacer { flex: 1; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 26px 22px 90px; }
+  main { min-width: 0; }
+  h1 { font-size: clamp(26px, 4vw, 38px); line-height: 1.15; color: var(--txt-0); margin: 0 0 10px; font-weight: 700; letter-spacing: -.4px; }
+  .lede { font-size: 18px; color: var(--txt-1); margin: 0 0 8px; }
+  p { margin: 12px 0; overflow-wrap: anywhere; }
+  code { font-family: var(--mono); font-size: .92em; }
+  :not(pre) > code { background: var(--bg-3); color: var(--cyan); padding: 1px 6px; border-radius: 5px; border: 1px solid var(--border-soft); font-size: .88em; }
+  .card { background: linear-gradient(180deg, var(--bg-1), var(--bg-0)); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin: 16px 0; }
+  .hero { background: linear-gradient(135deg, #0d1424, #07090f 70%); border: 1px solid var(--border); border-radius: 16px; padding: 34px 30px; margin-bottom: 28px; }
+  .hero h1 { margin-bottom: 8px; }
+  .hero p { color: var(--txt-1); max-width: 70ch; }
+  .muted { color: var(--txt-2); }
+  .diagram { margin: 18px 0; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; overflow-x: auto; }
+  .diagram svg { display: block; max-width: 100%; height: auto; }
+  figcaption { font-size: 12px; color: var(--txt-2); text-align: center; margin-top: 6px; }
+  .foot { margin-top: 60px; border-top: 1px solid var(--border); padding-top: 18px; font-size: 13px; color: var(--txt-2); }
+  .skip-link { position: absolute; left: -999px; }
+  .skip-link:focus { left: 12px; top: 10px; background: var(--cyan); color: #04201d; padding: 8px 14px; border-radius: 6px; z-index: 100; }
+  @media (max-width: 760px) {
+    body { font-size: 15px; }
+    .wrap { padding: 18px 14px 70px; }
+    .hero { padding: 22px 18px; border-radius: 12px; }
+    h1 { font-size: clamp(22px, 7vw, 30px); }
+    .diagram { padding: 8px; }
+  }
+  @media (max-width: 460px) {
+    .topbar { padding: 10px 14px; gap: 10px; }
+    .topbar nav { gap: 10px; font-size: 13px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+
+  /* Diagramas consumidos da pasta diagramas/ (SVG pre-renderizado, offline) */
+  .diagram img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  .sec-title { font-size: 20px; color: var(--txt-0); font-weight: 600; margin: 28px 0 4px; }
+  .sec-sub { color: var(--txt-2); margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<header class="topbar">
+  <span class="brand">NEMESIS · <b>arquitetura do sistema</b></span>
+</header>
+
+<div class="wrap">
+<main id="main">
+
+  <section class="hero">
+    <h1>Arquitetura do sistema</h1>
+    <p class="lede">O Nemesis intercepta a ação de um agente de IA <strong>antes</strong> de ela executar e nega o que é destrutivo ou malicioso.</p>
+    <p class="muted">Instrução no prompt é probabilística (o agente pode ignorar); enforcement por <code>exit 2</code> é determinístico. São três camadas independentes. Tudo 100% local.</p>
+  </section>
+
+  <section class="card">
+    <p class="sec-title">O fluxo, do início ao fim</p>
+    <p class="sec-sub">Da ação do agente até permitir, bloquear ou colocar em quarentena.</p>
+    <figure class="diagram">
+      <img src="diagramas/fluxo.svg" alt="Fluxo do Nemesis: o agente de IA tenta uma acao; a camada 1 (pretool) intercepta antes de executar e bloqueia o hostil com exit 2; a camada 2 (daemon) isola em quarentena o que escapou para o disco; a camada 3 (eBPF, no kernel) e a rede de seguranca; tudo e registrado localmente.">
+      <figcaption>Camada 1 bloqueia antes de executar (exit 2). Camada 2 isola o que escapou (quarentena). Camada 3 segura no kernel se o pretool cair (-EPERM).</figcaption>
+    </figure>
+  </section>
+
+  <section class="card">
+    <p class="sec-title">As três camadas, lado a lado</p>
+    <p class="sec-sub">Quando cada uma age, onde, o que faz e o que pega. São independentes: se uma falha, a próxima segura.</p>
+    <figure class="diagram">
+      <img src="diagramas/tres-camadas.svg" alt="Comparacao das tres camadas: camada 1 pretool age antes de executar, em userspace sincrono, escaneia e nega com exit 2; camada 2 daemon age depois, assincrono, isola arquivos em quarentena; camada 3 eBPF age no kernel se o pretool foi contornado, negando com -EPERM. As camadas sao independentes e a protecao e a soma delas.">
+      <figcaption>As camadas 1 e 2 usam o mesmo motor de análise. A proteção é a soma das camadas, não a contagem de uma feature.</figcaption>
+    </figure>
+  </section>
+
+  <section class="card">
+    <p class="sec-title">Os conceitos, um a um</p>
+    <p class="sec-sub">Os mesmos diagramas que o onboarding consome em cada página de conceito estão na pasta <code>diagramas/</code>.</p>
+    <figure class="diagram">
+      <img src="diagramas/9-defesa-profundidade-decisao.svg" alt="Tres camadas independentes; decisao por corroboracao (um sinal confirmatorio basta, um heuristico precisa de dois tipos); quarentena reversivel; protecao e a soma das camadas.">
+      <figcaption>Decisão e defesa em profundidade. Cada conceito do onboarding tem seu próprio diagrama em <code>diagramas/</code>.</figcaption>
+    </figure>
+  </section>
+
+</main>
+</div>
+</body>
+</html>

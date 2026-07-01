@@ -1,0 +1,16 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 50, "rankSpacing": 58}}}%%
+flowchart TB
+ATK["Hostile text hidden in content<br/>(for an LLM, all context is text)"] ==> T{"entry point?"}
+T ==>|"user request"| DIR["direct injection"]
+T ==>|"content the agent reads"| IND["indirect injection"]
+IND ==> POI["IDE POISONING<br/>config file as project rule:<br/>fake authority · fake scan"]
+DIR ==> NEM
+POI ==> NEM["Nemesis scans config as<br/>untrusted content · never exempt"]
+NEM ==> BLK["flag + block"]
+
+classDef step fill:#121826,stroke:#38e1d3,color:#e8edf6;
+classDef atk fill:#2a1014,stroke:#ff6b6b,color:#ffd7d7;
+classDef nem fill:#0d1f1d,stroke:#38e1d3,color:#e8edf6;
+class ATK,DIR,IND,POI,T step;
+class NEM nem;
+class BLK atk;

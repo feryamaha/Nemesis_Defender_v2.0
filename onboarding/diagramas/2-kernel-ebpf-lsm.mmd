@@ -1,0 +1,20 @@
+%%{init: {"theme":"dark", "flowchart": {"htmlLabels": true, "curve": "basis", "padding": 18, "nodeSpacing": 50, "rankSpacing": 58}}}%%
+flowchart TB
+U["USERSPACE<br/>agent tries to exec a binary"] ==> SC["execve syscall"]
+SC ==> HK["KERNEL · LSM hook<br/>bprm_check_security"]
+HK ==> BPF["eBPF program<br/>verified before load (safe)"]
+BPF ==> Q{"binary in blocklist?"}
+Q ==>|"no"| OK["allow exec"]
+Q ==>|"yes"| EP["-EPERM<br/>exec denied"]
+EP -.-> N["Backstop: works even if the IDE skips the hook"]
+
+classDef ok fill:#0e2a1a,stroke:#5fd38a,color:#d7ffe6;
+classDef blk fill:#2a1014,stroke:#ff6b6b,color:#ffd7d7;
+classDef step fill:#121826,stroke:#38e1d3,color:#e8edf6;
+classDef kern fill:#1e1830,stroke:#b794f6,color:#efe6ff;
+classDef note fill:#0c1019,stroke:#21a99e,color:#b8c4d6;
+class U,SC step;
+class HK,BPF,Q kern;
+class OK ok;
+class EP blk;
+class N note;

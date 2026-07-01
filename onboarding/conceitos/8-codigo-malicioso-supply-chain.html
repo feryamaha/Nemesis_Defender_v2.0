@@ -32,6 +32,11 @@
     <p>Um payload é escondido dentro de uma string codificada e executado em runtime (decode → exec); eu decodifico e reescaneio. Comandos são montados em pedaços (dynamic command) ou shells reversos abrem canal de volta ao atacante. A evasão tenta se apagar (self-clean), esperar uma data (time-gated) ou usar caracteres Unicode invisíveis para enganar o leitor humano (Trojan Source). No manifesto, scripts de <code>postinstall</code> e <code>build.rs</code> rodam código na instalação. E credencial lida mais canal de rede no mesmo arquivo é cadeia de exfiltração.</p>
   </div>
 
+  <figure class="diagram">
+    <img src="../diagramas/8-codigo-malicioso-supply-chain.svg" alt="Classes de ataque reconhecidas (payload codificado que vira execucao, shell reverso, esteganografia Unicode, scripts que rodam na instalacao, apagar rastro ou gatilho por data) e o principio da coexistencia: fonte sensivel somada a canal de saida ja e hostil.">
+    <figcaption>Classes de ataque reconhecidas e o princípio da coexistência: fonte sensível somada a canal de saída já é hostil.</figcaption>
+  </figure>
+
   <h2>Do zero: as classes de ataque</h2>
   <p><strong>Decode → exec:</strong> o código real vem em base64/hex/charCode e só existe depois de decodificado, para escapar da análise estática. <strong>Reverse shell:</strong> a vítima conecta de volta ao atacante e entrega um shell. <strong>Self-clean:</strong> o script se apaga após rodar, destruindo evidência. <strong>Time-gated:</strong> o gatilho é uma data ou versão, fica dormente até a hora. <strong>Esteganografia Unicode / Trojan Source (CVE-2021-42574):</strong> caracteres de controle bidirecional reordenam o que o compilador executa versus o que o humano lê. <strong>Abuso de manifesto:</strong> hooks de ciclo de vida (<code>postinstall</code>, <code>preinstall</code>, <code>build.rs</code>) executam na instalação; some-se typosquatting e redirect de registry. <strong>Credential harvest + exfil:</strong> ler segredo e mandar para fora.</p>
 
